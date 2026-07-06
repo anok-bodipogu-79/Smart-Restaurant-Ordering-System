@@ -1,0 +1,86 @@
+{% extends "restaurant/base.html" %}
+{% load static %}
+
+{% block title %}Your Shopping Cart{% endblock %}
+
+{% block content %}
+<div class="container">
+    
+    <!-- Cart Header -->
+    <div class="mb-5">
+        <h1 class="display-4 fw-bold text-dark header-title mb-2">Shopping Cart</h1>
+        <p class="text-muted mb-0">Review and adjust your selected culinary items before proceeding.</p>
+        <div class="title-underline ms-0 mt-3"></div>
+    </div>
+
+    <!-- Empty Cart State -->
+    <div id="empty-cart" class="d-none text-center py-5">
+        <div class="empty-state-container py-5">
+            <i class="bi bi-cart-x fs-1 text-muted mb-3 d-block"></i>
+            <h3 class="fw-bold text-dark">Your Cart is Empty</h3>
+            <p class="text-muted mb-4">You haven't added any culinary items to your cart yet.</p>
+            <a href="{% url 'restaurant:menu' %}" class="btn btn-accent px-4 py-2">
+                <i class="bi bi-arrow-left me-2"></i>Browse Menu
+            </a>
+        </div>
+    </div>
+
+    <!-- Active Cart Layout -->
+    <div id="cart-summary" class="row g-4 d-none">
+        
+        <!-- Cart Items List (Left Side) -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+                    <h5 class="fw-bold text-dark mb-0">Order Items</h5>
+                    <button type="button" id="clear-cart-btn" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                        <i class="bi bi-trash3 me-1"></i> Clear Cart
+                    </button>
+                </div>
+
+                <!-- Dynamic Cart Items Container -->
+                <div id="cart-items" class="cart-items-container">
+                    <!-- Dynamic rows inserted by JavaScript -->
+                </div>
+
+                <div class="mt-4">
+                    <a href="{% url 'restaurant:menu' %}" class="btn btn-link text-accent fw-bold text-decoration-none p-0">
+                        <i class="bi bi-arrow-left me-1"></i> Add more items
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Summary & Checkout Panel (Right Side) -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white sticky-lg-top" style="top: 100px;">
+                <h5 class="fw-bold text-dark border-bottom pb-3 mb-3">Estimated Summary</h5>
+                
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Subtotal</span>
+                    <span id="cart-subtotal" class="fw-bold text-dark">₹0.00</span>
+                </div>
+                
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">Estimated Tax (5%)</span>
+                    <span id="cart-tax" class="fw-bold text-dark">₹0.00</span>
+                </div>
+
+                <div class="border-top pt-3 mb-4 d-flex justify-content-between align-items-center">
+                    <span class="fs-5 fw-bold text-dark">Grand Total</span>
+                    <span id="cart-total" class="fs-4 fw-bold text-accent">₹0.00</span>
+                </div>
+
+                <!-- Checkout Action -->
+                <div class="checkout-actions">
+                    <a href="{% url 'restaurant:checkout' %}" id="checkout-btn" class="btn btn-accent w-100 py-2 text-uppercase fw-bold text-center d-block">
+                        Proceed to Checkout
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

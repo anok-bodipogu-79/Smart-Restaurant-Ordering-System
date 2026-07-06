@@ -1,0 +1,48 @@
+{% extends "restaurant/base.html" %}
+{% load static %}
+
+{% block title %}Kitchen Login{% endblock %}
+
+{% block content %}
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 70vh;">
+    <div class="col-md-5">
+        <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+            <div class="text-center mb-4">
+                <i class="bi bi-shield-lock display-4 text-accent"></i>
+                <h3 class="fw-bold text-dark mt-2">Kitchen Console</h3>
+                <p class="text-muted small">Restaurant staff login required to access order management dashboard.</p>
+            </div>
+
+            {% if form.errors %}
+                <div class="alert alert-danger rounded-3 py-2 small mb-3">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Invalid credentials. Please try again.
+                </div>
+            {% endif %}
+
+            <form method="POST" action="{% url 'restaurant:kitchen_login' %}">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label for="id_username" class="form-label fw-bold text-muted-sm mb-1">Username</label>
+                    <input type="text" name="username" id="id_username" class="form-control" placeholder="Enter username" required autofocus>
+                </div>
+
+                <div class="mb-4">
+                    <label for="id_password" class="form-label fw-bold text-muted-sm mb-1">Password</label>
+                    <input type="password" name="password" id="id_password" class="form-control" placeholder="Enter password" required>
+                </div>
+
+                <button type="submit" class="btn btn-accent w-100 py-2 rounded-pill fw-bold text-uppercase mb-3">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Staff Sign In
+                </button>
+
+                <div class="text-center">
+                    <a href="{% url 'restaurant:menu' %}" class="text-decoration-none text-muted-sm small">
+                        <i class="bi bi-arrow-left me-1"></i> Return to customer menu
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

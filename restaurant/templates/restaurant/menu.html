@@ -1,0 +1,124 @@
+{% extends "restaurant/base.html" %}
+{% load static %}
+
+{% block title %}Menu{% endblock %}
+
+{% block content %}
+<div class="container">
+    
+    <!-- Menu Header -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-dark header-title">Our Exquisite Menu</h1>
+        <p class="lead text-muted">Indulge in our curated selection of fine Indian delicacies, freshly made to order.</p>
+        <div class="title-underline"></div>
+    </div>
+
+    <!-- Category Filters Navigation -->
+    <div class="row mb-5">
+        <div class="col-12 d-flex justify-content-center flex-wrap gap-2">
+            <!-- 'All' Filter Button -->
+            <a href="{% url 'restaurant:menu' %}" 
+               class="btn btn-filter {% if not active_category %}active-filter{% endif %}">
+                <i class="bi bi-grid-fill me-1"></i> All Items
+            </a>
+
+            <!-- Dynamic Category Buttons -->
+            {% for cat in categories %}
+                <a href="{% url 'restaurant:menu' %}?category={{ cat.id }}" 
+                   class="btn btn-filter {% if active_category.id == cat.id %}active-filter{% endif %}">
+                    {% if cat.icon %}
+                        <i class="bi {{ cat.icon }} me-1"></i>
+                    {% else %}
+                        <i class="bi bi-tag-fill me-1"></i>
+                    {% endif %}
+                    {{ cat.name }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Food Cards Grid -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+        {% for item in menu_items %}
+            <div class="col">
+                <div class="card h-100 food-card {% if not item.is_available %}unavailable-card{% endif %}">
+                    <!-- Food Image Container -->
+                    <div class="card-img-container position-relative">
+                        {% if item.image_url %}
+                            <img src="{{ item.image_url }}" class="card-img-top food-image" alt="{{ item.name }}">
+                        {% else %}
+                            <img src="https://via.placeholder.com/300x200" class="card-img-top food-image" alt="{{ item.name }}">
+                        {% endif %}
+                        
+                        <!-- Badges Overlaid on Image -->
+                        <div class="card-badges position-absolute top-0 start-0 p-2 d-flex flex-column gap-1">
+                            {% if item.is_vegetarian %}
+                                <span class="badge badge-veg bg-success">
+                                    <i class="bi bi-dot fs-6 me-0"></i>Veg
+                                </span>
+                            {% else %}
+                                <span class="badge badge-nonveg bg-danger">
+                                    <i class="bi bi-dot fs-6 me-0"></i>Non-Veg
+                                </span>
+                            {% endif %}
+                            
+                            {% if item.is_spicy %}
+                                <span class="badge badge-spicy bg-warning text-dark">
+                                    <i class="bi bi-fire me-1"></i>Spicy
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        {% if not item.is_available %}
+                            <div class="unavailable-overlay d-flex align-items-center justify-content-center position-absolute top-0 start-0 w-100 h-100">
+                                <span class="badge bg-dark px-3 py-2 fs-6 border border-secondary">Sold Out</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title fw-bold text-dark mb-0">{{ item.name }}</h5>
+                            <span class="card-price fw-bold text-accent">₹{{ item.price }}</span>
+                        </div>
+                        <p class="card-text text-muted-sm flex-grow-1">{{ item.description }}</p>
+                        
+                        <!-- Card Footer Action -->
+                        <div class="mt-3">
+                            {% if item.is_available %}
+                                <button type="button" 
+                                        class="btn btn-add-cart w-100 d-flex align-items-center justify-content-center gap-2"
+                                        data-item-id="{{ item.id }}"
+                                        data-item-name="{{ item.name }}"
+                                        data-item-price="{{ item.price }}">
+                                    <i class="bi bi-plus-lg"></i> Add to Cart
+                                </button>
+                            {% else %}
+                                <button type="button" 
+                                        class="btn btn-secondary w-100 text-uppercase disabled" 
+                                        disabled>
+                                    Unavailable
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <!-- Empty state when no menu items match -->
+            <div class="col-12 text-center py-5">
+                <div class="empty-state-container py-5">
+                    <i class="bi bi-journal-x fs-1 text-muted mb-3 d-block"></i>
+                    <h3 class="fw-bold text-dark">No Menu Items Found</h3>
+                    <p class="text-muted">No items are currently available in this category. Please check back later!</p>
+                    <a href="{% url 'restaurant:menu' %}" class="btn btn-accent mt-3">
+                        <i class="bi bi-arrow-left me-1"></i> Back to All Items
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

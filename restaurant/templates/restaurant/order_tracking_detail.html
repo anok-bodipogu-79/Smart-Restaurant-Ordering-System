@@ -1,0 +1,155 @@
+{% extends "restaurant/base.html" %}
+{% load static %}
+
+{% block title %}Track Order #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Header Actions -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <a href="{% url 'restaurant:order_tracking' %}" class="btn btn-link text-decoration-none text-muted-sm p-0">
+                <i class="bi bi-search me-1"></i> Track Another Order
+            </a>
+            <h1 class="fw-bold text-dark mt-2">Live Tracking: Order #{{ order.id }}</h1>
+        </div>
+        <div>
+            <a href="{% url 'restaurant:menu' %}" class="btn btn-accent rounded-pill px-4">
+                <i class="bi bi-house-door me-1"></i> Return to Menu
+            </a>
+        </div>
+    </div>
+
+    <!-- Live Status Panel -->
+    <div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4" 
+         id="order-tracking-panel" 
+         data-status-url="{% url 'restaurant:order_tracking_status' order.id %}" 
+         data-current-status="{{ order.status }}">
+        
+        <div class="row align-items-center justify-content-between mb-4">
+            <div class="col-md-6 text-center text-md-start">
+                <span class="text-muted small d-block mb-1">Current Progress Status</span>
+                <span class="badge px-3 py-2 text-uppercase fs-6" id="order-status-badge">
+                    {{ order.get_status_display }}
+                </span>
+            </div>
+            <div class="col-md-6 text-center text-md-end mt-2 mt-md-0">
+                <div class="text-muted small" id="connection-status-msg">
+                    <span class="spinner-grow spinner-grow-sm text-accent me-1" role="status"></span> Live status updates active
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Timeline Steps -->
+        <div class="row text-center mb-4 g-2 pt-2 border-top">
+            <div class="col-3 progress-step" id="step-RECEIVED">
+                <div class="step-icon-wrapper rounded-circle mx-auto d-flex align-items-center justify-content-center border p-2 mb-2" 
+                     style="width: 50px; height: 50px; transition: all 0.3s ease;">
+                    <i class="bi bi-receipt fs-5"></i>
+                </div>
+                <div class="small fw-bold step-label text-muted">Received</div>
+            </div>
+            <div class="col-3 progress-step" id="step-PREPARING">
+                <div class="step-icon-wrapper rounded-circle mx-auto d-flex align-items-center justify-content-center border p-2 mb-2" 
+                     style="width: 50px; height: 50px; transition: all 0.3s ease;">
+                    <i class="bi bi-fire fs-5"></i>
+                </div>
+                <div class="small fw-bold step-label text-muted">Preparing</div>
+            </div>
+            <div class="col-3 progress-step" id="step-READY">
+                <div class="step-icon-wrapper rounded-circle mx-auto d-flex align-items-center justify-content-center border p-2 mb-2" 
+                     style="width: 50px; height: 50px; transition: all 0.3s ease;">
+                    <i class="bi bi-bell-fill fs-5"></i>
+                </div>
+                <div class="small fw-bold step-label text-muted">Ready</div>
+            </div>
+            <div class="col-3 progress-step" id="step-COMPLETED">
+                <div class="step-icon-wrapper rounded-circle mx-auto d-flex align-items-center justify-content-center border p-2 mb-2" 
+                     style="width: 50px; height: 50px; transition: all 0.3s ease;">
+                    <i class="bi bi-check-circle-fill fs-5"></i>
+                </div>
+                <div class="small fw-bold step-label text-muted">Completed</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Items and Financial Summaries -->
+    <div class="row g-4">
+        
+        <!-- Left Side: Order Items list -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-4">
+                    <h5 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-basket2-fill me-2 text-accent"></i>Ordered Items
+                    </h5>
+                    <span class="text-muted-sm small">Created: {{ order.created_at|date:"F d, Y h:i A" }}</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-borderless align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col" class="text-dark fw-bold">Food Item</th>
+                                <th scope="col" class="text-dark fw-bold text-center">Quantity</th>
+                                <th scope="col" class="text-dark fw-bold text-end">Price</th>
+                                <th scope="col" class="text-dark fw-bold text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.items.all %}
+                                <tr class="border-bottom">
+                                    <td class="py-3 text-dark fw-bold">{{ item.menu_item.name }}</td>
+                                    <td class="py-3 text-center text-muted-sm">{{ item.quantity }}</td>
+                                    <td class="py-3 text-end text-muted-sm">₹{{ item.price_at_order }}</td>
+                                    <td class="py-3 text-end text-dark fw-bold">₹{% widthratio item.price_at_order 1 item.quantity %}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: Order summary calculations -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white sticky-lg-top" style="top: 100px;">
+                <h5 class="fw-bold text-dark border-bottom pb-2 mb-4">
+                    <i class="bi bi-receipt me-2 text-accent"></i>Order Cost
+                </h5>
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted small">Subtotal</span>
+                    <span class="fw-bold text-dark small">₹{{ subtotal }}</span>
+                </div>
+                
+                <div class="d-flex justify-content-between mb-3 border-bottom pb-3">
+                    <span class="text-muted small">Tax (5%)</span>
+                    <span class="fw-bold text-dark small">₹{{ tax }}</span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-0">
+                    <span class="fs-5 fw-bold text-dark">Grand Total</span>
+                    <span class="fs-4 fw-bold text-accent">₹{{ grand_total }}</span>
+                </div>
+
+                {% if order.table_number %}
+                    <div class="alert alert-light border rounded-3 p-2 small mt-3 mb-0 text-center text-muted">
+                        <i class="bi bi-tag-fill me-1"></i> Table #{{ order.table_number }} (Dine-in Order)
+                    </div>
+                {% else %}
+                    <div class="alert alert-light border rounded-3 p-2 small mt-3 mb-0 text-center text-muted">
+                        <i class="bi bi-bag-fill me-1"></i> Takeaway / Pickup Order
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'restaurant/js/order_tracking.js' %}"></script>
+{% endblock %}

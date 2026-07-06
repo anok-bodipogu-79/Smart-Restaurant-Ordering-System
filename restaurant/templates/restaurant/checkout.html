@@ -1,0 +1,140 @@
+{% extends "restaurant/base.html" %}
+{% load static %}
+
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<div class="container">
+    
+    <!-- Page Header -->
+    <div class="mb-5 text-start">
+        <h1 class="display-4 fw-bold text-dark header-title mb-2">Secure Checkout</h1>
+        <p class="text-muted mb-0">Provide your dining details to finalize and place your order.</p>
+        <div class="title-underline ms-0 mt-3"></div>
+    </div>
+
+    <form method="POST" action="{% url 'restaurant:checkout' %}" class="needs-validation" novalidate>
+        {% csrf_token %}
+        
+        <div class="row g-4">
+            
+            <!-- Customer Details Form (Left Side) -->
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+                    <h5 class="fw-bold text-dark mb-4 border-bottom pb-2">
+                        <i class="bi bi-person-badge me-2 text-accent"></i>Customer Details
+                    </h5>
+
+                    <!-- Non-Field/Form-level errors -->
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger shadow-sm rounded-3 mb-4">
+                            {% for error in form.non_field_errors %}
+                                <p class="mb-0 small"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Customer Name Field -->
+                    <div class="mb-3">
+                        <label for="{{ form.customer_name.id_for_label }}" class="form-label fw-bold text-muted-sm mb-1">
+                            {{ form.customer_name.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.customer_name }}
+                        {% if form.customer_name.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.customer_name.errors %}
+                                    <p class="mb-0">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Customer Phone Field -->
+                    <div class="mb-3">
+                        <label for="{{ form.customer_phone.id_for_label }}" class="form-label fw-bold text-muted-sm mb-1">
+                            {{ form.customer_phone.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.customer_phone }}
+                        <div class="form-text text-muted-sm" style="font-size: 0.75rem;">
+                            Format: 10-digit mobile number (e.g., 9876543210).
+                        </div>
+                        {% if form.customer_phone.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.customer_phone.errors %}
+                                    <p class="mb-0">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Table Number Field -->
+                    <div class="mb-4">
+                        <label for="{{ form.table_number.id_for_label }}" class="form-label fw-bold text-muted-sm mb-1">
+                            {{ form.table_number.label }} <span class="text-muted">(Optional)</span>
+                        </label>
+                        {{ form.table_number }}
+                        <div class="form-text text-muted-sm" style="font-size: 0.75rem;">
+                            Enter table number (1-999) if dining in. Leave blank for takeaways.
+                        </div>
+                        {% if form.table_number.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.table_number.errors %}
+                                    <p class="mb-0">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+                        <a href="{% url 'restaurant:cart' %}" class="btn btn-outline-secondary rounded-pill px-4">
+                            <i class="bi bi-arrow-left me-1"></i> Back to Cart
+                        </a>
+                        <button type="submit" class="btn btn-accent rounded-pill px-4 py-2">
+                            <i class="bi bi-wallet2 me-1"></i> Place Order
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary (Right Side) -->
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm rounded-3 p-4 bg-white sticky-lg-top" style="top: 100px;">
+                    <h5 class="fw-bold text-dark mb-4 border-bottom pb-2">
+                        <i class="bi bi-receipt me-2 text-accent"></i>Order Summary
+                    </h5>
+
+                    <!-- Checked Items List -->
+                    <div class="summary-items-list mb-4">
+                        {% for item in checkout_items %}
+                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <div>
+                                    <span class="fw-bold text-dark small">{{ item.menu_item.name }}</span>
+                                    <span class="text-muted small ms-2">x{{ item.quantity }}</span>
+                                </div>
+                                <span class="fw-bold text-muted-sm">₹{{ item.line_total }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Totals summary calculations -->
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Subtotal</span>
+                        <span class="fw-bold text-dark small">₹{{ subtotal }}</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-3 border-bottom pb-3">
+                        <span class="text-muted small">Estimated Tax (5%)</span>
+                        <span class="fw-bold text-dark small">₹{{ tax }}</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-0">
+                        <span class="fs-5 fw-bold text-dark">Grand Total</span>
+                        <span class="fs-4 fw-bold text-accent">₹{{ grand_total }}</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "restaurant/base.html" %}
+{% load static %}
+
+{% block title %}Track Your Order{% endblock %}
+
+{% block content %}
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 70vh;">
+    <div class="col-md-5">
+        <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+            <div class="text-center mb-4">
+                <i class="bi bi-geo-alt display-4 text-accent animate-pulse"></i>
+                <h3 class="fw-bold text-dark mt-2">Track Your Order</h3>
+                <p class="text-muted small">Enter your numeric Order ID to view current live preparation progress.</p>
+            </div>
+
+            <!-- Form Non-field/Field Errors -->
+            {% if form.non_field_errors %}
+                {% for error in form.non_field_errors %}
+                    <div class="alert alert-danger rounded-3 py-2 small mb-3">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" action="{% url 'restaurant:order_tracking' %}">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label for="id_order_id" class="form-label fw-bold text-muted-sm mb-1">Order ID</label>
+                    {{ form.order_id }}
+                    {% if form.order_id.errors %}
+                        {% for error in form.order_id.errors %}
+                            <div class="text-danger small mt-1">
+                                <i class="bi bi-exclamation-circle me-1"></i>{{ error }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-accent w-100 py-2 rounded-pill fw-bold text-uppercase mb-3">
+                    <i class="bi bi-search me-1"></i> Track Progress
+                </button>
+
+                <div class="text-center">
+                    <a href="{% url 'restaurant:menu' %}" class="text-decoration-none text-muted-sm small">
+                        <i class="bi bi-arrow-left me-1"></i> Return to menu
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
