@@ -2,27 +2,57 @@ services:
   - type: web
     name: smart-restaurant
     runtime: python
+
     buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --no-input && python manage.py migrate && python create_superuser.py"
+
     startCommand: "gunicorn restaurant_project.wsgi:application"
+
     healthCheckPath: /health/
+
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
+
       - key: DEBUG
         value: "False"
+
       - key: WEB_CONCURRENCY
         value: "2"
+
       - key: SECRET_KEY
         generateValue: true
+
       - key: ALLOWED_HOSTS
-        value: "localhost,127.0.0.1"
-      - key: DATABASE_URL
         sync: false
+
       - key: CSRF_TRUSTED_ORIGINS
         sync: false
+
+      - key: DATABASE_URL
+        fromDatabase:
+          name: smart-restaurant-db
+          property: connectionString
+
       - key: ADMIN_USERNAME
         sync: false
+
       - key: ADMIN_EMAIL
         sync: false
+
       - key: ADMIN_PASSWORD
         sync: false
+
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+
+      - key: CLOUDINARY_API_KEY
+        sync: false
+
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+
+
+databases:
+  - name: smart-restaurant-db
+    databaseName: smart_restaurant
+    user: smart_restaurant_user
