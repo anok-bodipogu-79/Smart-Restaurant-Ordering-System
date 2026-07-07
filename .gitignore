@@ -5,8 +5,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Local environment variables
+# Environment variables
 .env
+.env.*
+!.env.example
 
 # Database
 db.sqlite3
