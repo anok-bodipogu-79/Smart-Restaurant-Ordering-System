@@ -49,7 +49,6 @@ CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in CSRF_TRUSTED_ORIGINS_STR.sp
 # Application definition
 
 INSTALLED_APPS = [
-    'cloudinary_storage',
     'cloudinary',
 
     'django.contrib.admin',
