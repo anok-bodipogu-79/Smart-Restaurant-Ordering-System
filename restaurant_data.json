@@ -1,0 +1,382 @@
+[
+{
+  "model": "restaurant.category",
+  "pk": 1,
+  "fields": {
+    "name": "Appetizers",
+    "icon": "bi-egg-fried"
+  }
+},
+{
+  "model": "restaurant.category",
+  "pk": 2,
+  "fields": {
+    "name": "Main Course",
+    "icon": "bi-fire"
+  }
+},
+{
+  "model": "restaurant.category",
+  "pk": 3,
+  "fields": {
+    "name": "Desserts",
+    "icon": "bi-cake"
+  }
+},
+{
+  "model": "restaurant.category",
+  "pk": 4,
+  "fields": {
+    "name": "Beverages",
+    "icon": "bi-cup-straw"
+  }
+},
+{
+  "model": "restaurant.menuitem",
+  "pk": 1,
+  "fields": {
+    "category": 1,
+    "name": "Paneer Tikka",
+    "description": "Succulent chunks of paneer marinated in spiced yogurt and grilled in a tandoor.",
+    "price": "220.00",
+    "is_vegetarian": true,
+    "is_spicy": true,
+    "is_available": true,
+    "image_url": "https://via.placeholder.com/300x200",
+    "image": "menu_items/ChatGPT_Image_Jul_7_2026_10_36_36_AM.png"
+  }
+},
+{
+  "model": "restaurant.menuitem",
+  "pk": 2,
+  "fields": {
+    "category": 1,
+    "name": "Chicken 65",
+    "description": "Crispy, deep-fried spicy chicken chunks marinated in yogurt and curry leaves.",
+    "price": "260.00",
+    "is_vegetarian": false,
+    "is_spicy": true,
+    "is_available": true,
+    "image_url": "https://via.placeholder.com/300x200",
+    "image": "menu_items/ChatGPT_Image_Jul_7_2026_10_31_55_AM.png"
+  }
+},
+{
+  "model": "restaurant.menuitem",
+  "pk": 3,
+  "fields": {
+    "category": 1,
+    "name": "Vegetable Spring Rolls",
+    "description": "Crispy pastry wraps filled with seasoned stir-fried vegetables.",
+    "price": "150.00",
+    "is_vegetarian": true,
+    "is_spicy": false,
+    "is_available": true,
+    "image_url": "https://via.placeholder.com/300x200",
+    "image": "menu_items/ChatGPT_Image_Jul_7_2026_10_38_19_AM.png"
+  }
+},
+{
+  "model": "restaurant.menuitem",
+  "pk": 4,
+  "fields": {
+    "category": 1,
+    "name": "Gobi Manchurian",
+    "description": "Crispy cauliflower florets tossed in a tangy and spicy Indo-Chinese sauce.",
+    "price": "180.00",
+    "is_vegetarian": true,
+    "is_spicy": true,
+    "is_available": true,
+    "image_url": "https://via.placeholder.com/300x200",
+    "image": "menu_items/ChatGPT_Image_Jul_7_2026_10_35_13_AM.png"
+  }
+},
+{
+  "model": "restaurant.menuitem",
+  "pk": 5,
+  "fields": {
+    "category": 2,
+    "name": "Chicken Biryani",
+    "description": "Aromatic basmati rice cooked with tender chicken, spices, and fresh herbs.",
+    "price": "350.00",
+    "is_vegetarian": false,
+    "is_spicy": true,
+    "is_available": true,
+    "image_url": "https://via.placeholder.com/300x200",
+    "image": ""
+  }
+},
+{
+  "model": "restaurant.menuitem",
+  "pk": 6,
+  "fields": {
+    "category": 2,
+    "name": "Paneer Butter Masala",
+    "description": "Rich and creamy curry made with paneer chunks, tomatoes, butter, and cashew paste.",
+    "price": "280.00",
+    "is_vegetarian": true,
+    "is_spicy": false,
+    "is_available": true,
+    "image_url": "https://via.placeholder.com/300x200",
+    "image": ""
+  }
+},
+{
+  "model": "restaurant.menuitem",
+  "pk": 7,
+  "fields": {
+    "category": 2,
+    "name": "Vegetable Fried Rice",
+    "description": "Fluffy rice stir-fried with finely chopped vegetables and mild soy sauce.",
+    "price": "200.00",
+    "is_vegetarian": true,
+    "is_spicy": false,
+    "is_available": true,
+    "image_url": "https://via.placeholder.com/300x200",
+    "image": ""
+  }
+},
+{
+  "model": "restaurant.menuitem",
+  "pk": 8,
+  "fields": {
+    "category": 2,
+    "name": "Butter Chicken",
+    "description": "Tender tandoori chicken cooked in a rich, buttery, and creamy tomato gravy.",
+    "price": "380.00",
+    "is_vegetarian": false,
+    "is_spicy": false,
+    "is_available": true,
+    "image_url": "https://via.placeholder.com/300x200",
+    "image": ""
+  }
+},
+{
+  "model": "restaurant.menuitem",
+  "pk": 9,
+  "fields": {
+    "category": 3,
+    "name": "Gulab Jamun",
+    "description": "Soft and spongy milk-solid balls soaked in warm sugar syrup flavored with cardamom.",
+    "price": "90.00",
+    "is_vegetarian": true,
+    "is_spicy": false,
+    "is_available": true,
+    "image_url": "https://via.placeholder.com/300x200",
+    "image": ""
+  }
+},
+{
+  "model": "restaurant.menuitem",
+  "pk": 10,
+  "fields": {
+    "category": 3,
+    "name": "Chocolate Brownie",
+    "description": "Warm, fudgy chocolate brownie served with chocolate drizzle.",
+    "price": "140.00",
+    "is_vegetarian": true,
+    "is_spicy": false,
+    "is_available": true,
+    "image_url": "https://via.placeholder.com/300x200",
+    "image": ""
+  }
+},
+{
+  "model": "restaurant.menuitem",
+  "pk": 11,
+  "fields": {
+    "category": 3,
+    "name": "Vanilla Ice Cream",
+    "description": "Creamy vanilla bean ice cream scoop.",
+    "price": "80.00",
+    "is_vegetarian": true,
+    "is_spicy": false,
+    "is_available": true,
+    "image_url": "https://via.placeholder.com/300x200",
+    "image": ""
+  }
+},
+{
+  "model": "restaurant.menuitem",
+  "pk": 12,
+  "fields": {
+    "category": 3,
+    "name": "Rasmalai",
+    "description": "Soft cottage cheese patties soaked in sweetened, saffron-infused milk.",
+    "price": "120.00",
+    "is_vegetarian": true,
+    "is_spicy": false,
+    "is_available": true,
+    "image_url": "https://via.placeholder.com/300x200",
+    "image": ""
+  }
+},
+{
+  "model": "restaurant.menuitem",
+  "pk": 13,
+  "fields": {
+    "category": 4,
+    "name": "Masala Soda",
+    "description": "Refreshing and tangy spiced soda with black salt, cumin, and mint.",
+    "price": "70.00",
+    "is_vegetarian": true,
+    "is_spicy": true,
+    "is_available": true,
+    "image_url": "https://via.placeholder.com/300x200",
+    "image": ""
+  }
+},
+{
+  "model": "restaurant.menuitem",
+  "pk": 14,
+  "fields": {
+    "category": 4,
+    "name": "Fresh Lime Juice",
+    "description": "Freshly squeezed lime juice with ice, sugar, and salt.",
+    "price": "60.00",
+    "is_vegetarian": true,
+    "is_spicy": false,
+    "is_available": true,
+    "image_url": "https://via.placeholder.com/300x200",
+    "image": ""
+  }
+},
+{
+  "model": "restaurant.menuitem",
+  "pk": 15,
+  "fields": {
+    "category": 4,
+    "name": "Cold Coffee",
+    "description": "Chilled blend of rich coffee, milk, and chocolate syrup.",
+    "price": "110.00",
+    "is_vegetarian": true,
+    "is_spicy": false,
+    "is_available": true,
+    "image_url": "https://via.placeholder.com/300x200",
+    "image": ""
+  }
+},
+{
+  "model": "restaurant.menuitem",
+  "pk": 16,
+  "fields": {
+    "category": 4,
+    "name": "Mango Lassi",
+    "description": "Thick and creamy yogurt drink blended with fresh sweet mango pulp.",
+    "price": "100.00",
+    "is_vegetarian": true,
+    "is_spicy": false,
+    "is_available": true,
+    "image_url": "https://via.placeholder.com/300x200",
+    "image": ""
+  }
+},
+{
+  "model": "restaurant.order",
+  "pk": 1,
+  "fields": {
+    "tracking_token": "d3fbc53a-874b-48c3-8ab9-39b271519625",
+    "customer_name": "Bodipogu Anok",
+    "customer_phone": "+919347556376",
+    "table_number": null,
+    "subtotal_amount": "260.00",
+    "tax_amount": "13.00",
+    "tax_rate": "0.0500",
+    "total_amount": "273.00",
+    "status": "COMPLETED",
+    "created_at": "2026-07-06T16:45:04.817Z"
+  }
+},
+{
+  "model": "restaurant.order",
+  "pk": 2,
+  "fields": {
+    "tracking_token": "236771bf-604e-41df-8580-a7df08a675d7",
+    "customer_name": "Ajith",
+    "customer_phone": "+916304556825",
+    "table_number": null,
+    "subtotal_amount": "550.00",
+    "tax_amount": "27.50",
+    "tax_rate": "0.0500",
+    "total_amount": "577.50",
+    "status": "COMPLETED",
+    "created_at": "2026-07-06T16:51:03.505Z"
+  }
+},
+{
+  "model": "restaurant.order",
+  "pk": 3,
+  "fields": {
+    "tracking_token": "31434855-cc7c-4339-8edd-1cf25bcba064",
+    "customer_name": "Ajith",
+    "customer_phone": "+916304556825",
+    "table_number": null,
+    "subtotal_amount": "180.00",
+    "tax_amount": "9.00",
+    "tax_rate": "0.0500",
+    "total_amount": "189.00",
+    "status": "COMPLETED",
+    "created_at": "2026-07-06T19:21:31.407Z"
+  }
+},
+{
+  "model": "restaurant.orderitem",
+  "pk": 1,
+  "fields": {
+    "order": 1,
+    "menu_item": 2,
+    "quantity": 1,
+    "price_at_order": "260.00",
+    "item_name_at_order": "Chicken 65",
+    "category_name_at_order": "Appetizers"
+  }
+},
+{
+  "model": "restaurant.orderitem",
+  "pk": 2,
+  "fields": {
+    "order": 2,
+    "menu_item": 1,
+    "quantity": 1,
+    "price_at_order": "220.00",
+    "item_name_at_order": "Paneer Tikka",
+    "category_name_at_order": "Appetizers"
+  }
+},
+{
+  "model": "restaurant.orderitem",
+  "pk": 3,
+  "fields": {
+    "order": 2,
+    "menu_item": 3,
+    "quantity": 1,
+    "price_at_order": "150.00",
+    "item_name_at_order": "Vegetable Spring Rolls",
+    "category_name_at_order": "Appetizers"
+  }
+},
+{
+  "model": "restaurant.orderitem",
+  "pk": 4,
+  "fields": {
+    "order": 2,
+    "menu_item": 4,
+    "quantity": 1,
+    "price_at_order": "180.00",
+    "item_name_at_order": "Gobi Manchurian",
+    "category_name_at_order": "Appetizers"
+  }
+},
+{
+  "model": "restaurant.orderitem",
+  "pk": 5,
+  "fields": {
+    "order": 3,
+    "menu_item": 4,
+    "quantity": 1,
+    "price_at_order": "180.00",
+    "item_name_at_order": "Gobi Manchurian",
+    "category_name_at_order": "Appetizers"
+  }
+}
+]
