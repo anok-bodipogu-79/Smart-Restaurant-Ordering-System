@@ -38,7 +38,7 @@ if not DEBUG and (not SECRET_KEY_ENV or SECRET_KEY_ENV.startswith("django-insecu
     raise ValueError("SECRET_KEY environment variable is not configured properly in production.")
 SECRET_KEY = SECRET_KEY_ENV or "django-insecure-d1lbi830uol-$%6ene!qh+)aha1=22)ji3irp&_g(q!frx&c+3"
 
-ALLOWED_HOSTS_STR = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1")
+ALLOWED_HOSTS_STR = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,.onrender.com")
 ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_STR.split(",") if host.strip()]
 
 # CSRF Trusted Origins for production
