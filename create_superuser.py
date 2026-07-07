@@ -12,14 +12,20 @@ def create_admin():
     from django.contrib.auth import get_user_model
     User = get_user_model()
     
+    from django.conf import settings
+    
     # Read environment variables
     username = os.environ.get("ADMIN_USERNAME")
     email = os.environ.get("ADMIN_EMAIL")
     password = os.environ.get("ADMIN_PASSWORD")
     
     if not username or not email or not password:
-        print("Automatic superuser creation skipped: missing required ADMIN_USERNAME, ADMIN_EMAIL, or ADMIN_PASSWORD environment variables.")
-        sys.exit(0)
+        if not settings.DEBUG:
+            print("ERROR: Automatic superuser creation failed in production. ADMIN_USERNAME, ADMIN_EMAIL, and ADMIN_PASSWORD environment variables must be explicitly configured.", file=sys.stderr)
+            sys.exit(1)
+        else:
+            print("Automatic superuser creation skipped: missing required ADMIN_USERNAME, ADMIN_EMAIL, or ADMIN_PASSWORD. This is allowed in development mode.")
+            sys.exit(0)
         
     try:
         # Check if user already exists

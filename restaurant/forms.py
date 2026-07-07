@@ -66,18 +66,79 @@ class CheckoutForm(forms.Form):
 
 
 class OrderTrackingForm(forms.Form):
-    order_id = forms.IntegerField(
-        label="Order ID",
+    tracking_token = forms.UUIDField(
+        label="Tracking ID",
         required=True,
-        min_value=1,
-        widget=forms.NumberInput(attrs={
+        widget=forms.TextInput(attrs={
             "class": "form-control",
-            "placeholder": "Enter your Order ID (e.g. 15)",
-            "id": "id_order_id"
+            "placeholder": "Enter your Tracking ID (UUID)",
+            "id": "id_tracking_token"
         }),
         error_messages={
-            "required": "Please enter an Order ID.",
-            "invalid": "Please enter a valid integer Order ID.",
-            "min_value": "Order ID must be a positive number."
+            "required": "Please enter a Tracking ID.",
+            "invalid": "Please enter a valid Tracking ID (UUID)."
         }
     )
+
+
+from restaurant.models import Category, MenuItem
+
+class DateRangeFilterForm(forms.Form):
+    range = forms.ChoiceField(
+        choices=[
+            ("today", "Today"),
+            ("7d", "Last 7 Days"),
+            ("30d", "Last 30 Days"),
+            ("custom", "Custom Range"),
+        ],
+        required=False,
+        initial="today"
+    )
+    start = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={"type": "date", "class": "form-control"})
+    )
+    end = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={"type": "date", "class": "form-control"})
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        range_val = cleaned_data.get("range")
+        start = cleaned_data.get("start")
+        end = cleaned_data.get("end")
+
+        if range_val == "custom":
+            if not start or not end:
+                raise ValidationError("Both Start Date and End Date are required for a custom range.")
+            if start > end:
+                raise ValidationError("Start Date cannot be after End Date.")
+        return cleaned_data
+
+
+class MenuItemForm(forms.ModelForm):
+    class Meta:
+        model = MenuItem
+        fields = ["category", "name", "description", "price", "is_available", "image_url", "image", "is_vegetarian", "is_spicy"]
+        widgets = {
+            "category": forms.Select(attrs={"class": "form-select"}),
+            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Item name"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 3, "placeholder": "Item description"}),
+            "price": forms.NumberInput(attrs={"class": "form-control", "step": "0.01", "placeholder": "0.00"}),
+            "image_url": forms.URLInput(attrs={"class": "form-control", "placeholder": "Image URL (optional)"}),
+            "image": forms.FileInput(attrs={"class": "form-control", "id": "id_image", "accept": "image/*"}),
+            "is_available": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "is_vegetarian": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "is_spicy": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        }
+
+
+class CategoryForm(forms.ModelForm):
+    class Meta:
+        model = Category
+        fields = ["name", "icon"]
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Category name (e.g. Desserts)"}),
+            "icon": forms.TextInput(attrs={"class": "form-control", "placeholder": "Bootstrap icon name (e.g. bi-cake2)"}),
+        }

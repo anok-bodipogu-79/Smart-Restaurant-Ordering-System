@@ -129,9 +129,23 @@
                 const statusDisplay = data.status_display;
 
                 updateStatusBadge(currentStatus, statusDisplay);
+
+                if (currentStatus === "CANCELLED" || data.is_cancelled || data.is_terminal) {
+                    const timelineEl = document.getElementById("order-timeline-steps");
+                    const cancelledEl = document.getElementById("cancelled-state-notice");
+                    if (timelineEl) timelineEl.classList.add("d-none");
+                    if (cancelledEl) cancelledEl.classList.remove("d-none");
+                    
+                    if (connectionMsg) {
+                        connectionMsg.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle-fill"></i> Order cancelled</span>';
+                    }
+                    // Stop polling
+                    return;
+                }
+
                 updateOrderProgress(currentStatus);
 
-                if (data.is_completed || currentStatus === "COMPLETED") {
+                if (data.is_completed || currentStatus === "COMPLETED" || data.is_terminal) {
                     if (connectionMsg) {
                         connectionMsg.innerHTML = '<span class="text-muted"><i class="bi bi-check-circle-fill"></i> Order finished</span>';
                     }

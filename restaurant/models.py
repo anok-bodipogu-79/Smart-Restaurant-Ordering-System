@@ -1,6 +1,26 @@
+import uuid
 from decimal import Decimal
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
+
+def validate_image_file(file):
+    # Enforce size limit (5MB)
+    if file.size > 5 * 1024 * 1024:
+        raise ValidationError("Image size exceeds 5MB limit.")
+    # Verify it is an image and check format
+    try:
+        from PIL import Image as PILImage
+        pos = file.tell()
+        img = PILImage.open(file)
+        fmt = img.format.lower() if img.format else ""
+        img.verify()
+        file.seek(pos)
+    except Exception:
+        raise ValidationError("Invalid image file.")
+
+    if fmt not in ['jpeg', 'jpg', 'png', 'webp']:
+        raise ValidationError("Unsupported format. Only JPEG, PNG, and WebP are allowed.")
 
 
 class Category(models.Model):
@@ -30,6 +50,15 @@ class MenuItem(models.Model):
     is_spicy = models.BooleanField(default=False)
     is_available = models.BooleanField(default=True)
     image_url = models.URLField(blank=True, default="https://via.placeholder.com/300x200")
+    image = models.ImageField(upload_to='menu_items/', blank=True, null=True, validators=[validate_image_file])
+
+    @property
+    def display_image_url(self):
+        if self.image:
+            return self.image.url
+        if self.image_url:
+            return self.image_url
+        return "https://via.placeholder.com/300x200"
 
     class Meta:
         ordering = ["category", "name"]
@@ -44,14 +73,34 @@ class Order(models.Model):
         ("PREPARING", "In Kitchen - Preparing"),
         ("READY", "Ready for Pickup / Delivery"),
         ("COMPLETED", "Completed"),
+        ("CANCELLED", "Cancelled"),
     ]
 
+    tracking_token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     customer_name = models.CharField(max_length=100, null=False, blank=False)
     customer_phone = models.CharField(max_length=15, null=False, blank=False)
     table_number = models.PositiveIntegerField(
         blank=True,
         null=True,
         validators=[MinValueValidator(1)]
+    )
+    subtotal_amount = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))]
+    )
+    tax_amount = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))]
+    )
+    tax_rate = models.DecimalField(
+        max_digits=5,
+        decimal_places=4,
+        default=Decimal("0.0500"),
+        validators=[MinValueValidator(Decimal("0.0000"))]
     )
     total_amount = models.DecimalField(
         max_digits=8,
@@ -62,9 +111,10 @@ class Order(models.Model):
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
-        default="RECEIVED"
+        default="RECEIVED",
+        db_index=True
     )
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
         ordering = ["-created_at"]
@@ -76,7 +126,7 @@ class Order(models.Model):
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
-    menu_item = models.ForeignKey(MenuItem, on_delete=models.CASCADE)
+    menu_item = models.ForeignKey(MenuItem, on_delete=models.SET_NULL, null=True)
     quantity = models.PositiveIntegerField(
         default=1,
         validators=[MinValueValidator(1), MaxValueValidator(20)]
@@ -86,7 +136,13 @@ class OrderItem(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(Decimal("0.01"))]
     )
+    item_name_at_order = models.CharField(max_length=100, default="", blank=True)
+    category_name_at_order = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
-        item_name = self.menu_item.name if self.menu_item else "Unknown Item"
-        return f"{self.quantity}x {item_name}"
+        name = self.item_name_at_order
+        if not name and self.menu_item:
+            name = self.menu_item.name
+        if not name:
+            name = "Unknown Item"
+        return f"{self.quantity}x {name}"

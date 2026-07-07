@@ -1,0 +1,142 @@
+{% extends "restaurant/manager_base.html" %}
+
+{% block title %}Manage Menu Items{% endblock %}
+
+{% block content %}
+<div class="container">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h1 class="fw-bold text-dark mb-1">Menu Items Catalog</h1>
+            <p class="text-muted mb-0">Create, edit, and toggle item availabilities.</p>
+        </div>
+        <div>
+            <a href="{% url 'restaurant:manager_menu_create' %}" class="btn btn-accent rounded-pill px-4 fw-bold">
+                <i class="bi bi-plus-lg"></i> Add Menu Item
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="card p-3 bg-white mb-4">
+        <form method="GET" action="{% url 'restaurant:manager_menu_list' %}" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label for="id_category" class="form-label small fw-bold text-muted">Category Filter</label>
+                <select name="category" id="id_category" class="form-select rounded-pill">
+                    <option value="">-- All Categories --</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if current_category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-secondary w-100 rounded-pill fw-bold text-uppercase">
+                    <i class="bi bi-funnel"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Menu List Table -->
+    <div class="card p-4 bg-white mb-4">
+        {% if menu_items %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Attributes</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in menu_items %}
+                            <tr>
+                                <td>
+                                    <img src="{{ item.display_image_url }}" alt="{{ item.name }}" class="rounded-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                </td>
+                                <td><strong>{{ item.name }}</strong></td>
+                                <td><span class="badge bg-light text-dark">{{ item.category.name }}</span></td>
+                                <td>₹{{ item.price }}</td>
+                                <td>
+                                    {% if item.is_vegetarian %}
+                                        <span class="badge bg-success-subtle text-success text-uppercase" style="font-size: 0.75rem;"><i class="bi bi-leaf"></i> Veg</span>
+                                    {% else %}
+                                        <span class="badge bg-danger-subtle text-danger text-uppercase" style="font-size: 0.75rem;">Non-Veg</span>
+                                    {% endif %}
+                                    {% if item.is_spicy %}
+                                        <span class="badge bg-warning-subtle text-warning-emphasis text-uppercase" style="font-size: 0.75rem;"><i class="bi bi-fire"></i> Spicy</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.is_available %}
+                                        <span class="badge bg-success px-2 py-1 text-uppercase">Available</span>
+                                    {% else %}
+                                        <span class="badge bg-danger px-2 py-1 text-uppercase">Unavailable</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-inline-flex gap-2">
+                                        <!-- Toggle Availability POST view -->
+                                        <form method="POST" action="{% url 'restaurant:manager_menu_availability' item.id %}" class="m-0">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm {% if item.is_available %}btn-outline-danger{% else %}btn-outline-success{% endif %} rounded-pill px-2">
+                                                {% if item.is_available %}Mark Unavailable{% else %}Mark Available{% endif %}
+                                            </button>
+                                        </form>
+                                        <a href="{% url 'restaurant:manager_menu_edit' item.id %}" class="btn btn-outline-primary btn-sm rounded-pill px-2">
+                                            <i class="bi bi-pencil-fill"></i> Edit
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+                <nav class="d-flex justify-content-center mt-4">
+                    <ul class="pagination pagination-sm mb-0">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link rounded-start-pill" href="?page={{ page_obj.previous_page_number }}{% if query_params %}&{{ query_params }}{% endif %}">Previous</a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% if query_params %}&{{ query_params }}{% endif %}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link rounded-end-pill" href="?page={{ page_obj.next_page_number }}{% if query_params %}&{{ query_params }}{% endif %}">Next</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+
+        {% else %}
+            <div class="alert alert-light text-center py-5 mb-0 text-muted">
+                <i class="bi bi-book display-4 d-block mb-3"></i>
+                No menu items found in the database.
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,246 @@
+{% extends "restaurant/manager_base.html" %}
+
+{% block title %}Operational Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    
+    <!-- Top Dashboard Header & Filters -->
+    <div class="row align-items-center g-3 mb-4 pb-2 border-bottom">
+        <div class="col-md-6">
+            <h1 class="fw-bold text-dark mb-1">Manager Dashboard</h1>
+            <p class="text-muted mb-0">Live operations summary and performance metrics.</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <!-- Range Selection Form -->
+            <form method="GET" action="{% url 'restaurant:manager_dashboard' %}" class="d-flex flex-wrap gap-2 justify-content-md-end align-items-center">
+                <select name="range" id="id_range" class="form-select form-select-sm w-auto rounded-pill" onchange="toggleCustomDates(this.value)">
+                    <option value="today" {% if range_type == 'today' %}selected{% endif %}>Today</option>
+                    <option value="7d" {% if range_type == '7d' %}selected{% endif %}>Last 7 Days</option>
+                    <option value="30d" {% if range_type == '30d' %}selected{% endif %}>Last 30 Days</option>
+                    <option value="custom" {% if range_type == 'custom' %}selected{% endif %}>Custom Range</option>
+                </select>
+                
+                <div id="custom-date-inputs" class="d-flex gap-2 align-items-center {% if range_type != 'custom' %}d-none{% endif %}">
+                    <input type="date" name="start" value="{{ filter_form.start.value|default:'' }}" class="form-control form-control-sm rounded-pill w-auto" placeholder="Start date">
+                    <span class="text-muted small">to</span>
+                    <input type="date" name="end" value="{{ filter_form.end.value|default:'' }}" class="form-control form-control-sm rounded-pill w-auto" placeholder="End date">
+                </div>
+
+                <button type="submit" class="btn btn-accent btn-sm rounded-pill px-3 fw-bold text-uppercase">
+                    <i class="bi bi-funnel-fill me-1"></i> Filter
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- KPI Summary Row -->
+    <div class="row g-3 mb-4">
+        <!-- Revenue Card -->
+        <div class="col-md-4">
+            <div class="card p-3 bg-white h-100 border-start border-success border-4">
+                <span class="text-muted small text-uppercase fw-bold">Completed Revenue</span>
+                <h2 class="fw-bold text-success mt-2 mb-0">₹{{ completed_revenue }}</h2>
+                <p class="text-muted-sm small mb-0 mt-1"><i class="bi bi-info-circle me-1"></i>Realized completed order sales</p>
+            </div>
+        </div>
+        <!-- Total Orders Card -->
+        <div class="col-md-4">
+            <div class="card p-3 bg-white h-100 border-start border-primary border-4">
+                <span class="text-muted small text-uppercase fw-bold">Total Orders</span>
+                <h2 class="fw-bold text-primary mt-2 mb-0">{{ total_orders }}</h2>
+                <p class="text-muted-sm small mb-0 mt-1"><i class="bi bi-cart me-1"></i>Volume in selected range</p>
+            </div>
+        </div>
+        <!-- Average Order Value Card -->
+        <div class="col-md-4">
+            <div class="card p-3 bg-white h-100 border-start border-warning border-4">
+                <span class="text-muted small text-uppercase fw-bold">Average Order Value</span>
+                <h2 class="fw-bold text-warning mt-2 mb-0">₹{{ avg_order_value }}</h2>
+                <p class="text-muted-sm small mb-0 mt-1"><i class="bi bi-graph-up-arrow me-1"></i>Completed revenue per count</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Breakdowns Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="card p-4 bg-white">
+                <h5 class="fw-bold text-dark mb-3">Order Status breakdown</h5>
+                <div class="row g-2 text-center">
+                    <div class="col-sm-2 col-4">
+                        <div class="bg-light p-2 rounded">
+                            <span class="text-muted small d-block">Received</span>
+                            <strong class="fs-4 text-info">{{ status_counts.received|default:0 }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-sm-2 col-4">
+                        <div class="bg-light p-2 rounded">
+                            <span class="text-muted small d-block">Preparing</span>
+                            <strong class="fs-4 text-warning">{{ status_counts.preparing|default:0 }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-sm-2 col-4">
+                        <div class="bg-light p-2 rounded">
+                            <span class="text-muted small d-block">Ready</span>
+                            <strong class="fs-4 text-success">{{ status_counts.ready|default:0 }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-sm-2 col-4">
+                        <div class="bg-light p-2 rounded">
+                            <span class="text-muted small d-block">Completed</span>
+                            <strong class="fs-4 text-secondary">{{ status_counts.completed|default:0 }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-sm-2 col-4">
+                        <div class="bg-light p-2 rounded">
+                            <span class="text-muted small d-block">Cancelled</span>
+                            <strong class="fs-4 text-danger">{{ status_counts.cancelled|default:0 }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics & Details Row -->
+    <div class="row g-4 mb-4">
+        
+        <!-- Recent Orders List -->
+        <div class="col-lg-7">
+            <div class="card p-4 bg-white h-100">
+                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">Recent Orders</h5>
+                {% if recent_orders %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Customer</th>
+                                    <th>Status</th>
+                                    <th>Total</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in recent_orders %}
+                                    <tr>
+                                        <td><strong>#{{ order.id }}</strong></td>
+                                        <td>{{ order.customer_name }}</td>
+                                        <td>
+                                            <span class="badge 
+                                                {% if order.status == 'RECEIVED' %}bg-info
+                                                {% elif order.status == 'PREPARING' %}bg-warning text-dark
+                                                {% elif order.status == 'READY' %}bg-success
+                                                {% elif order.status == 'COMPLETED' %}bg-secondary
+                                                {% elif order.status == 'CANCELLED' %}bg-danger{% endif %} text-uppercase px-2 py-1">
+                                                {{ order.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>₹{{ order.total_amount }}</td>
+                                        <td class="text-end">
+                                            <a href="{% url 'restaurant:manager_order_detail' order.id %}" class="btn btn-outline-primary btn-sm rounded-pill px-2">
+                                                <i class="bi bi-eye"></i> View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-light text-center py-4 mb-0 text-muted">
+                        <i class="bi bi-inbox display-6 d-block mb-2"></i>
+                        No orders recorded in this range.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Top Selling Menu Items -->
+        <div class="col-lg-5">
+            <div class="card p-4 bg-white h-100">
+                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">Top 5 Selling Items</h5>
+                {% if top_items %}
+                    <div class="table-responsive">
+                        <table class="table table-borderless align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th class="text-center">Qty Sold</th>
+                                    <th class="text-end">Sales Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in top_items %}
+                                    <tr class="border-bottom">
+                                        <td><strong>{{ item.item_name_at_order }}</strong></td>
+                                        <td class="text-center text-muted">{{ item.total_quantity }}</td>
+                                        <td class="text-end text-dark fw-bold">₹{{ item.total_revenue }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-light text-center py-4 mb-0 text-muted">
+                        <i class="bi bi-star display-6 d-block mb-2"></i>
+                        No sales records found.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Category Performance row -->
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="card p-4 bg-white">
+                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">Category Performance</h5>
+                {% if category_performance %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Category</th>
+                                    <th class="text-center">Quantity Sold</th>
+                                    <th class="text-end">Revenue Generated</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cat in category_performance %}
+                                    <tr>
+                                        <td><strong>{{ cat.category_name_at_order }}</strong></td>
+                                        <td class="text-center text-muted">{{ cat.total_quantity }}</td>
+                                        <td class="text-end text-success fw-bold">₹{{ cat.total_revenue }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-light text-center py-4 mb-0 text-muted">
+                        <i class="bi bi-tags display-6 d-block mb-2"></i>
+                        No category sales records found.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleCustomDates(val) {
+        const inputs = document.getElementById("custom-date-inputs");
+        if (val === "custom") {
+            inputs.classList.remove("d-none");
+        } else {
+            inputs.classList.add("d-none");
+        }
+    }
+</script>
+{% endblock %}

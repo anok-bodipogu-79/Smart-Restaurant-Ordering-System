@@ -4,6 +4,7 @@ services:
     runtime: python
     buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --no-input && python manage.py migrate && python create_superuser.py"
     startCommand: "gunicorn restaurant_project.wsgi:application"
+    healthCheckPath: /health/
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9

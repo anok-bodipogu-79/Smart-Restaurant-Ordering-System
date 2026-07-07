@@ -1,7 +1,7 @@
 {% extends "restaurant/base.html" %}
 {% load static %}
 
-{% block title %}Track Order #{{ order.id }}{% endblock %}
+{% block title %}Track Order{% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -12,7 +12,8 @@
             <a href="{% url 'restaurant:order_tracking' %}" class="btn btn-link text-decoration-none text-muted-sm p-0">
                 <i class="bi bi-search me-1"></i> Track Another Order
             </a>
-            <h1 class="fw-bold text-dark mt-2">Live Tracking: Order #{{ order.id }}</h1>
+            <h1 class="fw-bold text-dark mt-2">Live Tracking: Order Number #{{ order.id }}</h1>
+            <p class="text-muted small mb-0">Secure Tracking ID: <code>{{ order.tracking_token }}</code></p>
         </div>
         <div>
             <a href="{% url 'restaurant:menu' %}" class="btn btn-accent rounded-pill px-4">
@@ -24,7 +25,7 @@
     <!-- Live Status Panel -->
     <div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4" 
          id="order-tracking-panel" 
-         data-status-url="{% url 'restaurant:order_tracking_status' order.id %}" 
+         data-status-url="{% url 'restaurant:order_tracking_status' order.tracking_token %}" 
          data-current-status="{{ order.status }}">
         
         <div class="row align-items-center justify-content-between mb-4">
@@ -42,7 +43,7 @@
         </div>
 
         <!-- Progress Timeline Steps -->
-        <div class="row text-center mb-4 g-2 pt-2 border-top">
+        <div class="row text-center mb-4 g-2 pt-2 border-top {% if order.status == 'CANCELLED' %}d-none{% endif %}" id="order-timeline-steps">
             <div class="col-3 progress-step" id="step-RECEIVED">
                 <div class="step-icon-wrapper rounded-circle mx-auto d-flex align-items-center justify-content-center border p-2 mb-2" 
                      style="width: 50px; height: 50px; transition: all 0.3s ease;">
@@ -72,6 +73,13 @@
                 <div class="small fw-bold step-label text-muted">Completed</div>
             </div>
         </div>
+
+        <!-- Cancelled Notice -->
+        <div id="cancelled-state-notice" class="alert alert-danger rounded-3 {% if order.status != 'CANCELLED' %}d-none{% endif %} p-3 mb-0 text-center">
+            <i class="bi bi-x-circle-fill fs-3 d-block mb-2"></i>
+            <h5 class="fw-bold mb-1">This order has been cancelled</h5>
+            <p class="small mb-0">Please contact the restaurant manager for any inquiries.</p>
+        </div>
     </div>
 
     <!-- Order Items and Financial Summaries -->
@@ -99,7 +107,7 @@
                         <tbody>
                             {% for item in order.items.all %}
                                 <tr class="border-bottom">
-                                    <td class="py-3 text-dark fw-bold">{{ item.menu_item.name }}</td>
+                                    <td class="py-3 text-dark fw-bold">{{ item.item_name_at_order }}</td>
                                     <td class="py-3 text-center text-muted-sm">{{ item.quantity }}</td>
                                     <td class="py-3 text-end text-muted-sm">₹{{ item.price_at_order }}</td>
                                     <td class="py-3 text-end text-dark fw-bold">₹{% widthratio item.price_at_order 1 item.quantity %}</td>

@@ -1,0 +1,169 @@
+{% extends "restaurant/manager_base.html" %}
+
+{% block title %}{% if object %}Edit MenuItem '{{ object.name }}'{% else %}Add MenuItem{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container d-flex justify-content-center">
+    <div class="col-lg-8">
+        <div class="card p-4 bg-white shadow-sm">
+            <h3 class="fw-bold text-dark border-bottom pb-2 mb-4">
+                {% if object %}
+                    <i class="bi bi-pencil-square me-2 text-accent"></i>Edit MenuItem
+                {% else %}
+                    <i class="bi bi-plus-circle me-2 text-accent"></i>Add MenuItem
+                {% endif %}
+            </h3>
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="row g-3">
+                    <!-- Name -->
+                    <div class="col-md-6">
+                        <label for="id_name" class="form-label small fw-bold text-muted">Item Name</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            {% for error in form.name.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i> {{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Category -->
+                    <div class="col-md-6">
+                        <label for="id_category" class="form-label small fw-bold text-muted">Category</label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                            {% for error in form.category.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i> {{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Price -->
+                    <div class="col-md-6">
+                        <label for="id_price" class="form-label small fw-bold text-muted">Price (INR)</label>
+                        {{ form.price }}
+                        {% if form.price.errors %}
+                            {% for error in form.price.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i> {{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Image URL -->
+                    <div class="col-md-6">
+                        <label for="id_image_url" class="form-label small fw-bold text-muted">External Image URL (Optional Fallback)</label>
+                        {{ form.image_url }}
+                        {% if form.image_url.errors %}
+                            {% for error in form.image_url.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i> {{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Direct Image Upload -->
+                    <div class="col-md-6">
+                        <label for="id_image" class="form-label small fw-bold text-muted">Upload Image File (Preferred)</label>
+                        {{ form.image }}
+                        {% if form.image.errors %}
+                            {% for error in form.image.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i> {{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                        <div id="image-preview-container" class="mt-2 d-none">
+                            <span class="d-block small text-muted mb-1">New Image Preview:</span>
+                            <img id="image-preview" src="" alt="Selected Preview" class="img-thumbnail" style="max-height: 150px;">
+                        </div>
+                    </div>
+
+                    <!-- Current Image Display when editing -->
+                    {% if object and object.image %}
+                    <div class="col-md-6 mt-2">
+                        <span class="d-block small fw-bold text-muted mb-1">Current Uploaded Image:</span>
+                        <img src="{{ object.image.url }}" alt="{{ object.name }}" class="img-thumbnail" style="max-height: 150px; object-fit: cover;">
+                    </div>
+                    {% elif object and object.image_url %}
+                    <div class="col-md-6 mt-2">
+                        <span class="d-block small fw-bold text-muted mb-1">Current External Image URL:</span>
+                        <img src="{{ object.image_url }}" alt="{{ object.name }}" class="img-thumbnail" style="max-height: 150px; object-fit: cover;">
+                    </div>
+                    {% endif %}
+
+                    <!-- Description -->
+                    <div class="col-12">
+                        <label for="id_description" class="form-label small fw-bold text-muted">Description</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            {% for error in form.description.errors %}
+                                <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i> {{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Attributes/Checkboxes -->
+                    <div class="col-12 border-top pt-3 mt-3">
+                        <h6 class="fw-bold text-dark mb-3">Attributes & Availability</h6>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    {{ form.is_available }}
+                                    <label class="form-check-label fw-bold text-muted" for="id_is_available">Available for Order</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    {{ form.is_vegetarian }}
+                                    <label class="form-check-label fw-bold text-muted" for="id_is_vegetarian">Vegetarian Diet</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    {{ form.is_spicy }}
+                                    <label class="form-check-label fw-bold text-muted" for="id_is_spicy">Spicy Flavor</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 border-top pt-4 mt-4">
+                    <a href="{% url 'restaurant:manager_menu_list' %}" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+                    <button type="submit" class="btn btn-accent rounded-pill px-4 fw-bold">Save Changes</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const imageInput = document.getElementById('id_image');
+    const previewContainer = document.getElementById('image-preview-container');
+    const previewImage = document.getElementById('image-preview');
+
+    if (imageInput) {
+        imageInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                if (file.type.startsWith('image/')) {
+                    const objectUrl = URL.createObjectURL(file);
+                    previewImage.src = objectUrl;
+                    previewContainer.classList.remove('d-none');
+                    previewImage.onload = function() {
+                        URL.revokeObjectURL(objectUrl);
+                    };
+                } else {
+                    previewContainer.classList.add('d-none');
+                }
+            } else {
+                previewContainer.classList.add('d-none');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

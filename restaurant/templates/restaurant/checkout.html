@@ -89,8 +89,12 @@
                         <a href="{% url 'restaurant:cart' %}" class="btn btn-outline-secondary rounded-pill px-4">
                             <i class="bi bi-arrow-left me-1"></i> Back to Cart
                         </a>
-                        <button type="submit" class="btn btn-accent rounded-pill px-4 py-2">
-                            <i class="bi bi-wallet2 me-1"></i> Place Order
+                        <button type="submit" id="checkout-submit-btn" class="btn btn-accent rounded-pill px-4 py-2 d-flex align-items-center gap-2">
+                            <span class="default-text"><i class="bi bi-wallet2 me-1"></i> Place Order</span>
+                            <span class="processing-text" style="display: none;">
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                Processing...
+                            </span>
                         </button>
                     </div>
                 </div>
@@ -137,4 +141,34 @@
         </div>
     </form>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const form = document.querySelector(".needs-validation");
+        const submitBtn = document.getElementById("checkout-submit-btn");
+        const defaultText = submitBtn.querySelector(".default-text");
+        const processingText = submitBtn.querySelector(".processing-text");
+        
+        if (form && submitBtn) {
+            form.addEventListener("submit", function(event) {
+                // If HTML5 validation fails, don't show loading
+                if (!form.checkValidity()) {
+                    return;
+                }
+                
+                // Show loading state and prevent duplicate submissions
+                submitBtn.disabled = true;
+                defaultText.style.display = "none";
+                processingText.style.display = "inline-block";
+                
+                // Small delay to ensure the form submission registers before disabling
+                setTimeout(() => {
+                    submitBtn.disabled = true;
+                }, 10);
+            });
+        }
+    });
+</script>
 {% endblock %}

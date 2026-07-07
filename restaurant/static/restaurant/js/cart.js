@@ -385,12 +385,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 4. Setup Clear Cart functionality
     const clearCartBtn = document.getElementById("clear-cart-btn");
+    const confirmClearBtn = document.getElementById("confirm-clear-cart-btn");
+    
     if (clearCartBtn) {
         clearCartBtn.addEventListener("click", () => {
-            localStorage.removeItem(CART_STORAGE_KEY);
-            updateCartCount([]);
-            renderCartPage();
-            synchronizeCartWithServer();
+            // Check if Bootstrap modal is available
+            if (typeof bootstrap !== 'undefined') {
+                const modalElement = document.getElementById('clearCartModal');
+                if (modalElement) {
+                    const modal = new bootstrap.Modal(modalElement);
+                    modal.show();
+                }
+            } else {
+                // Fallback if bootstrap is somehow not loaded
+                if (confirm("Are you sure you want to clear your entire cart?")) {
+                    executeClearCart();
+                }
+            }
         });
+    }
+
+    if (confirmClearBtn) {
+        confirmClearBtn.addEventListener("click", () => {
+            executeClearCart();
+            // Hide modal
+            const modalElement = document.getElementById('clearCartModal');
+            if (modalElement && typeof bootstrap !== 'undefined') {
+                const modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) modal.hide();
+            }
+        });
+    }
+
+    function executeClearCart() {
+        localStorage.removeItem(CART_STORAGE_KEY);
+        updateCartCount([]);
+        renderCartPage();
+        synchronizeCartWithServer();
     }
 });

@@ -97,7 +97,7 @@
                         <tbody>
                             {% for item in order.items.all %}
                                 <tr class="border-bottom">
-                                    <td class="py-3 text-dark fw-bold">{{ item.menu_item.name }}</td>
+                                    <td class="py-3 text-dark fw-bold">{{ item.item_name_at_order }}</td>
                                     <td class="py-3 text-center text-muted-sm">{{ item.quantity }}</td>
                                     <td class="py-3 text-end text-muted-sm">₹{{ item.price_at_order }}</td>
                                 </tr>

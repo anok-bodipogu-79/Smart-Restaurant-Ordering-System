@@ -44,11 +44,7 @@
                 <div class="card h-100 food-card {% if not item.is_available %}unavailable-card{% endif %}">
                     <!-- Food Image Container -->
                     <div class="card-img-container position-relative">
-                        {% if item.image_url %}
-                            <img src="{{ item.image_url }}" class="card-img-top food-image" alt="{{ item.name }}">
-                        {% else %}
-                            <img src="https://via.placeholder.com/300x200" class="card-img-top food-image" alt="{{ item.name }}">
-                        {% endif %}
+                        <img src="{{ item.display_image_url }}" class="card-img-top food-image" alt="{{ item.name }}" loading="lazy">
                         
                         <!-- Badges Overlaid on Image -->
                         <div class="card-badges position-absolute top-0 start-0 p-2 d-flex flex-column gap-1">

@@ -21,12 +21,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load local environment variables from .env file during development
 load_dotenv(BASE_DIR / ".env")
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-d1lbi830uol-$%6ene!qh+)aha1=22)ji3irp&_g(q!frx&c+3")
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG_VAL = os.environ.get("DEBUG", "True").lower()
 DEBUG = DEBUG_VAL in ["true", "1", "yes", "y"]
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY_ENV = os.environ.get("SECRET_KEY")
+if not DEBUG and (not SECRET_KEY_ENV or SECRET_KEY_ENV.startswith("django-insecure-")):
+    raise ValueError("SECRET_KEY environment variable is not configured properly in production.")
+SECRET_KEY = SECRET_KEY_ENV or "django-insecure-d1lbi830uol-$%6ene!qh+)aha1=22)ji3irp&_g(q!frx&c+3"
 
 ALLOWED_HOSTS_STR = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1")
 ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_STR.split(",") if host.strip()]
@@ -84,11 +87,12 @@ WSGI_APPLICATION = 'restaurant_project.wsgi.application'
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if DATABASE_URL:
+    ssl_require = os.environ.get("DB_SSL_REQUIRE", "True").lower() == "true"
     DATABASES = {
         'default': dj_database_url.config(
             default=DATABASE_URL,
             conn_max_age=600,
-            ssl_require=True
+            ssl_require=ssl_require
         )
     }
 else:
@@ -137,6 +141,9 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -158,3 +165,49 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Production-safe Console Logging configuration
+LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()
+if LOG_LEVEL not in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]:
+    LOG_LEVEL = "INFO"
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': LOG_LEVEL,
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': LOG_LEVEL,
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'restaurant': {
+            'handlers': ['console'],
+            'level': LOG_LEVEL,
+            'propagate': False,
+        },
+    },
+}
