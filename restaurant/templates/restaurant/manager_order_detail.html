@@ -3,16 +3,16 @@
 {% block title %}Order #{{ order.id }} Details{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container py-2">
     
     <!-- Header Back link and cancel option -->
-    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom mt-3">
         <div>
-            <a href="{% url 'restaurant:manager_order_list' %}" class="btn btn-link text-decoration-none text-muted-sm p-0">
+            <a href="{% url 'restaurant:manager_order_list' %}" class="btn btn-link text-decoration-none text-muted p-0">
                 <i class="bi bi-chevron-left me-1"></i> Back to Orders
             </a>
             <h1 class="fw-bold text-dark mt-2">Order #{{ order.id }} Details</h1>
-            <p class="text-muted small mb-0">Secure Tracking ID: <code>{{ order.tracking_token }}</code></p>
+            <p class="text-secondary small mb-0">Secure Tracking ID: <code>{{ order.tracking_token }}</code></p>
         </div>
         <div>
             <!-- Cancellation Action (POST only, CSRF protected, only available for RECEIVED) -->
@@ -34,19 +34,19 @@
     <div class="row g-4">
         <!-- Left Column: Customer & Details metadata -->
         <div class="col-lg-8">
-            <div class="card p-4 bg-white mb-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
                 <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">Customer Information</h5>
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <span class="text-muted small d-block">Customer Name</span>
+                        <span class="text-secondary small d-block">Customer Name</span>
                         <strong class="text-dark">{{ order.customer_name }}</strong>
                     </div>
                     <div class="col-md-6">
-                        <span class="text-muted small d-block">Phone Number</span>
+                        <span class="text-secondary small d-block">Phone Number</span>
                         <strong class="text-dark">{{ order.customer_phone }}</strong>
                     </div>
                     <div class="col-md-6">
-                        <span class="text-muted small d-block">Dining Type</span>
+                        <span class="text-secondary small d-block">Dining Type</span>
                         <strong class="text-dark">
                             {% if order.table_number %}
                                 Dine-in (Table #{{ order.table_number }})
@@ -56,14 +56,14 @@
                         </strong>
                     </div>
                     <div class="col-md-6">
-                        <span class="text-muted small d-block">Created Timestamp</span>
+                        <span class="text-secondary small d-block">Created Timestamp</span>
                         <strong class="text-dark">{{ order.created_at|date:"F d, Y h:i A" }}</strong>
                     </div>
                 </div>
             </div>
 
             <!-- Itemized List -->
-            <div class="card p-4 bg-white">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
                 <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">Order Items Snapshot</h5>
                 <div class="table-responsive">
                     <table class="table table-borderless align-middle mb-0">
@@ -80,15 +80,20 @@
                             {% for item in order.items.all %}
                                 <tr class="border-bottom">
                                     <td>
-                                        <strong>{{ item.item_name_at_order }}</strong>
+                                        <div><strong>{{ item.item_name_at_order|default:item.menu_item.name }}</strong>
                                         {% if not item.menu_item %}
                                             <span class="text-danger small ms-1">(MenuItem Deleted)</span>
+                                        {% endif %}</div>
+                                        {% if item.special_instructions %}
+                                            <div class="text-danger small mt-1" style="font-size: 0.8rem; font-style: italic;">
+                                                <i class="bi bi-chat-right-text-fill me-1"></i> Note: "{{ item.special_instructions }}"
+                                            </div>
                                         {% endif %}
                                     </td>
                                     <td><span class="badge bg-light text-dark">{{ item.category_name_at_order|default:"Unknown Category" }}</span></td>
-                                    <td class="text-center">{{ item.quantity }}</td>
-                                    <td class="text-end">₹{{ item.price_at_order }}</td>
-                                    <td class="text-end fw-bold text-dark">₹{% widthratio item.price_at_order 1 item.quantity %}</td>
+                                    <td class="text-center text-secondary">{{ item.quantity }}</td>
+                                    <td class="text-end text-secondary">₹{{ item.price_at_order }}</td>
+                                    <td class="text-end fw-bold text-dark">₹{{ item.total_price }}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -97,24 +102,30 @@
             </div>
         </div>
 
-        <!-- Right Column: Financial Totals card -->
+        <!-- Right Column: Totals details card -->
         <div class="col-lg-4">
-            <div class="card p-4 bg-white">
-                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">Financial Snapshot</h5>
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white sticky-lg-top" style="top: 100px;">
+                <h5 class="fw-bold text-dark border-bottom pb-2 mb-4">Financial Invoice Summary</h5>
                 
                 <div class="d-flex justify-content-between mb-2">
-                    <span class="text-muted small">Subtotal</span>
+                    <span class="text-secondary small">Subtotal</span>
                     <strong class="text-dark small">₹{{ order.subtotal_amount }}</strong>
                 </div>
 
                 <div class="d-flex justify-content-between mb-3 border-bottom pb-3">
-                    <span class="text-muted small">Tax ({{ order.tax_rate|stringformat:".0%"|default:"5%" }})</span>
+                    <span class="text-secondary small">Tax ({{ order.tax_rate|stringformat:".0%"|default:"5%" }})</span>
                     <strong class="text-dark small">₹{{ order.tax_amount }}</strong>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center mb-0">
-                    <span class="fs-5 fw-bold text-dark">Grand Total</span>
-                    <span class="fs-4 fw-bold text-accent">₹{{ order.total_amount }}</span>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="fs-5 fw-bold" style="color:var(--text-primary);">Grand Total</span>
+                    <span class="fs-4 fw-bold" style="color:var(--accent-gold);">₹{{ order.total_amount }}</span>
+                </div>
+
+                <div class="mt-3">
+                    <a href="{% url 'restaurant:manager_order_receipt' order.id %}" class="btn btn-outline-brand rounded-pill w-100 fw-bold py-2 text-uppercase btn-sm">
+                        <i class="bi bi-file-earmark-text-fill me-1"></i> View Digital Receipt
+                    </a>
                 </div>
             </div>
         </div>

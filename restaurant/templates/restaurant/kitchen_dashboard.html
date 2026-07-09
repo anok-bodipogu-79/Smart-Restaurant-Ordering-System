@@ -9,12 +9,12 @@
     <!-- Dashboard Header -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-3 border-bottom">
         <div>
-            <h1 class="display-5 fw-bold text-dark header-title mb-1">Kitchen Console</h1>
-            <p class="text-muted mb-0">Monitor active culinary preparation workflows and transitions.</p>
+            <h1 class="fw-bold mb-1" style="color:var(--brand-primary);">Kitchen Console</h1>
+            <p class="mb-0" style="color:var(--text-muted);">Monitor active culinary preparation workflows and transitions.</p>
         </div>
-        <!-- Logout Form (POST required for staff security) -->
+        <!-- Logout Form -->
         <div class="mt-3 mt-md-0 d-flex align-items-center gap-3">
-            <span class="text-muted-sm small">Logged in as: <strong class="text-dark">{{ request.user.username }}</strong></span>
+            <span class="small" style="color:var(--text-muted);">Logged in as: <strong style="color:var(--text-primary);">{{ request.user.username }}</strong></span>
             <form method="POST" action="{% url 'restaurant:kitchen_logout' %}">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
@@ -24,27 +24,65 @@
         </div>
     </div>
 
+    <!-- Sorting Controls Panel -->
+    <div class="card border-0 shadow-sm rounded-3 p-3 bg-white mb-4">
+        <form method="GET" class="row g-2 align-items-center justify-content-between">
+            <div class="col-12 col-md-4">
+                <div class="d-flex align-items-center gap-2">
+                    <label for="kitchen-sort-select" class="text-dark small fw-bold text-nowrap mb-0">
+                        <i class="bi bi-sort-down me-1"></i>Sort Orders:
+                    </label>
+                    <select id="kitchen-sort-select" name="sort" class="form-select bg-light text-dark form-select-sm rounded-pill" onchange="this.form.submit()">
+                        <option value="oldest" {% if current_sort == "oldest" %}selected{% endif %}>Oldest First (Default)</option>
+                        <option value="newest" {% if current_sort == "newest" %}selected{% endif %}>Newest First</option>
+                        <option value="priority" {% if current_sort == "priority" %}selected{% endif %}>Priority (Urgent -> Normal)</option>
+                        <option value="delayed" {% if current_sort == "delayed" %}selected{% endif %}>Most Delayed</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-12 col-md-auto text-muted small">
+                <span class="me-3"><span class="badge bg-danger p-1 me-1"><i class="bi bi-exclamation-triangle-fill"></i></span> Urgent Priority</span>
+                <span><span class="badge bg-warning text-dark p-1 me-1"><i class="bi bi-hourglass-split"></i></span> Delayed Detection</span>
+            </div>
+        </form>
+    </div>
+
     <!-- Active Orders Workflow Columns -->
     <div class="row g-4">
         
         <!-- Column 1: Order Received -->
         <div class="col-lg-4 col-md-6">
-            <div class="card border-0 shadow-sm rounded-3 p-3 bg-light-subtle h-100" style="min-height: 60vh;">
-                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-secondary-subtle">
-                    <h5 class="fw-bold text-dark mb-0">
-                        <i class="bi bi-bell-fill text-info me-2"></i>Received
+            <div class="card border-0 shadow-sm rounded-4 p-3 kitchen-col-received h-100" style="min-height: 60vh;">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 kitchen-col-header">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-bell-fill me-2"></i>Received
                     </h5>
-                    <span class="badge bg-info rounded-pill px-2 py-1">{{ received_orders|length }}</span>
+                    <span class="badge bg-secondary rounded-pill px-2.5 py-1 text-white">{{ received_orders|length }}</span>
                 </div>
 
                 <div class="d-flex flex-column gap-3">
                     {% for order in received_orders %}
-                        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white border-start border-3 border-info">
+                        <div class="card border border-2 shadow-sm rounded-3 p-3 bg-white border-start border-3 border-info">
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                <span class="badge bg-secondary">Order #{{ order.id }}</span>
-                                <small class="text-muted" style="font-size: 0.75rem;">
-                                    <i class="bi bi-clock me-1"></i>{{ order.created_at|timesince }} ago
-                                </small>
+                                <div class="d-flex flex-wrap align-items-center gap-1">
+                                    <span class="badge bg-secondary">Order #{{ order.id }}</span>
+                                    {% if order.priority == "URGENT" %}
+                                        <span class="badge bg-danger text-white small"><i class="bi bi-exclamation-triangle-fill"></i> Urgent</span>
+                                    {% elif order.priority == "PRIORITY" %}
+                                        <span class="badge bg-warning text-dark small"><i class="bi bi-star-fill"></i> Priority</span>
+                                    {% endif %}
+                                    {% if order.is_delayed %}
+                                        <span class="badge bg-danger text-white small"><i class="bi bi-hourglass-split"></i> Delayed</span>
+                                    {% endif %}
+                                </div>
+                                <div class="d-flex flex-column align-items-end">
+                                    <small class="text-muted text-nowrap" style="font-size: 0.7rem;">
+                                        <i class="bi bi-clock me-1"></i>{{ order.created_at|timesince }} ago
+                                    </small>
+                                    <small class="waiting-timer fw-bold text-nowrap" data-created-at="{{ order.created_at|date:'c' }}" style="font-size: 0.65rem; color: var(--accent-gold);">
+                                        Waiting: --
+                                    </small>
+                                </div>
                             </div>
                             
                             <h6 class="fw-bold text-dark mb-1">{{ order.customer_name }}</h6>
@@ -57,22 +95,29 @@
                             </p>
 
                             <!-- Items Summary -->
-                            <div class="border-top border-bottom py-2 my-2 bg-light-subtle px-2 rounded">
+                            <div class="border-top border-bottom py-2 my-2 bg-light px-2 rounded">
                                 <ul class="list-unstyled mb-0 small text-dark">
                                     {% for item in order.items.all %}
-                                        <li><strong>{{ item.quantity }}x</strong> {{ item.menu_item.name }}</li>
+                                        <li>
+                                            <strong>{{ item.quantity }}x</strong> {{ item.item_name_at_order|default:item.menu_item.name }}
+                                            {% if item.special_instructions %}
+                                                <div class="text-danger small ms-3" style="font-size: 0.75rem;">
+                                                    <i class="bi bi-chat-right-text-fill me-1"></i> "{{ item.special_instructions }}"
+                                                </div>
+                                            {% endif %}
+                                        </li>
                                     {% endfor %}
                                 </ul>
                             </div>
 
-                            <div class="d-flex justify-content-between align-items-center mt-2">
-                                <a href="{% url 'restaurant:kitchen_order_detail' order.id %}" class="text-decoration-none text-accent fw-bold small">
+                             <div class="d-flex justify-content-between align-items-center mt-2">
+                                <a href="{% url 'restaurant:kitchen_order_detail' order.id %}" class="text-decoration-none fw-bold small" style="color:var(--brand-primary);">
                                     Details <i class="bi bi-arrow-right"></i>
                                 </a>
                                 <form method="POST" action="{% url 'restaurant:kitchen_order_status' order.id %}">
                                     {% csrf_token %}
                                     <input type="hidden" name="status" value="PREPARING">
-                                    <button type="submit" class="btn btn-info btn-sm text-white fw-bold px-3 rounded-pill">
+                                    <button type="submit" class="btn btn-primary btn-sm fw-bold px-3 rounded-pill">
                                         Start Preparing
                                     </button>
                                 </form>
@@ -90,22 +135,37 @@
 
         <!-- Column 2: In Kitchen - Preparing -->
         <div class="col-lg-4 col-md-6">
-            <div class="card border-0 shadow-sm rounded-3 p-3 bg-light-subtle h-100" style="min-height: 60vh;">
-                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-secondary-subtle">
-                    <h5 class="fw-bold text-dark mb-0">
-                        <i class="bi bi-fire text-warning me-2"></i>Preparing
+            <div class="card border-0 shadow-sm rounded-4 p-3 kitchen-col-preparing h-100" style="min-height: 60vh;">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 kitchen-col-header">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-fire me-2"></i>Preparing
                     </h5>
-                    <span class="badge bg-warning rounded-pill px-2 py-1">{{ preparing_orders|length }}</span>
+                    <span class="badge bg-warning text-dark rounded-pill px-2.5 py-1">{{ preparing_orders|length }}</span>
                 </div>
 
                 <div class="d-flex flex-column gap-3">
                     {% for order in preparing_orders %}
-                        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white border-start border-3 border-warning">
+                        <div class="card border border-2 shadow-sm rounded-3 p-3 bg-white border-start border-3 border-warning">
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                <span class="badge bg-secondary">Order #{{ order.id }}</span>
-                                <small class="text-muted" style="font-size: 0.75rem;">
-                                    <i class="bi bi-clock me-1"></i>{{ order.created_at|timesince }} ago
-                                </small>
+                                <div class="d-flex flex-wrap align-items-center gap-1">
+                                    <span class="badge bg-secondary">Order #{{ order.id }}</span>
+                                    {% if order.priority == "URGENT" %}
+                                        <span class="badge bg-danger text-white small"><i class="bi bi-exclamation-triangle-fill"></i> Urgent</span>
+                                    {% elif order.priority == "PRIORITY" %}
+                                        <span class="badge bg-warning text-dark small"><i class="bi bi-star-fill"></i> Priority</span>
+                                    {% endif %}
+                                    {% if order.is_delayed %}
+                                        <span class="badge bg-danger text-white small"><i class="bi bi-hourglass-split"></i> Delayed</span>
+                                    {% endif %}
+                                </div>
+                                <div class="d-flex flex-column align-items-end">
+                                    <small class="text-muted text-nowrap" style="font-size: 0.7rem;">
+                                        <i class="bi bi-clock me-1"></i>{{ order.created_at|timesince }} ago
+                                    </small>
+                                    <small class="waiting-timer fw-bold text-nowrap" data-created-at="{{ order.created_at|date:'c' }}" style="font-size: 0.65rem; color:var(--accent-gold);">
+                                        Waiting: --
+                                    </small>
+                                </div>
                             </div>
                             
                             <h6 class="fw-bold text-dark mb-1">{{ order.customer_name }}</h6>
@@ -118,22 +178,29 @@
                             </p>
 
                             <!-- Items Summary -->
-                            <div class="border-top border-bottom py-2 my-2 bg-light-subtle px-2 rounded">
+                            <div class="border-top border-bottom py-2 my-2 bg-light px-2 rounded">
                                 <ul class="list-unstyled mb-0 small text-dark">
                                     {% for item in order.items.all %}
-                                        <li><strong>{{ item.quantity }}x</strong> {{ item.menu_item.name }}</li>
+                                        <li>
+                                            <strong>{{ item.quantity }}x</strong> {{ item.item_name_at_order|default:item.menu_item.name }}
+                                            {% if item.special_instructions %}
+                                                <div class="text-danger small ms-3" style="font-size: 0.75rem;">
+                                                    <i class="bi bi-chat-right-text-fill me-1"></i> "{{ item.special_instructions }}"
+                                                </div>
+                                            {% endif %}
+                                        </li>
                                     {% endfor %}
                                 </ul>
                             </div>
 
-                            <div class="d-flex justify-content-between align-items-center mt-2">
-                                <a href="{% url 'restaurant:kitchen_order_detail' order.id %}" class="text-decoration-none text-accent fw-bold small">
+                             <div class="d-flex justify-content-between align-items-center mt-2">
+                                <a href="{% url 'restaurant:kitchen_order_detail' order.id %}" class="text-decoration-none fw-bold small" style="color:var(--brand-primary);">
                                     Details <i class="bi bi-arrow-right"></i>
                                 </a>
                                 <form method="POST" action="{% url 'restaurant:kitchen_order_status' order.id %}">
                                     {% csrf_token %}
                                     <input type="hidden" name="status" value="READY">
-                                    <button type="submit" class="btn btn-warning btn-sm text-white fw-bold px-3 rounded-pill">
+                                    <button type="submit" class="btn btn-gold btn-sm fw-bold px-3 rounded-pill">
                                         Mark Ready
                                     </button>
                                 </form>
@@ -151,22 +218,37 @@
 
         <!-- Column 3: Ready for Pickup -->
         <div class="col-lg-4 col-md-12">
-            <div class="card border-0 shadow-sm rounded-3 p-3 bg-light-subtle h-100" style="min-height: 60vh;">
-                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-secondary-subtle">
-                    <h5 class="fw-bold text-dark mb-0">
-                        <i class="bi bi-check-circle-fill text-success me-2"></i>Ready
+            <div class="card border-0 shadow-sm rounded-4 p-3 kitchen-col-ready h-100" style="min-height: 60vh;">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 kitchen-col-header">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-check-circle-fill me-2"></i>Ready
                     </h5>
-                    <span class="badge bg-success rounded-pill px-2 py-1">{{ ready_orders|length }}</span>
+                    <span class="badge bg-success rounded-pill px-2.5 py-1 text-white">{{ ready_orders|length }}</span>
                 </div>
 
                 <div class="d-flex flex-column gap-3">
                     {% for order in ready_orders %}
-                        <div class="card border-0 shadow-sm rounded-3 p-3 bg-white border-start border-3 border-success">
+                        <div class="card border border-2 shadow-sm rounded-3 p-3 bg-white border-start border-3 border-success">
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                <span class="badge bg-secondary">Order #{{ order.id }}</span>
-                                <small class="text-muted" style="font-size: 0.75rem;">
-                                    <i class="bi bi-clock me-1"></i>{{ order.created_at|timesince }} ago
-                                </small>
+                                <div class="d-flex flex-wrap align-items-center gap-1">
+                                    <span class="badge bg-secondary">Order #{{ order.id }}</span>
+                                    {% if order.priority == "URGENT" %}
+                                        <span class="badge bg-danger text-white small"><i class="bi bi-exclamation-triangle-fill"></i> Urgent</span>
+                                    {% elif order.priority == "PRIORITY" %}
+                                        <span class="badge bg-warning text-dark small"><i class="bi bi-star-fill"></i> Priority</span>
+                                    {% endif %}
+                                    {% if order.is_delayed %}
+                                        <span class="badge bg-danger text-white small"><i class="bi bi-hourglass-split"></i> Delayed</span>
+                                    {% endif %}
+                                </div>
+                                <div class="d-flex flex-column align-items-end">
+                                    <small class="text-muted text-nowrap" style="font-size: 0.7rem;">
+                                        <i class="bi bi-clock me-1"></i>{{ order.created_at|timesince }} ago
+                                    </small>
+                                    <small class="waiting-timer fw-bold text-nowrap" data-created-at="{{ order.created_at|date:'c' }}" style="font-size: 0.65rem; color:var(--accent-gold);">
+                                        Waiting: --
+                                    </small>
+                                </div>
                             </div>
                             
                             <h6 class="fw-bold text-dark mb-1">{{ order.customer_name }}</h6>
@@ -179,10 +261,17 @@
                             </p>
 
                             <!-- Items Summary -->
-                            <div class="border-top border-bottom py-2 my-2 bg-light-subtle px-2 rounded">
+                            <div class="border-top border-bottom py-2 my-2 bg-light px-2 rounded">
                                 <ul class="list-unstyled mb-0 small text-dark">
                                     {% for item in order.items.all %}
-                                        <li><strong>{{ item.quantity }}x</strong> {{ item.menu_item.name }}</li>
+                                        <li>
+                                            <strong>{{ item.quantity }}x</strong> {{ item.item_name_at_order|default:item.menu_item.name }}
+                                            {% if item.special_instructions %}
+                                                <div class="text-danger small ms-3" style="font-size: 0.75rem;">
+                                                    <i class="bi bi-chat-right-text-fill me-1"></i> "{{ item.special_instructions }}"
+                                                </div>
+                                            {% endif %}
+                                        </li>
                                     {% endfor %}
                                 </ul>
                             </div>
@@ -213,4 +302,39 @@
     </div>
 
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    function updateTimers() {
+        const timers = document.querySelectorAll(".waiting-timer");
+        timers.forEach(timer => {
+            const createdAtStr = timer.dataset.createdAt;
+            if (!createdAtStr) return;
+            const createdAt = new Date(createdAtStr);
+            const now = new Date();
+            const diffMs = now - createdAt;
+            if (diffMs < 0) {
+                timer.textContent = "Waiting: 0s";
+                return;
+            }
+            const diffSecs = Math.floor(diffMs / 1000);
+            const hours = Math.floor(diffSecs / 3600);
+            const minutes = Math.floor((diffSecs % 3600) / 60);
+            const seconds = diffSecs % 60;
+            
+            let timeText = "";
+            if (hours > 0) {
+                timeText += `${hours}h `;
+            }
+            if (minutes > 0 || hours > 0) {
+                timeText += `${minutes}m `;
+            }
+            timeText += `${seconds}s`;
+            timer.textContent = `Waiting: ${timeText}`;
+        });
+    }
+    updateTimers();
+    setInterval(updateTimers, 1000);
+});
+</script>
 {% endblock %}

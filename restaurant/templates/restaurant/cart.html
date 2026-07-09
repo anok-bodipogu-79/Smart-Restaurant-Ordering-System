@@ -4,22 +4,22 @@
 {% block title %}Your Shopping Cart{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container py-2">
     
     <!-- Cart Header -->
-    <div class="mb-5">
-        <h1 class="display-4 fw-bold text-dark header-title mb-2">Shopping Cart</h1>
-        <p class="text-muted mb-0">Review and adjust your selected culinary items before proceeding.</p>
+    <div class="mb-4 mt-3">
+        <h1 class="fw-bold mb-1" style="color:var(--text-primary);">Your Cart</h1>
+        <p class="mb-0" style="color:var(--text-muted);">Review and adjust your items before checkout.</p>
         <div class="title-underline ms-0 mt-3"></div>
     </div>
 
     <!-- Empty Cart State -->
     <div id="empty-cart" class="d-none text-center py-5">
-        <div class="empty-state-container py-5">
-            <i class="bi bi-cart-x fs-1 text-muted mb-3 d-block"></i>
-            <h3 class="fw-bold text-dark">Your Cart is Empty</h3>
-            <p class="text-muted mb-4">You haven't added any culinary items to your cart yet.</p>
-            <a href="{% url 'restaurant:menu' %}" class="btn btn-accent px-4 py-2">
+        <div style="background:var(--surface-primary);border:1px solid var(--border-default);border-radius:16px;padding:3rem 2rem;">
+            <i class="bi bi-bag-x fs-1 d-block mb-3" style="color:var(--text-disabled);"></i>
+            <h3 class="fw-bold" style="color:var(--text-primary);">Your Cart is Empty</h3>
+            <p style="color:var(--text-muted);" class="mb-4">You haven't added any items yet.</p>
+            <a href="{% url 'restaurant:menu' %}" class="btn btn-primary px-4 rounded-pill">
                 <i class="bi bi-arrow-left me-2"></i>Browse Menu
             </a>
         </div>
@@ -30,7 +30,7 @@
         
         <!-- Cart Items List (Left Side) -->
         <div class="col-lg-8">
-            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
                 <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
                     <h5 class="fw-bold text-dark mb-0">Order Items</h5>
                     <button type="button" id="clear-cart-btn" class="btn btn-outline-danger btn-sm rounded-pill px-3">
@@ -53,28 +53,30 @@
 
         <!-- Order Summary & Checkout Panel (Right Side) -->
         <div class="col-lg-4">
-            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white sticky-lg-top" style="top: 100px;">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white sticky-lg-top" style="top: 100px;">
                 <h5 class="fw-bold text-dark border-bottom pb-3 mb-3">Estimated Summary</h5>
                 
                 <div class="d-flex justify-content-between mb-2">
-                    <span class="text-muted">Subtotal</span>
+                    <span class="text-secondary">Subtotal</span>
                     <span id="cart-subtotal" class="fw-bold text-dark">₹0.00</span>
                 </div>
                 
-                <div class="d-flex justify-content-between mb-3">
-                    <span class="text-muted">Estimated Tax (5%)</span>
+                <div class="d-flex justify-content-between mb-3 border-bottom pb-3">
+                    <span class="text-secondary">Estimated Tax (5%)</span>
                     <span id="cart-tax" class="fw-bold text-dark">₹0.00</span>
                 </div>
 
-                <div class="border-top pt-3 mb-4 d-flex justify-content-between align-items-center">
-                    <span class="fs-5 fw-bold text-dark">Grand Total</span>
-                    <span id="cart-total" class="fs-4 fw-bold text-accent">₹0.00</span>
+                <div class="mb-4 d-flex justify-content-between align-items-center">
+                    <span class="fs-5 fw-bold" style="color:var(--text-primary);">Grand Total</span>
+                    <span id="cart-total" class="fs-4 fw-bold" style="color:var(--accent-gold);">₹0.00</span>
                 </div>
 
                 <!-- Checkout Action -->
                 <div class="checkout-actions">
-                    <a href="{% url 'restaurant:checkout' %}" id="checkout-btn" class="btn btn-accent w-100 py-2 text-uppercase fw-bold text-center d-block">
-                        Proceed to Checkout
+                    <a href="{% url 'restaurant:checkout' %}" id="checkout-btn"
+                       class="btn btn-primary w-100 py-2 fw-bold text-center d-block"
+                       style="font-size:0.95rem;letter-spacing:0.02em;">
+                        <i class="bi bi-bag-check me-2"></i>Proceed to Checkout
                     </a>
                 </div>
             </div>
@@ -90,12 +92,12 @@
             <h5 class="modal-title fw-bold text-dark" id="clearCartModalLabel">Clear Cart?</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-          <div class="modal-body text-muted">
+          <div class="modal-body text-secondary">
             Are you sure you want to remove all items from your cart? This action cannot be undone.
           </div>
           <div class="modal-footer border-top-0">
-            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-            <button type="button" class="btn btn-danger" id="confirm-clear-cart-btn">Yes, Clear Cart</button>
+            <button type="button" class="btn btn-secondary py-2" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-danger py-2" id="confirm-clear-cart-btn">Yes, Clear Cart</button>
           </div>
         </div>
       </div>

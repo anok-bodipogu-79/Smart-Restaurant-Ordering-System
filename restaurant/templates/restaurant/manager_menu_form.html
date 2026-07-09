@@ -3,16 +3,25 @@
 {% block title %}{% if object %}Edit MenuItem '{{ object.name }}'{% else %}Add MenuItem{% endif %}{% endblock %}
 
 {% block content %}
-<div class="container d-flex justify-content-center">
+<div class="container py-2 d-flex justify-content-center">
     <div class="col-lg-8">
-        <div class="card p-4 bg-white shadow-sm">
-            <h3 class="fw-bold text-dark border-bottom pb-2 mb-4">
-                {% if object %}
-                    <i class="bi bi-pencil-square me-2 text-accent"></i>Edit MenuItem
-                {% else %}
-                    <i class="bi bi-plus-circle me-2 text-accent"></i>Add MenuItem
-                {% endif %}
-            </h3>
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            
+            <!-- Header -->
+            <div class="d-flex align-items-center border-bottom pb-3 mb-4">
+                <div>
+                    <a href="{% url 'restaurant:manager_menu_list' %}" class="btn btn-link text-decoration-none text-muted p-0 d-block mb-1">
+                        <i class="bi bi-chevron-left me-1"></i> Back to Menu Items
+                    </a>
+                    <h3 class="fw-bold text-dark mb-0">
+                        {% if object %}
+                            <i class="bi bi-pencil-square me-2" style="color:var(--brand-primary);"></i>Edit: {{ object.name }}
+                        {% else %}
+                            <i class="bi bi-plus-circle me-2" style="color:var(--brand-primary);"></i>Add New Menu Item
+                        {% endif %}
+                    </h3>
+                </div>
+            </div>
 
             <form method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
@@ -20,7 +29,7 @@
                 <div class="row g-3">
                     <!-- Name -->
                     <div class="col-md-6">
-                        <label for="id_name" class="form-label small fw-bold text-muted">Item Name</label>
+                        <label for="id_name" class="form-label">Item Name</label>
                         {{ form.name }}
                         {% if form.name.errors %}
                             {% for error in form.name.errors %}
@@ -31,7 +40,7 @@
 
                     <!-- Category -->
                     <div class="col-md-6">
-                        <label for="id_category" class="form-label small fw-bold text-muted">Category</label>
+                        <label for="id_category" class="form-label">Category</label>
                         {{ form.category }}
                         {% if form.category.errors %}
                             {% for error in form.category.errors %}
@@ -42,7 +51,7 @@
 
                     <!-- Price -->
                     <div class="col-md-6">
-                        <label for="id_price" class="form-label small fw-bold text-muted">Price (INR)</label>
+                        <label for="id_price" class="form-label">Price (INR)</label>
                         {{ form.price }}
                         {% if form.price.errors %}
                             {% for error in form.price.errors %}
@@ -53,7 +62,7 @@
 
                     <!-- Image URL -->
                     <div class="col-md-6">
-                        <label for="id_image_url" class="form-label small fw-bold text-muted">External Image URL (Optional Fallback)</label>
+                        <label for="id_image_url" class="form-label">External Image URL <span class="text-muted">(Optional Fallback)</span></label>
                         {{ form.image_url }}
                         {% if form.image_url.errors %}
                             {% for error in form.image_url.errors %}
@@ -64,7 +73,7 @@
 
                     <!-- Direct Image Upload -->
                     <div class="col-md-6">
-                        <label for="id_image" class="form-label small fw-bold text-muted">Upload Image File (Preferred)</label>
+                        <label for="id_image" class="form-label">Upload Image File <span class="text-success">(Preferred)</span></label>
                         {{ form.image }}
                         {% if form.image.errors %}
                             {% for error in form.image.errors %}
@@ -73,26 +82,26 @@
                         {% endif %}
                         <div id="image-preview-container" class="mt-2 d-none">
                             <span class="d-block small text-muted mb-1">New Image Preview:</span>
-                            <img id="image-preview" src="" alt="Selected Preview" class="img-thumbnail" style="max-height: 150px;">
+                            <img id="image-preview" src="" alt="Selected Preview" class="img-thumbnail rounded-3" style="max-height: 150px;">
                         </div>
                     </div>
 
                     <!-- Current Image Display when editing -->
                     {% if object and object.image %}
                     <div class="col-md-6 mt-2">
-                        <span class="d-block small fw-bold text-muted mb-1">Current Uploaded Image:</span>
-                        <img src="{{ object.image.url }}" alt="{{ object.name }}" class="img-thumbnail" style="max-height: 150px; object-fit: cover;">
+                        <span class="d-block small fw-bold text-secondary mb-1">Current Uploaded Image:</span>
+                        <img src="{{ object.image.url }}" alt="{{ object.name }}" class="img-thumbnail rounded-3" style="max-height: 150px; object-fit: cover;">
                     </div>
                     {% elif object and object.image_url %}
                     <div class="col-md-6 mt-2">
-                        <span class="d-block small fw-bold text-muted mb-1">Current External Image URL:</span>
-                        <img src="{{ object.image_url }}" alt="{{ object.name }}" class="img-thumbnail" style="max-height: 150px; object-fit: cover;">
+                        <span class="d-block small fw-bold text-secondary mb-1">Current External Image URL:</span>
+                        <img src="{{ object.image_url }}" alt="{{ object.name }}" class="img-thumbnail rounded-3" style="max-height: 150px; object-fit: cover;">
                     </div>
                     {% endif %}
 
                     <!-- Description -->
                     <div class="col-12">
-                        <label for="id_description" class="form-label small fw-bold text-muted">Description</label>
+                        <label for="id_description" class="form-label">Description</label>
                         {{ form.description }}
                         {% if form.description.errors %}
                             {% for error in form.description.errors %}
@@ -103,24 +112,24 @@
 
                     <!-- Attributes/Checkboxes -->
                     <div class="col-12 border-top pt-3 mt-3">
-                        <h6 class="fw-bold text-dark mb-3">Attributes & Availability</h6>
+                        <h6 class="fw-bold text-dark mb-3">Attributes &amp; Availability</h6>
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <div class="form-check form-switch">
                                     {{ form.is_available }}
-                                    <label class="form-check-label fw-bold text-muted" for="id_is_available">Available for Order</label>
+                                    <label class="form-check-label fw-bold text-secondary" for="id_is_available">Available for Order</label>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-check form-switch">
                                     {{ form.is_vegetarian }}
-                                    <label class="form-check-label fw-bold text-muted" for="id_is_vegetarian">Vegetarian Diet</label>
+                                    <label class="form-check-label fw-bold text-secondary" for="id_is_vegetarian">Vegetarian Diet</label>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-check form-switch">
                                     {{ form.is_spicy }}
-                                    <label class="form-check-label fw-bold text-muted" for="id_is_spicy">Spicy Flavor</label>
+                                    <label class="form-check-label fw-bold text-secondary" for="id_is_spicy">Spicy Flavor</label>
                                 </div>
                             </div>
                         </div>
@@ -128,8 +137,8 @@
                 </div>
 
                 <div class="d-flex justify-content-end gap-2 border-top pt-4 mt-4">
-                    <a href="{% url 'restaurant:manager_menu_list' %}" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
-                    <button type="submit" class="btn btn-accent rounded-pill px-4 fw-bold">Save Changes</button>
+                    <a href="{% url 'restaurant:manager_menu_list' %}" class="btn btn-secondary rounded-pill px-4">Cancel</a>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Save Changes</button>
                 </div>
 
             </form>

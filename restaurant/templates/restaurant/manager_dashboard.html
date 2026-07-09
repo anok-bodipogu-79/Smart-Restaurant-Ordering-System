@@ -3,112 +3,171 @@
 {% block title %}Operational Dashboard{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container py-2">
     
-    <!-- Top Dashboard Header & Filters -->
-    <div class="row align-items-center g-3 mb-4 pb-2 border-bottom">
-        <div class="col-md-6">
-            <h1 class="fw-bold text-dark mb-1">Manager Dashboard</h1>
-            <p class="text-muted mb-0">Live operations summary and performance metrics.</p>
-        </div>
-        <div class="col-md-6 text-md-end">
-            <!-- Range Selection Form -->
-            <form method="GET" action="{% url 'restaurant:manager_dashboard' %}" class="d-flex flex-wrap gap-2 justify-content-md-end align-items-center">
-                <select name="range" id="id_range" class="form-select form-select-sm w-auto rounded-pill" onchange="toggleCustomDates(this.value)">
-                    <option value="today" {% if range_type == 'today' %}selected{% endif %}>Today</option>
-                    <option value="7d" {% if range_type == '7d' %}selected{% endif %}>Last 7 Days</option>
-                    <option value="30d" {% if range_type == '30d' %}selected{% endif %}>Last 30 Days</option>
-                    <option value="custom" {% if range_type == 'custom' %}selected{% endif %}>Custom Range</option>
-                </select>
-                
-                <div id="custom-date-inputs" class="d-flex gap-2 align-items-center {% if range_type != 'custom' %}d-none{% endif %}">
-                    <input type="date" name="start" value="{{ filter_form.start.value|default:'' }}" class="form-control form-control-sm rounded-pill w-auto" placeholder="Start date">
-                    <span class="text-muted small">to</span>
-                    <input type="date" name="end" value="{{ filter_form.end.value|default:'' }}" class="form-control form-control-sm rounded-pill w-auto" placeholder="End date">
+    <!-- Top Dashboard Header & Filters (Glassmorphic Top Bar) -->
+    <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+        <div class="row align-items-center g-3">
+            <div class="col-md-6">
+                <h1 class="fw-bold text-dark mb-1">Manager Dashboard</h1>
+                <p class="text-secondary mb-0">Live operations summary and performance metrics.</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <!-- Quick Actions -->
+                <div class="d-flex flex-wrap gap-2 justify-content-md-end mb-3">
+                    <a href="{% url 'restaurant:manager_csv_export' %}?range={{ range_type }}&start={{ start_dt_str }}&end={{ end_dt_str }}" class="btn btn-sm btn-gold rounded-pill px-3">
+                        <i class="bi bi-file-earmark-spreadsheet-fill me-1"></i> Export CSV
+                    </a>
+                    <a href="{% url 'restaurant:manager_audit_logs' %}" class="btn btn-sm btn-secondary rounded-pill px-3">
+                        <i class="bi bi-journal-text me-1"></i> View Audit Logs
+                    </a>
                 </div>
 
-                <button type="submit" class="btn btn-accent btn-sm rounded-pill px-3 fw-bold text-uppercase">
-                    <i class="bi bi-funnel-fill me-1"></i> Filter
-                </button>
-            </form>
+                <!-- Range Selection Form -->
+                <form method="GET" action="{% url 'restaurant:manager_dashboard' %}" class="d-flex flex-wrap gap-2 justify-content-md-end align-items-center">
+                    <select name="range" id="id_range" class="form-select form-select-sm w-auto rounded-pill" onchange="toggleCustomDates(this.value)">
+                        <option value="today" {% if range_type == 'today' %}selected{% endif %}>Today</option>
+                        <option value="7d" {% if range_type == '7d' %}selected{% endif %}>Last 7 Days</option>
+                        <option value="30d" {% if range_type == '30d' %}selected{% endif %}>Last 30 Days</option>
+                        <option value="custom" {% if range_type == 'custom' %}selected{% endif %}>Custom Range</option>
+                    </select>
+                    
+                    <div id="custom-date-inputs" class="d-flex gap-2 align-items-center {% if range_type != 'custom' %}d-none{% endif %}">
+                        <input type="date" name="start" value="{{ filter_form.start.value|default:'' }}" class="form-control form-control-sm rounded-pill w-auto">
+                        <span class="text-muted small">to</span>
+                        <input type="date" name="end" value="{{ filter_form.end.value|default:'' }}" class="form-control form-control-sm rounded-pill w-auto">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 text-uppercase">
+                        <i class="bi bi-funnel-fill me-1"></i> Filter
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 
-    <!-- KPI Summary Row -->
+    <!-- KPI Summary Bento Grid -->
     <div class="row g-3 mb-4">
         <!-- Revenue Card -->
-        <div class="col-md-4">
-            <div class="card p-3 bg-white h-100 border-start border-success border-4">
-                <span class="text-muted small text-uppercase fw-bold">Completed Revenue</span>
-                <h2 class="fw-bold text-success mt-2 mb-0">₹{{ completed_revenue }}</h2>
-                <p class="text-muted-sm small mb-0 mt-1"><i class="bi bi-info-circle me-1"></i>Realized completed order sales</p>
+        <div class="col-md-3 col-sm-6">
+            <div class="metric-card success-metric h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="metric-label">Completed Revenue</div>
+                        <div class="metric-value text-success mt-2">₹{{ completed_revenue }}</div>
+                    </div>
+                    <div class="metric-icon success">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
+                </div>
+                <p class="text-muted small mb-0 mt-3"><i class="bi bi-info-circle me-1"></i>Realized sales count</p>
             </div>
         </div>
         <!-- Total Orders Card -->
-        <div class="col-md-4">
-            <div class="card p-3 bg-white h-100 border-start border-primary border-4">
-                <span class="text-muted small text-uppercase fw-bold">Total Orders</span>
-                <h2 class="fw-bold text-primary mt-2 mb-0">{{ total_orders }}</h2>
-                <p class="text-muted-sm small mb-0 mt-1"><i class="bi bi-cart me-1"></i>Volume in selected range</p>
+        <div class="col-md-2 col-sm-6">
+            <div class="metric-card brand-metric h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="metric-label">Total Orders</div>
+                        <div class="metric-value mt-2" style="color:var(--brand-primary);">{{ total_orders }}</div>
+                    </div>
+                    <div class="metric-icon brand">
+                        <i class="bi bi-cart-fill"></i>
+                    </div>
+                </div>
+                <p class="text-muted small mb-0 mt-3"><i class="bi bi-cart me-1"></i>Active + terminal</p>
             </div>
         </div>
         <!-- Average Order Value Card -->
-        <div class="col-md-4">
-            <div class="card p-3 bg-white h-100 border-start border-warning border-4">
-                <span class="text-muted small text-uppercase fw-bold">Average Order Value</span>
-                <h2 class="fw-bold text-warning mt-2 mb-0">₹{{ avg_order_value }}</h2>
-                <p class="text-muted-sm small mb-0 mt-1"><i class="bi bi-graph-up-arrow me-1"></i>Completed revenue per count</p>
+        <div class="col-md-3 col-sm-6">
+            <div class="metric-card gold-metric h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="metric-label">Average Value</div>
+                        <div class="metric-value text-gold mt-2">₹{{ avg_order_value }}</div>
+                    </div>
+                    <div class="metric-icon gold">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                </div>
+                <p class="text-muted small mb-0 mt-3"><i class="bi bi-graph-up me-1"></i>Per completed count</p>
+            </div>
+        </div>
+        <!-- Average Completion Time Card -->
+        <div class="col-md-2 col-sm-6">
+            <div class="metric-card info-metric h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="metric-label">Avg Completion</div>
+                        <div class="metric-value text-info mt-2">{% if avg_completion_minutes %}{{ avg_completion_minutes }}m{% else %}--{% endif %}</div>
+                    </div>
+                    <div class="metric-icon info">
+                        <i class="bi bi-hourglass-split"></i>
+                    </div>
+                </div>
+                <p class="text-muted small mb-0 mt-3"><i class="bi bi-lightning-fill me-1"></i>Cooking &amp; service</p>
+            </div>
+        </div>
+        <!-- Cancellation Rate Card -->
+        <div class="col-md-2 col-sm-6">
+            <div class="metric-card danger-metric h-100">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="metric-label">Cancel Rate</div>
+                        <div class="metric-value text-danger mt-2">{{ cancellation_rate }}%</div>
+                    </div>
+                    <div class="metric-icon danger">
+                        <i class="bi bi-x-circle"></i>
+                    </div>
+                </div>
+                <p class="text-muted small mb-0 mt-3"><i class="bi bi-shield-exclamation me-1"></i>Cancelled ratio</p>
             </div>
         </div>
     </div>
 
-    <!-- Status Breakdowns Row -->
-    <div class="row g-3 mb-4">
-        <div class="col-12">
-            <div class="card p-4 bg-white">
-                <h5 class="fw-bold text-dark mb-3">Order Status breakdown</h5>
-                <div class="row g-2 text-center">
-                    <div class="col-sm-2 col-4">
-                        <div class="bg-light p-2 rounded">
-                            <span class="text-muted small d-block">Received</span>
-                            <strong class="fs-4 text-info">{{ status_counts.received|default:0 }}</strong>
-                        </div>
-                    </div>
-                    <div class="col-sm-2 col-4">
-                        <div class="bg-light p-2 rounded">
-                            <span class="text-muted small d-block">Preparing</span>
-                            <strong class="fs-4 text-warning">{{ status_counts.preparing|default:0 }}</strong>
-                        </div>
-                    </div>
-                    <div class="col-sm-2 col-4">
-                        <div class="bg-light p-2 rounded">
-                            <span class="text-muted small d-block">Ready</span>
-                            <strong class="fs-4 text-success">{{ status_counts.ready|default:0 }}</strong>
-                        </div>
-                    </div>
-                    <div class="col-sm-2 col-4">
-                        <div class="bg-light p-2 rounded">
-                            <span class="text-muted small d-block">Completed</span>
-                            <strong class="fs-4 text-secondary">{{ status_counts.completed|default:0 }}</strong>
-                        </div>
-                    </div>
-                    <div class="col-sm-2 col-4">
-                        <div class="bg-light p-2 rounded">
-                            <span class="text-muted small d-block">Cancelled</span>
-                            <strong class="fs-4 text-danger">{{ status_counts.cancelled|default:0 }}</strong>
-                        </div>
-                    </div>
+    <!-- Status Breakdowns Card -->
+    <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+        <h5 class="fw-bold mb-3" style="color:var(--brand-primary);">Order Status Breakdown</h5>
+        <div class="row g-3 text-center">
+            <div class="col-sm-2 col-4">
+                <div class="p-3 rounded-3" style="background:var(--bg-secondary);">
+                    <span class="text-muted small d-block">Received</span>
+                    <strong class="fs-4 text-info">{{ status_counts.received|default:0 }}</strong>
+                </div>
+            </div>
+            <div class="col-sm-2 col-4">
+                <div class="p-3 rounded-3" style="background:var(--bg-secondary);">
+                    <span class="text-muted small d-block">Preparing</span>
+                    <strong class="fs-4 text-warning">{{ status_counts.preparing|default:0 }}</strong>
+                </div>
+            </div>
+            <div class="col-sm-2 col-4">
+                <div class="p-3 rounded-3" style="background:var(--bg-secondary);">
+                    <span class="text-muted small d-block">Ready</span>
+                    <strong class="fs-4 text-success">{{ status_counts.ready|default:0 }}</strong>
+                </div>
+            </div>
+            <div class="col-sm-2 col-4">
+                <div class="p-3 rounded-3" style="background:var(--bg-secondary);">
+                    <span class="text-muted small d-block">Completed</span>
+                    <strong class="fs-4 text-secondary">{{ status_counts.completed|default:0 }}</strong>
+                </div>
+            </div>
+            <div class="col-sm-2 col-4">
+                <div class="p-3 rounded-3" style="background:var(--bg-secondary);">
+                    <span class="text-muted small d-block">Cancelled</span>
+                    <strong class="fs-4 text-danger">{{ status_counts.cancelled|default:0 }}</strong>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Analytics & Details Row -->
+    <!-- Analytics & Details Row (Bento Grid Columns) -->
     <div class="row g-4 mb-4">
         
         <!-- Recent Orders List -->
         <div class="col-lg-7">
-            <div class="card p-4 bg-white h-100">
+            <div class="bento-card">
                 <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">Recent Orders</h5>
                 {% if recent_orders %}
                     <div class="table-responsive">
@@ -139,7 +198,7 @@
                                         </td>
                                         <td>₹{{ order.total_amount }}</td>
                                         <td class="text-end">
-                                            <a href="{% url 'restaurant:manager_order_detail' order.id %}" class="btn btn-outline-primary btn-sm rounded-pill px-2">
+                                            <a href="{% url 'restaurant:manager_order_detail' order.id %}" class="btn btn-outline-brand btn-sm rounded-pill px-3">
                                                 <i class="bi bi-eye"></i> View
                                             </a>
                                         </td>
@@ -159,7 +218,7 @@
 
         <!-- Top Selling Menu Items -->
         <div class="col-lg-5">
-            <div class="card p-4 bg-white h-100">
+            <div class="bento-card">
                 <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">Top 5 Selling Items</h5>
                 {% if top_items %}
                     <div class="table-responsive">
@@ -196,8 +255,8 @@
     <!-- Category Performance row -->
     <div class="row g-3 mb-4">
         <div class="col-12">
-            <div class="card p-4 bg-white">
-                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">Category Performance</h5>
+            <div class="bento-card">
+                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">Category Sales Performance</h5>
                 {% if category_performance %}
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">

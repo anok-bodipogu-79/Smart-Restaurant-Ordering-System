@@ -1,0 +1,103 @@
+{% extends "restaurant/manager_base.html" %}
+
+{% block title %}Operational Audit Logs{% endblock %}
+
+{% block content %}
+<div class="container py-2">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom mt-3">
+        <div>
+            <h1 class="fw-bold text-dark mb-1">Operational Audit Logs</h1>
+            <p class="text-secondary mb-0">Append-only trail of managerial and kitchen operations.</p>
+        </div>
+        <div>
+            <a href="{% url 'restaurant:manager_dashboard' %}" class="btn btn-secondary rounded-pill px-3">
+                <i class="bi bi-chevron-left me-1"></i> Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Table Card -->
+    <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col" class="fw-bold text-dark" style="width: 15%;">Timestamp</th>
+                        <th scope="col" class="fw-bold text-dark" style="width: 15%;">Actor</th>
+                        <th scope="col" class="fw-bold text-dark" style="width: 15%;">Action</th>
+                        <th scope="col" class="fw-bold text-dark" style="width: 15%;">Target</th>
+                        <th scope="col" class="fw-bold text-dark" style="width: 40%;">Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in audit_logs %}
+                        <tr>
+                            <td><small class="text-secondary">{{ log.timestamp|date:"Y-m-d H:i:s" }}</small></td>
+                            <td>
+                                <strong class="text-dark">
+                                    {% if log.actor %}
+                                        {{ log.actor.username }}
+                                    {% else %}
+                                        <span class="text-muted small fst-italic">System</span>
+                                    {% endif %}
+                                </strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border px-2 py-1">
+                                    {{ log.action }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="text-secondary small">
+                                    {{ log.target_type }} (ID: {{ log.target_id }})
+                                </span>
+                            </td>
+                            <td>
+                                <span class="text-dark small">{{ log.description }}</span>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="bi bi-journal-x fs-2 d-block mb-2 opacity-50"></i>
+                                No audit log records found.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        {% if is_paginated %}
+            <nav aria-label="Audit Logs navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link rounded-pill px-3 me-1" href="?page=1" aria-label="First">&laquo; First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link rounded-pill px-3 me-1" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">Previous</a>
+                        </li>
+                    {% endif %}
+
+                    <li class="page-item active">
+                        <span class="page-link rounded-pill px-3 me-1">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link rounded-pill px-3 me-1" href="?page={{ page_obj.next_page_number }}" aria-label="Next">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link rounded-pill px-3" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">Last &raquo;</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

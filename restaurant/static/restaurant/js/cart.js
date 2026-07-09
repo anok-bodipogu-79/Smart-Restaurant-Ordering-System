@@ -39,15 +39,20 @@ function getCart() {
                         quantity = MAX_QUANTITY;
                     }
 
+                    const special_instructions = item.special_instructions ? String(item.special_instructions).trim().substring(0, 250) : "";
+
                     if (seenIds.has(id)) {
                         // Merge duplicate IDs if present
                         const existingItem = cleanedCart.find(i => i.id === id);
                         if (existingItem) {
                             existingItem.quantity = Math.min(existingItem.quantity + quantity, MAX_QUANTITY);
+                            if (special_instructions && !existingItem.special_instructions) {
+                                existingItem.special_instructions = special_instructions;
+                            }
                         }
                     } else {
                         seenIds.add(id);
-                        cleanedCart.push({ id, name, price, quantity });
+                        cleanedCart.push({ id, name, price, quantity, special_instructions });
                     }
                 }
             }
@@ -86,12 +91,13 @@ function updateCartCount(cart) {
 function synchronizeCartWithServer() {
     const cart = getCart();
     
-    // Transform cart to only send ID and quantity to the server.
+    // Transform cart to only send ID, quantity, and special instructions to the server.
     // The server does not trust browser-calculated names, prices, or totals.
     const payload = {
         items: cart.map(item => ({
             id: item.id,
-            quantity: item.quantity
+            quantity: item.quantity,
+            special_instructions: item.special_instructions || ""
         }))
     };
 
@@ -133,7 +139,8 @@ function synchronizeCartWithServer() {
                 id: String(item.id),
                 name: item.name,
                 price: parseFloat(item.price),
-                quantity: item.quantity
+                quantity: item.quantity,
+                special_instructions: item.special_instructions || ""
             }));
 
             // Save reconciled data directly to localStorage to avoid infinite recursion
@@ -163,7 +170,7 @@ function addItemToCart(id, name, price) {
             showButtonFeedback(id, "Max (20) Reached", true);
         }
     } else {
-        cart.push({ id, name, price: parseFloat(price), quantity: 1 });
+        cart.push({ id, name, price: parseFloat(price), quantity: 1, special_instructions: "" });
         saveCart(cart);
         showButtonFeedback(id, "Added");
     }
@@ -231,6 +238,21 @@ function renderCartPage() {
         nameText.className = "fw-bold mb-0 text-dark";
         nameText.textContent = item.name;
         nameCol.appendChild(nameText);
+
+        // Special instructions input container
+        const instructionsDiv = document.createElement("div");
+        instructionsDiv.className = "mt-2";
+        
+        const instructionsInput = document.createElement("input");
+        instructionsInput.type = "text";
+        instructionsInput.className = "form-control form-control-sm special-instructions-input text-dark bg-light border";
+        instructionsInput.placeholder = "Special instructions (e.g. less spicy, no onion)";
+        instructionsInput.maxLength = 250;
+        instructionsInput.value = item.special_instructions || "";
+        instructionsInput.setAttribute("aria-label", "Special instructions for " + item.name);
+        
+        instructionsDiv.appendChild(instructionsInput);
+        nameCol.appendChild(instructionsDiv);
 
         // Unit Price
         const priceCol = document.createElement("div");
@@ -341,6 +363,29 @@ document.addEventListener("DOMContentLoaded", () => {
     const cartItemsContainer = document.getElementById("cart-items");
     if (cartItemsContainer) {
         renderCartPage();
+
+        // Handle changes in special instructions to save them inside local storage immediately
+        cartItemsContainer.addEventListener("input", (e) => {
+            if (e.target.classList.contains("special-instructions-input")) {
+                const row = e.target.closest(".cart-item-row");
+                if (!row) return;
+                const itemId = row.dataset.itemId;
+                const currentCart = getCart();
+                const item = currentCart.find(i => i.id === itemId);
+                if (item) {
+                    item.special_instructions = e.target.value.substring(0, 250);
+                    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(currentCart));
+                }
+            }
+        });
+
+        // Sync with backend session when special instructions text input is changed/blurred
+        cartItemsContainer.addEventListener("change", (e) => {
+            if (e.target.classList.contains("special-instructions-input")) {
+                const currentCart = getCart();
+                saveCart(currentCart);
+            }
+        });
 
         cartItemsContainer.addEventListener("click", (e) => {
             const row = e.target.closest(".cart-item-row");

@@ -32,3 +32,22 @@ class OrderItemAdmin(admin.ModelAdmin):
     list_filter = ("menu_item__category", "category_name_at_order")
     search_fields = ("menu_item__name", "item_name_at_order", "category_name_at_order", "order__customer_name")
     readonly_fields = ("item_name_at_order", "category_name_at_order", "price_at_order")
+
+
+from restaurant.models import AuditLog
+
+@admin.register(AuditLog)
+class AuditLogAdmin(admin.ModelAdmin):
+    list_display = ("id", "timestamp", "actor", "action", "target_type", "target_id", "description")
+    list_filter = ("action", "target_type", "timestamp")
+    search_fields = ("description", "actor__username", "target_id")
+    ordering = ("-timestamp",)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

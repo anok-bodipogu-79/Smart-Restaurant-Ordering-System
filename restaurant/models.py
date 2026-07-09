@@ -115,6 +115,27 @@ class Order(models.Model):
         db_index=True
     )
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    estimated_preparation_minutes = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(5), MaxValueValidator(180)]
+    )
+    priority = models.CharField(
+        max_length=10,
+        choices=[("NORMAL", "Normal"), ("PRIORITY", "Priority"), ("URGENT", "Urgent")],
+        default="NORMAL",
+        db_index=True
+    )
+    completed_at = models.DateTimeField(null=True, blank=True, db_index=True)
+
+    @property
+    def is_delayed(self):
+        if self.estimated_preparation_minutes and self.status not in ["COMPLETED", "CANCELLED"]:
+            from django.utils import timezone
+            import datetime
+            elapsed = timezone.now() - self.created_at
+            return elapsed > datetime.timedelta(minutes=self.estimated_preparation_minutes)
+        return False
 
     class Meta:
         ordering = ["-created_at"]
@@ -138,6 +159,11 @@ class OrderItem(models.Model):
     )
     item_name_at_order = models.CharField(max_length=100, default="", blank=True)
     category_name_at_order = models.CharField(max_length=100, null=True, blank=True)
+    special_instructions = models.CharField(max_length=250, default="", blank=True)
+
+    @property
+    def total_price(self):
+        return (self.price_at_order * self.quantity).quantize(Decimal("0.01"))
 
     def __str__(self):
         name = self.item_name_at_order
@@ -146,3 +172,19 @@ class OrderItem(models.Model):
         if not name:
             name = "Unknown Item"
         return f"{self.quantity}x {name}"
+
+
+class AuditLog(models.Model):
+    actor = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True)
+    action = models.CharField(max_length=100)
+    target_type = models.CharField(max_length=100)
+    target_id = models.CharField(max_length=50, blank=True, default="")
+    description = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-timestamp"]
+
+    def __str__(self):
+        actor_name = self.actor.username if self.actor else "System"
+        return f"{self.timestamp} - {actor_name}: {self.action} on {self.target_type}"

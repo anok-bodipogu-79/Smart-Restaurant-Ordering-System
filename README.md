@@ -20,11 +20,14 @@ This application provides a highly synchronized, four-interface system:
 ## Key Features
 
 ### Customer Features
-- Responsive category browsing and searching.
-- Dynamic cart drawer with immediate subtotal, tax, and total updates.
-- Secure checkout forms with atomic session sync.
-- Direct UUID order tracking links.
-- Persistent Light/Dark theme settings.
+- **Real-Time Advanced Search**: Instantly find dishes matching name or description.
+- **Dietary & Spicy Filters**: Filter by Veg, Non-Veg, or Spicy options.
+- **Dynamic Sorting**: Sort dishes by Name (A-Z, Z-A), Price (Low-to-High, High-to-Low), or Most Popular.
+- **Special Instructions**: Add optional instructions (up to 250 characters) to individual cart items, which persist in localStorage, sync with django sessions, and are preserved on OrderItems.
+- **Database-Driven Popular Badges**: Displays a visually distinct `Popular` badge on the top 3 available items based on actual completed orders.
+- **Cart Sync & Revalidation**: Frontend localStorage cart automatically reconciles with backend session data to maintain server-authoritative pricing and availability.
+- **Light/Dark Mode Toggle**: Persistent browser theme selector.
+- **Direct UUID tracking links**: Live tracking status dashboard.
 
 ### Kitchen Features
 - Live split-view tracking of active orders.

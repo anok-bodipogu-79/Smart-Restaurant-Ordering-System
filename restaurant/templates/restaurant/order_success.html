@@ -4,23 +4,23 @@
 {% block title %}Order Placed Successfully{% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container py-2">
 
     <!-- Clear Cart DOM Marker for cart.js -->
     <div id="checkout-success-marker" data-clear-cart-on-load="true"></div>
 
     <!-- Success Header Card -->
-    <div class="card border-0 shadow-sm rounded-3 p-5 mb-4 bg-white text-center">
-        <div class="mb-3 text-success">
+    <div class="card border-0 shadow-sm rounded-4 p-5 mb-4 bg-white text-center">
+        <div class="mb-3" style="color:var(--success);">
             <i class="bi bi-check-circle-fill display-1"></i>
         </div>
-        <h1 class="fw-bold text-dark mb-2">Order Confirmed!</h1>
-        <p class="text-muted fs-5 mb-3">Thank you for dining with us. Your order has been successfully sent to the kitchen.</p>
+        <h1 class="fw-bold mb-2" style="color:var(--brand-primary);">Order Confirmed!</h1>
+        <p class="fs-5 mb-4" style="color:var(--text-secondary);">Thank you for dining with us. Your order has been successfully sent to the kitchen.</p>
         <div class="d-flex flex-column align-items-center gap-2">
             <span class="badge bg-secondary px-3 py-2 text-uppercase fs-6">Order Number: #{{ order.id }}</span>
             <div class="mt-2">
-                <span class="d-block text-muted small text-uppercase fw-bold">Secure Tracking ID</span>
-                <code class="fs-5 text-dark fw-bold">{{ order.tracking_token }}</code>
+                <span class="d-block small text-uppercase fw-bold" style="color:var(--text-muted);">Secure Tracking ID</span>
+                <code class="fs-5 fw-bold" style="color:var(--brand-primary);">{{ order.tracking_token }}</code>
             </div>
         </div>
     </div>
@@ -29,21 +29,21 @@
         
         <!-- Order Details & Summary -->
         <div class="col-lg-8">
-            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4">
-                <h5 class="fw-bold text-dark border-bottom pb-3 mb-4">
-                    <i class="bi bi-info-circle me-2 text-accent"></i>Order Details
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+                <h5 class="fw-bold border-bottom pb-3 mb-4" style="color:var(--brand-primary);">
+                    <i class="bi bi-info-circle me-2"></i>Order Details
                 </h5>
                 <div class="row g-3">
                     <div class="col-sm-6">
-                        <span class="text-muted-sm d-block">Customer Name</span>
+                        <span class="text-secondary d-block small">Customer Name</span>
                         <strong class="text-dark">{{ order.customer_name }}</strong>
                     </div>
                     <div class="col-sm-6">
-                        <span class="text-muted-sm d-block">Contact Number</span>
+                        <span class="text-secondary d-block small">Contact Number</span>
                         <strong class="text-dark">{{ order.customer_phone }}</strong>
                     </div>
                     <div class="col-sm-6">
-                        <span class="text-muted-sm d-block">Table / Order Type</span>
+                        <span class="text-secondary d-block small">Table / Order Type</span>
                         <strong class="text-dark">
                             {% if order.table_number %}
                                 Table #{{ order.table_number }} (Dine-in)
@@ -53,20 +53,20 @@
                         </strong>
                     </div>
                     <div class="col-sm-6">
-                        <span class="text-muted-sm d-block">Order Status</span>
-                        <strong class="text-accent">{{ order.get_status_display }}</strong>
+                        <span class="text-secondary d-block small">Order Status</span>
+                        <strong style="color:var(--brand-primary);">{{ order.get_status_display }}</strong>
                     </div>
                     <div class="col-sm-6">
-                        <span class="text-muted-sm d-block">Placed At</span>
+                        <span class="text-secondary d-block small">Placed At</span>
                         <strong class="text-dark">{{ order.created_at|date:"F d, Y h:i A" }}</strong>
                     </div>
                 </div>
             </div>
 
             <!-- Itemized list -->
-            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
-                <h5 class="fw-bold text-dark border-bottom pb-3 mb-4">
-                    <i class="bi bi-cart-check me-2 text-accent"></i>Items Ordered
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                <h5 class="fw-bold border-bottom pb-3 mb-4" style="color:var(--brand-primary);">
+                    <i class="bi bi-cart-check me-2"></i>Items Ordered
                 </h5>
                 <div class="table-responsive">
                     <table class="table table-borderless align-middle mb-0">
@@ -81,10 +81,17 @@
                         <tbody>
                             {% for item in order.items.all %}
                                 <tr class="border-bottom">
-                                    <td class="py-3 text-dark fw-bold">{{ item.item_name_at_order }}</td>
-                                    <td class="py-3 text-center text-muted-sm">{{ item.quantity }}</td>
-                                    <td class="py-3 text-end text-muted-sm">₹{{ item.price_at_order }}</td>
-                                    <td class="py-3 text-end text-dark fw-bold">₹{% widthratio item.price_at_order 1 item.quantity %}</td>
+                                    <td class="py-3">
+                                        <div class="text-dark fw-bold">{{ item.item_name_at_order|default:item.menu_item.name }}</div>
+                                        {% if item.special_instructions %}
+                                            <div class="text-danger small mt-1" style="font-size: 0.8rem; font-style: italic;">
+                                                <i class="bi bi-chat-right-text-fill me-1"></i> Note: "{{ item.special_instructions }}"
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-3 text-center text-secondary">{{ item.quantity }}</td>
+                                    <td class="py-3 text-end text-secondary">₹{{ item.price_at_order }}</td>
+                                    <td class="py-3 text-end text-dark fw-bold">₹{{ item.total_price }}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -95,31 +102,34 @@
 
         <!-- Grand Total Summary Side Card -->
         <div class="col-lg-4">
-            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white sticky-lg-top" style="top: 100px;">
-                <h5 class="fw-bold text-dark border-bottom pb-3 mb-4">
-                    <i class="bi bi-receipt me-2 text-accent"></i>Totals Incurred
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white sticky-lg-top" style="top: 100px;">
+                <h5 class="fw-bold border-bottom pb-3 mb-4" style="color:var(--brand-primary);">
+                    <i class="bi bi-receipt me-2"></i>Totals Incurred
                 </h5>
                 
                 <div class="d-flex justify-content-between mb-2">
-                    <span class="text-muted small">Subtotal</span>
+                    <span class="text-secondary small">Subtotal</span>
                     <span class="fw-bold text-dark small">₹{{ subtotal }}</span>
                 </div>
                 
                 <div class="d-flex justify-content-between mb-3 border-bottom pb-3">
-                    <span class="text-muted small">Tax (5%)</span>
+                    <span class="text-secondary small">Tax (5%)</span>
                     <span class="fw-bold text-dark small">₹{{ tax }}</span>
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <span class="fs-5 fw-bold text-dark">Grand Total</span>
-                    <span class="fs-4 fw-bold text-accent">₹{{ grand_total }}</span>
+                    <span class="fs-5 fw-bold" style="color:var(--text-primary);">Grand Total</span>
+                    <span class="fs-4 fw-bold" style="color:var(--accent-gold);">₹{{ grand_total }}</span>
                 </div>
 
                 <div class="mt-2 text-center d-flex flex-column gap-2">
-                    <a href="{% url 'restaurant:order_tracking_detail' order.tracking_token %}" class="btn btn-accent rounded-pill w-100 py-2 fw-bold text-uppercase">
+                    <a href="{% url 'restaurant:order_receipt' order.tracking_token %}" class="btn btn-outline-brand rounded-pill w-100 py-2 fw-bold text-uppercase">
+                        <i class="bi bi-file-earmark-text-fill me-2"></i>View Digital Receipt
+                    </a>
+                    <a href="{% url 'restaurant:order_tracking_detail' order.tracking_token %}" class="btn btn-primary rounded-pill w-100 py-2 fw-bold text-uppercase">
                         <i class="bi bi-geo-alt-fill me-2"></i>Track Order
                     </a>
-                    <a href="{% url 'restaurant:menu' %}" class="btn btn-outline-secondary rounded-pill w-100 py-2 fw-bold text-uppercase">
+                    <a href="{% url 'restaurant:menu' %}" class="btn btn-secondary rounded-pill w-100 py-2 fw-bold text-uppercase">
                         <i class="bi bi-house-door-fill me-2"></i>Back to Menu
                     </a>
                 </div>

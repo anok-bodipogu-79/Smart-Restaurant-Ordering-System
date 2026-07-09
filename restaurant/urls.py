@@ -8,7 +8,8 @@ from restaurant.views import (
     ManagerOrderListView, ManagerOrderDetailView, ManagerOrderCancelView,
     ManagerMenuItemListView, ManagerMenuItemCreateView, ManagerMenuItemUpdateView,
     ManagerMenuItemAvailabilityView, ManagerCategoryListView, ManagerCategoryCreateView,
-    ManagerCategoryUpdateView
+    ManagerCategoryUpdateView, ManagerCSVExportView, ManagerAuditLogListView,
+    OrderReceiptView, ManagerOrderReceiptView, StaffAccessView
 )
 
 app_name = "restaurant"
@@ -28,6 +29,9 @@ urlpatterns = [
     path("track/<uuid:tracking_token>/", OrderTrackingDetailView.as_view(), name="order_tracking_detail"),
     path("track/<uuid:tracking_token>/status/", OrderTrackingStatusView.as_view(), name="order_tracking_status"),
     
+    # Digital Receipt Customer Route
+    path("receipt/<uuid:tracking_token>/", OrderReceiptView.as_view(), name="order_receipt"),
+
     # Manager Routes
     path("manager/login/", ManagerLoginView.as_view(), name="manager_login"),
     path("manager/logout/", ManagerLogoutView.as_view(), name="manager_logout"),
@@ -35,6 +39,9 @@ urlpatterns = [
     path("manager/orders/", ManagerOrderListView.as_view(), name="manager_order_list"),
     path("manager/orders/<int:pk>/", ManagerOrderDetailView.as_view(), name="manager_order_detail"),
     path("manager/orders/<int:pk>/cancel/", ManagerOrderCancelView.as_view(), name="manager_order_cancel"),
+    path("manager/orders/<int:pk>/receipt/", ManagerOrderReceiptView.as_view(), name="manager_order_receipt"),
+    path("manager/analytics/export/", ManagerCSVExportView.as_view(), name="manager_csv_export"),
+    path("manager/audit-logs/", ManagerAuditLogListView.as_view(), name="manager_audit_logs"),
     path("manager/menu/", ManagerMenuItemListView.as_view(), name="manager_menu_list"),
     path("manager/menu/add/", ManagerMenuItemCreateView.as_view(), name="manager_menu_create"),
     path("manager/menu/<int:pk>/edit/", ManagerMenuItemUpdateView.as_view(), name="manager_menu_edit"),
@@ -42,4 +49,5 @@ urlpatterns = [
     path("manager/categories/", ManagerCategoryListView.as_view(), name="manager_category_list"),
     path("manager/categories/add/", ManagerCategoryCreateView.as_view(), name="manager_category_create"),
     path("manager/categories/<int:pk>/edit/", ManagerCategoryUpdateView.as_view(), name="manager_category_edit"),
+    path("staff-access/", StaffAccessView.as_view(), name="staff_access"),
 ]

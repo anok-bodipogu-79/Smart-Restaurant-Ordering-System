@@ -1,0 +1,67 @@
+{% extends "restaurant/base.html" %}
+{% load static %}
+
+{% block title %}Staff Access Portal{% endblock %}
+
+{% block content %}
+<div class="container py-5 d-flex flex-column align-items-center justify-content-center" style="min-height: 70vh;">
+
+    <!-- Intro Header -->
+    <div class="text-center mb-5">
+        <span style="font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent-gold);display:block;margin-bottom:0.5rem;">
+            Staff Workspaces
+        </span>
+        <h1 class="editorial-heading mb-3" style="font-size:clamp(1.75rem,4vw,2.75rem);">
+            SmartDine Staff Access
+        </h1>
+        <p class="mx-auto text-muted mb-0" style="max-width:440px;font-size:0.95rem;line-height:1.6;">
+            Select your operational workspace to continue. Authenticated credentials are required to proceed.
+        </p>
+        <div class="title-underline mx-auto mt-3" style="width:60px;"></div>
+    </div>
+
+    <!-- Bento Workspaces Grid -->
+    <div class="portal-grid w-100 mb-5">
+        
+        <!-- Kitchen Console Bento Card -->
+        <a href="{% url 'restaurant:kitchen_login' %}" class="portal-card kitchen-portal" aria-label="Access Kitchen Console">
+            <div class="portal-card-icon-wrap" style="background:var(--accent-gold-soft);color:var(--accent-gold);">
+                <i class="bi bi-fire fs-4"></i>
+            </div>
+            <h3 class="portal-card-title">Kitchen Console</h3>
+            <p class="portal-card-desc">
+                Manage live order preparation, kitchen workflows, priorities, and order status transitions in real time.
+            </p>
+            <span class="portal-card-action">
+                Kitchen Login <i class="bi bi-arrow-right"></i>
+            </span>
+        </a>
+
+        <!-- Manager Portal Bento Card -->
+        <a href="{% url 'restaurant:manager_login' %}" class="portal-card manager-portal" aria-label="Access Manager Portal">
+            <div class="portal-card-icon-wrap" style="background:var(--brand-primary-soft);color:var(--brand-primary);">
+                <i class="bi bi-shield-check fs-4"></i>
+            </div>
+            <h3 class="portal-card-title">Manager Portal</h3>
+            <p class="portal-card-desc">
+                Manage orders, menu items, categories, restaurant operations, performance insights, and audit logs.
+            </p>
+            <span class="portal-card-action">
+                Manager Login <i class="bi bi-arrow-right"></i>
+            </span>
+        </a>
+
+    </div>
+
+    <!-- Actions & Notes -->
+    <div class="text-center">
+        <a href="{% url 'restaurant:menu' %}" class="btn btn-secondary rounded-pill px-4 py-2 text-decoration-none fw-bold" style="font-size:0.875rem;">
+            <i class="bi bi-arrow-left me-1"></i> Return to Menu
+        </a>
+        <p class="mt-4 mb-0 text-xs text-stone-400" style="color:var(--text-disabled); font-weight: 500;">
+            <i class="bi bi-shield-lock me-1"></i> Authorized personnel only. Access attempt logs are recorded in the audit trail.
+        </p>
+    </div>
+
+</div>
+{% endblock %}

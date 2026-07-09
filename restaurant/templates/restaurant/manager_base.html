@@ -5,90 +5,79 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Manager Console{% endblock %} | SmartDine Manager</title>
-    <!-- Google Fonts: Outfit -->
+    <meta name="description" content="SmartDine Manager — Operations and control center.">
+    <!-- Google Fonts: Manrope -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Bootstrap 5 CSS CDN -->
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons CDN -->
+    <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
+    <!-- SmartDine Design System -->
     <link rel="stylesheet" href="{% static 'restaurant/css/style.css' %}">
-    <style>
-        body {
-            font-family: 'Outfit', sans-serif;
-            background-color: #f4f6f9;
-        }
-        .navbar {
-            background-color: #1e293b !important;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        .navbar-brand, .nav-link {
-            color: #f1f5f9 !important;
-        }
-        .nav-link:hover, .nav-link.active {
-            color: #ff5722 !important;
-        }
-        .card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        .table-responsive {
-            border-radius: 8px;
-        }
-    </style>
-    <script>
-        (function() {
-            const savedTheme = localStorage.getItem('theme');
-            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-            } else {
-                document.documentElement.setAttribute('data-theme', 'light');
-            }
-        })();
-    </script>
     {% block extra_css %}{% endblock %}
 </head>
 <body class="d-flex flex-column min-vh-100">
     <a href="#main-content" class="skip-link">Skip to content</a>
 
-    <!-- Manager Navigation Bar -->
-    <nav class="navbar navbar-expand-lg sticky-top">
+    <!-- SmartDine Manager Navigation -->
+    <nav class="navbar navbar-expand-lg sticky-top" role="navigation" aria-label="Manager navigation">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="{% url 'restaurant:manager_dashboard' %}">
-                <i class="bi bi-shield-lock-fill text-accent me-2"></i>
-                <span class="brand-text">SmartDine <span class="text-accent">Manager</span></span>
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'restaurant:manager_dashboard' %}">
+                <span style="width:32px;height:32px;background:linear-gradient(135deg,#245A4C,#173F35);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="bi bi-shield-check text-white" style="font-size:0.9rem;"></i>
+                </span>
+                <span class="brand-text fw-800">Smart<span>Dine</span> <small style="font-size:0.7rem;font-weight:600;color:var(--accent-gold);letter-spacing:0.06em;text-transform:uppercase;">Manager</small></span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#managerNavbar" aria-controls="managerNavbar" aria-expanded="false" aria-label="Toggle navigation">
-                <i class="bi bi-list fs-2 text-white"></i>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#managerNavbar"
+                    aria-controls="managerNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                <i class="bi bi-list fs-2" style="color:var(--text-primary);"></i>
             </button>
+
             <div class="collapse navbar-collapse" id="managerNavbar">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.view_name == 'restaurant:manager_dashboard' %}active{% endif %}" href="{% url 'restaurant:manager_dashboard' %}">Dashboard</a>
+                        <a class="nav-link {% if request.resolver_match.view_name == 'restaurant:manager_dashboard' %}active{% endif %}"
+                           href="{% url 'restaurant:manager_dashboard' %}">
+                            <i class="bi bi-speedometer2 me-1" style="font-size:0.85rem;"></i>Dashboard
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.view_name == 'restaurant:manager_order_list' or request.resolver_match.view_name == 'restaurant:manager_order_detail' %}active{% endif %}" href="{% url 'restaurant:manager_order_list' %}">Orders</a>
+                        <a class="nav-link {% if request.resolver_match.view_name == 'restaurant:manager_order_list' or request.resolver_match.view_name == 'restaurant:manager_order_detail' %}active{% endif %}"
+                           href="{% url 'restaurant:manager_order_list' %}">
+                            <i class="bi bi-receipt me-1" style="font-size:0.85rem;"></i>Orders
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if 'menu' in request.resolver_match.view_name %}active{% endif %}" href="{% url 'restaurant:manager_menu_list' %}">Menu Items</a>
+                        <a class="nav-link {% if 'menu' in request.resolver_match.view_name %}active{% endif %}"
+                           href="{% url 'restaurant:manager_menu_list' %}">
+                            <i class="bi bi-journal-text me-1" style="font-size:0.85rem;"></i>Menu Items
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if 'category' in request.resolver_match.view_name %}active{% endif %}" href="{% url 'restaurant:manager_category_list' %}">Categories</a>
+                        <a class="nav-link {% if 'category' in request.resolver_match.view_name %}active{% endif %}"
+                           href="{% url 'restaurant:manager_category_list' %}">
+                            <i class="bi bi-tags me-1" style="font-size:0.85rem;"></i>Categories
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.view_name == 'restaurant:manager_audit_logs' %}active{% endif %}"
+                           href="{% url 'restaurant:manager_audit_logs' %}">
+                            <i class="bi bi-journal-check me-1" style="font-size:0.85rem;"></i>Audit Logs
+                        </a>
                     </li>
                 </ul>
+
                 <div class="d-flex align-items-center gap-3">
-                    <button id="theme-toggle" class="btn btn-link text-decoration-none p-0 text-white" aria-label="Toggle dark/light theme">
-                        <i id="theme-icon" class="bi bi-moon fs-5"></i>
-                    </button>
-                    <span class="text-light small d-none d-md-inline">Welcome, <strong>{{ request.user.username }}</strong></span>
+                    <span class="small d-none d-md-inline" style="color:var(--text-muted);">
+                        <i class="bi bi-person-circle me-1"></i>{{ request.user.username }}
+                    </span>
                     <form method="POST" action="{% url 'restaurant:manager_logout' %}" class="m-0">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
-                            <i class="bi bi-box-arrow-right me-1"></i> Logout
+                        <button type="submit" class="btn btn-secondary btn-sm rounded-pill px-3" style="font-size:0.8rem;">
+                            <i class="bi bi-box-arrow-right me-1"></i>Logout
                         </button>
                     </form>
                 </div>
@@ -96,7 +85,7 @@
         </div>
     </nav>
 
-    <!-- Django Messages System -->
+    <!-- Django Messages -->
     <div class="container mt-3">
         {% if messages %}
             {% for message in messages %}
@@ -108,48 +97,22 @@
         {% endif %}
     </div>
 
-    <!-- Main Content Area -->
+    <!-- Main Content -->
     <main id="main-content" class="flex-grow-1 py-4">
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Reusable Footer -->
-    <footer class="py-4 mt-auto bg-dark text-light-50">
+    <!-- Footer -->
+    <footer class="py-3 mt-auto" style="background:var(--bg-secondary);border-top:1px solid var(--border-subtle);">
         <div class="container text-center">
-            <p class="mb-0 text-muted">&copy; 2026 <strong class="text-white">SmartDine</strong> Operations Console. Internal Use Only.</p>
+            <p class="mb-0 small" style="color:var(--text-muted);">
+                &copy; 2026 <strong style="color:var(--brand-primary);">SmartDine</strong> Operations Console &mdash; Internal Use Only.
+            </p>
         </div>
     </footer>
 
-    <!-- Bootstrap 5 JavaScript Bundle -->
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const toggleButton = document.getElementById('theme-toggle');
-            const themeIcon = document.getElementById('theme-icon');
-            
-            function updateIcon(theme) {
-                if (theme === 'dark') {
-                    themeIcon.classList.remove('bi-moon');
-                    themeIcon.classList.add('bi-sun');
-                } else {
-                    themeIcon.classList.remove('bi-sun');
-                    themeIcon.classList.add('bi-moon');
-                }
-            }
-
-            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-            updateIcon(currentTheme);
-
-            if (toggleButton) {
-                toggleButton.addEventListener('click', function() {
-                    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-                    document.documentElement.setAttribute('data-theme', theme);
-                    localStorage.setItem('theme', theme);
-                    updateIcon(theme);
-                });
-            }
-        });
-    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

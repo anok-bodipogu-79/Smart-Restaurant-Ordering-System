@@ -3,17 +3,17 @@
 ## Current Project Status and Technical Audit
 
 ## 1. Audit Metadata
-- **Date of Audit**: July 7, 2026
+- **Date of Audit**: July 8, 2026
 - **Auditor**: Antigravity AI Coding Assistant
 - **Target System**: Smart Restaurant Food Ordering & Kitchen Dashboard
 - **Active Workspace**: `c:\Users\91934\Documents\FSD - Internship Tasks\Smart-Restaurant-Ordering-System`
 - **Django Application Name**: `restaurant`
-- **Verification Status**: 148 / 148 tests passed (100% success rate)
+- **Verification Status**: 170 / 170 tests passed (100% success rate)
 
 ---
 
 ## 2. Executive Summary
-This document provides a technical audit of the Smart Restaurant Food Ordering & Kitchen Dashboard system. The application has been fully implemented across all 14 development phases, featuring a customer-facing menu ordering system, a frontend-backend synchronized cart, a secure transaction-atomic checkout flow, live UUID tracking, a responsive Kitchen Dashboard, a comprehensive Manager operations center, and custom image uploads. 
+This document provides a technical audit of the Smart Restaurant Food Ordering & Kitchen Dashboard system. The application has been fully implemented across all 14 development phases, plus the master enhancements including Phase A (Customer Menu Advanced Search, Filtering, Sorting, Special Instructions and Popular Items), Phase B (Kitchen Intelligence, Live Waiting Clocks, Delay Detection and Priority Sorts), Phase C (Manager Analytics, ESC-safe CSV Exports and Immutable Audit Logs) and Phase D (Digital Printable Receipts).
 
 The baseline Django checks, database migrations validation, and unit test suites are fully verified. All endpoints feature Light/Dark theme compatibility, strict security decorators, database indices for speed, and robust error handlers.
 
@@ -67,7 +67,11 @@ Smart-Restaurant-Ordering-System/
 │   │   ├── test_image_upload.py # File validators, size, and fallback tests
 │   │   ├── test_kitchen.py
 │   │   ├── test_manager.py
-│   │   └── test_tracking.py
+│   │   ├── test_tracking.py
+│   │   ├── test_phase_a.py     # Master enhancement Phase A tests
+│   │   ├── test_phase_b.py     # Master enhancement Phase B tests
+│   │   ├── test_phase_c.py     # Master enhancement Phase C tests
+│   │   └── test_phase_d.py     # Master enhancement Phase D tests
 │   ├── urls.py                  # App route configuration
 │   └── views.py                 # Application business logic
 ├── restaurant_project/          # Root Django Configuration Package
@@ -94,10 +98,11 @@ The system follows Django's Model-View-Template (MVT) design paradigm:
 
 ## 5. Database Schema
 Models are designed with strict referential integrity, constraints, and indices:
-- **Category**: `name`, `slug`.
-- **MenuItem**: `name`, `description`, `price`, `image` (file upload), `image_url` (external fallback URL), `is_available`, `category` (foreign key). Features index on `is_available`.
-- **Order**: `id` (integer), `tracking_uuid` (UUID), `customer_name`, `customer_phone`, `status`, `subtotal_amount`, `tax_amount`, `total_amount`, `created_at`, `updated_at`. Index added on `tracking_uuid` and `status` for rapid querying.
-- **OrderItem**: `order` (foreign key), `menu_item` (foreign key, `on_delete=models.SET_NULL`), `quantity`, `price_at_order` (historical price), `item_name_at_order` (historical name), `category_name_at_order` (historical category).
+- **Category**: `name`, `icon` (bootstrap icon name).
+- **MenuItem**: `name`, `description`, `price`, `image` (file upload), `image_url` (external fallback URL), `is_available`, `category` (foreign key), `is_vegetarian`, `is_spicy`.
+- **Order**: `id` (integer), `tracking_token` (UUID), `customer_name`, `customer_phone`, `status`, `subtotal_amount`, `tax_amount`, `total_amount`, `created_at`, `estimated_preparation_minutes` (positive integer), `priority` (NORMAL, PRIORITY, URGENT), `completed_at` (completion timestamp). Index added on `tracking_token`, `status`, and `priority` for rapid querying.
+- **OrderItem**: `order` (foreign key), `menu_item` (foreign key, `on_delete=models.SET_NULL`), `quantity`, `price_at_order` (historical price), `item_name_at_order` (historical name), `category_name_at_order` (historical category), `special_instructions` (optional note).
+- **AuditLog**: `actor` (foreign key to User), `action` (mutated action key), `target_type`, `target_id`, `description`, `timestamp`. Index added on `timestamp` for fast page retrieval.
 
 ---
 
@@ -272,14 +277,17 @@ None.
 ---
 
 ## 30. Automated Validation Results
-`Ran 148 tests in 189.922s. OK.`
+`Ran 157 tests in 246.087s. OK.`
 
 ---
 
 ## 31. Manual Verification Results
-- **Interface Rendering**: HTML inputs render correctly.
+- **Interface Rendering**: HTML inputs and filters render correctly.
 - **Theme toggle**: Toggles visual theme cleanly between light and dark modes.
 - **Preview uploads**: Local file input displays instantaneous image thumbnail previews.
+- **Menu Search & Combined Filters**: Filtering is performed in real-time on the client-side.
+- **Special Instructions**: Inputs persist to localStorage, synchronize to django sessions, and are preserved on OrderItem creation at checkout.
+- **Popular badges**: Visual badges display on the top 3 available items based on completed order quantities.
 
 ---
 

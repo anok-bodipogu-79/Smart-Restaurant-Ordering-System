@@ -1,0 +1,166 @@
+{% extends "restaurant/base.html" %}
+{% load static %}
+
+{% block title %}Receipt for Order #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="container py-4 no-print-container">
+    
+    <!-- Printable Control Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom d-print-none">
+        <div>
+            {% if is_manager %}
+                <a href="{% url 'restaurant:manager_order_detail' order.id %}" class="btn btn-link text-decoration-none text-muted p-0">
+                    <i class="bi bi-chevron-left me-1"></i> Back to Order Detail
+                </a>
+            {% else %}
+                <a href="{% url 'restaurant:order_tracking_detail' order.tracking_token %}" class="btn btn-link text-decoration-none text-muted p-0">
+                    <i class="bi bi-chevron-left me-1"></i> Back to Order Tracking
+                </a>
+            {% endif %}
+            <h1 class="fw-bold text-dark mt-2">Digital Receipt</h1>
+        </div>
+        <div>
+            <button onclick="window.print()" class="btn btn-primary rounded-pill px-4">
+                <i class="bi bi-printer-fill me-1"></i> Print Receipt
+            </button>
+        </div>
+    </div>
+
+    <!-- Receipt Container Card -->
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            
+            <div class="card border border-2 shadow-sm rounded-4 bg-white p-4 receipt-paper position-relative">
+                
+                <!-- Decorative Receipt Teeth or Lines -->
+                <div class="text-center mb-4">
+                    <h3 class="fw-bold text-dark mb-0">SMART RESTAURANT</h3>
+                    <p class="text-secondary small mb-0">Delicious Food, Smart Dining</p>
+                    <div class="text-secondary small mt-1">123 Culinary Boulevard, Food City</div>
+                    <hr class="border-secondary border-dashed my-3">
+                </div>
+
+                <!-- Receipt Metadata -->
+                <div class="row g-2 mb-4 text-dark small">
+                    <div class="col-6">
+                        <strong>Order Ref:</strong> #{{ order.id }}
+                    </div>
+                    <div class="col-6 text-end">
+                        <strong>Date:</strong> {{ order.created_at|date:"Y-m-d H:i" }}
+                    </div>
+                    <div class="col-6">
+                        <strong>Customer:</strong> {{ order.customer_name }}
+                    </div>
+                    <div class="col-6 text-end">
+                        <strong>Status:</strong> <span class="badge bg-secondary-subtle text-dark border px-2 py-0.5">{{ order.get_status_display }}</span>
+                    </div>
+                    <div class="col-12">
+                        <strong>Dining Mode:</strong> 
+                        {% if order.table_number %}
+                            Table #{{ order.table_number }}
+                        {% else %}
+                            Takeaway
+                        {% endif %}
+                    </div>
+                    {% if not is_manager %}
+                        <div class="col-12 text-secondary" style="font-size: 0.75rem;">
+                            <strong>Tracking Code:</strong> <code>{{ order.tracking_token }}</code>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Order Items Table -->
+                <div class="table-responsive mb-4 border-0">
+                    <table class="table table-borderless align-middle mb-0 text-dark">
+                        <thead>
+                            <tr class="border-bottom border-secondary">
+                                <th scope="col" class="fw-bold px-0 text-dark">Item Description</th>
+                                <th scope="col" class="fw-bold text-center text-dark" style="width: 15%;">Qty</th>
+                                <th scope="col" class="fw-bold text-end px-0 text-dark" style="width: 25%;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.items.all %}
+                                <tr>
+                                    <td class="px-0 py-2">
+                                        <div class="fw-bold text-dark">{{ item.item_name_at_order|default:item.menu_item.name }}</div>
+                                        <small class="text-secondary">₹{{ item.price_at_order }} each</small>
+                                        {% if item.special_instructions %}
+                                            <div class="text-danger small mt-0.5" style="font-size: 0.75rem; font-style: italic;">
+                                                * Note: "{{ item.special_instructions }}"
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center py-2 text-dark">{{ item.quantity }}</td>
+                                    <td class="text-end px-0 py-2 text-dark">₹{{ item.total_price }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Totals Section -->
+                <div class="border-top border-secondary pt-3 text-dark small">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal</span>
+                        <span>₹{{ subtotal }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-light">
+                        <span>Tax (5.00%)</span>
+                        <span>₹{{ tax }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-0">
+                        <strong class="fs-5 text-dark">Grand Total</strong>
+                        <strong class="fs-4" style="color:var(--accent-gold);">₹{{ grand_total }}</strong>
+                    </div>
+                </div>
+
+                <div class="text-center mt-5">
+                    <hr class="border-secondary border-dashed my-3">
+                    <p class="text-secondary small mb-0">Thank you for dining with us!</p>
+                    <p class="text-secondary" style="font-size: 0.7rem;">Powered by Smart Restaurant System</p>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- Printable CSS Overrides -->
+<style>
+    @media print {
+        /* Hide everything except the receipt paper */
+        body * {
+            visibility: hidden;
+        }
+        .receipt-paper, .receipt-paper * {
+            visibility: visible;
+        }
+        .receipt-paper {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        /* Remove background gradients and color themes */
+        body {
+            background: white !important;
+            color: black !important;
+        }
+        /* Ensure dark accent colours render clean black-and-white */
+        .text-accent {
+            color: black !important;
+        }
+        .d-print-none {
+            display: none !important;
+        }
+    }
+</style>
+{% endblock %}

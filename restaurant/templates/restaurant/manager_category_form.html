@@ -3,22 +3,29 @@
 {% block title %}{% if object %}Edit Category '{{ object.name }}'{% else %}Add Category{% endif %}{% endblock %}
 
 {% block content %}
-<div class="container d-flex justify-content-center">
+<div class="container py-2 d-flex justify-content-center">
     <div class="col-lg-6">
-        <div class="card p-4 bg-white shadow-sm">
-            <h3 class="fw-bold text-dark border-bottom pb-2 mb-4">
-                {% if object %}
-                    <i class="bi bi-pencil-square me-2 text-accent"></i>Edit Category
-                {% else %}
-                    <i class="bi bi-plus-circle me-2 text-accent"></i>Add Category
-                {% endif %}
-            </h3>
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            
+            <!-- Header -->
+            <div class="border-bottom pb-3 mb-4">
+                <a href="{% url 'restaurant:manager_category_list' %}" class="btn btn-link text-decoration-none text-muted p-0 d-block mb-1">
+                    <i class="bi bi-chevron-left me-1"></i> Back to Categories
+                </a>
+                <h3 class="fw-bold text-dark mb-0">
+                    {% if object %}
+                        <i class="bi bi-pencil-square me-2" style="color:var(--brand-primary);"></i>Edit Category
+                    {% else %}
+                        <i class="bi bi-plus-circle me-2" style="color:var(--brand-primary);"></i>Add Category
+                    {% endif %}
+                </h3>
+            </div>
 
             <form method="POST">
                 {% csrf_token %}
                 
                 <div class="mb-3">
-                    <label for="id_name" class="form-label small fw-bold text-muted">Category Name</label>
+                    <label for="id_name" class="form-label">Category Name</label>
                     {{ form.name }}
                     {% if form.name.errors %}
                         {% for error in form.name.errors %}
@@ -28,7 +35,7 @@
                 </div>
 
                 <div class="mb-4">
-                    <label for="id_icon" class="form-label small fw-bold text-muted">Bootstrap Icon Code (e.g. <code>bi-cup-hot</code>)</label>
+                    <label for="id_icon" class="form-label">Bootstrap Icon Code (e.g. <code>bi-cup-hot</code>)</label>
                     {{ form.icon }}
                     <div class="form-text small text-muted">Refer to Bootstrap Icons catalog for options.</div>
                     {% if form.icon.errors %}
@@ -39,8 +46,8 @@
                 </div>
 
                 <div class="d-flex justify-content-end gap-2 border-top pt-4">
-                    <a href="{% url 'restaurant:manager_category_list' %}" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
-                    <button type="submit" class="btn btn-accent rounded-pill px-4 fw-bold">Save Category</button>
+                    <a href="{% url 'restaurant:manager_category_list' %}" class="btn btn-secondary rounded-pill px-4">Cancel</a>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Save Category</button>
                 </div>
 
             </form>

@@ -14,13 +14,53 @@
     const initialStatus = trackingPanel.dataset.currentStatus;
     const statusBadge = document.getElementById("order-status-badge");
     const connectionMsg = document.getElementById("connection-status-msg");
+    const etaContainer = document.getElementById("eta-container");
+    const etaText = document.getElementById("eta-text");
+    const etaTimeStamp = document.getElementById("eta-time-stamp");
+    const etaReadyTime = document.getElementById("eta-ready-time");
 
-    // Whitelist CSS styles for order status badges
-    const BADGE_CLASSES = {
-        "RECEIVED": ["bg-info", "text-white"],
-        "PREPARING": ["bg-warning", "text-dark"],
-        "READY": ["bg-success", "text-white"],
-        "COMPLETED": ["bg-secondary", "text-white"]
+    function updateEtaDisplay(data) {
+        if (!etaContainer) return;
+        
+        if (data.status === "COMPLETED" || data.status === "CANCELLED" || data.is_terminal) {
+            etaContainer.classList.add("d-none");
+            return;
+        }
+
+        etaContainer.classList.remove("d-none");
+
+        if (data.is_delayed) {
+            etaText.innerHTML = '<span class="text-danger fw-bold"><i class="bi bi-hourglass-split me-1"></i> Delayed: We are currently working hard on your order!</span>';
+            if (etaTimeStamp) etaTimeStamp.classList.add("d-none");
+        } else if (data.estimated_prep_minutes) {
+            etaText.innerHTML = `<span class="text-success fw-bold"><i class="bi bi-clock me-1"></i> Ready in approx. ${data.estimated_prep_minutes} mins</span>`;
+            if (etaTimeStamp) {
+                etaTimeStamp.classList.remove("d-none");
+                if (etaReadyTime) {
+                    const createdAtStr = trackingPanel.dataset.createdAt;
+                    if (createdAtStr) {
+                        const createdAt = new Date(createdAtStr);
+                        const readyTime = new Date(createdAt.getTime() + data.estimated_prep_minutes * 60000);
+                        let options = { hour: '2-digit', minute: '2-digit', hour12: true };
+                        etaReadyTime.textContent = readyTime.toLocaleTimeString([], options);
+                    } else {
+                        etaReadyTime.textContent = data.estimated_ready_time || "--:--";
+                    }
+                }
+            }
+        } else {
+            etaText.textContent = "Estimated preparation time not assigned yet.";
+            if (etaTimeStamp) etaTimeStamp.classList.add("d-none");
+        }
+    }
+
+    // Whitelist CSS styles for order status badges — new Premium Hospitality colors
+    const BADGE_STYLES = {
+        "RECEIVED":  { bg: "#F1F5F9", color: "#475569", border: "1px solid #E2E8F0" },
+        "PREPARING": { bg: "#FEF3C7", color: "#92400E", border: "1px solid #FDE68A" },
+        "READY":     { bg: "#DCFCE7", color: "#15803D", border: "1px solid #BBF7D0" },
+        "COMPLETED": { bg: "#ECFDF5", color: "#065F46", border: "1px solid #A7F3D0" },
+        "CANCELLED": { bg: "#FEE4E2", color: "#B42318", border: "1px solid #FECACA" }
     };
 
     /**
@@ -48,26 +88,39 @@
             label.className = "small fw-bold step-label";
 
             if (idx < currentIdx) {
-                // Completed steps
-                iconWrapper.classList.add("bg-success-subtle", "border-success", "text-success");
-                label.classList.add("text-success");
+                // Completed steps — Forest Green
+                iconWrapper.style.background = "#E6EEE9";
+                iconWrapper.style.borderColor = "#173F35";
+                iconWrapper.style.color = "#173F35";
+                label.style.color = "#173F35";
+                label.style.fontWeight = "700";
             } else if (idx === currentIdx) {
                 // Current active step
                 if (status === "RECEIVED") {
-                    iconWrapper.classList.add("bg-info-subtle", "border-info", "text-info");
-                    label.classList.add("text-info");
+                    iconWrapper.style.background = "#F1F5F9";
+                    iconWrapper.style.borderColor = "#94A3B8";
+                    iconWrapper.style.color = "#475569";
+                    label.style.color = "#475569";
                 } else if (status === "PREPARING") {
-                    iconWrapper.classList.add("bg-warning-subtle", "border-warning", "text-warning");
-                    label.classList.add("text-warning");
+                    iconWrapper.style.background = "#FEF3C7";
+                    iconWrapper.style.borderColor = "#B7791F";
+                    iconWrapper.style.color = "#B7791F";
+                    label.style.color = "#B7791F";
                 } else if (status === "READY" || status === "COMPLETED") {
-                    iconWrapper.classList.add("bg-success-subtle", "border-success", "text-success");
-                    label.classList.add("text-success");
+                    iconWrapper.style.background = "#DCFCE7";
+                    iconWrapper.style.borderColor = "#173F35";
+                    iconWrapper.style.color = "#173F35";
+                    label.style.color = "#173F35";
                 }
+                label.style.fontWeight = "700";
                 iconWrapper.style.transform = "scale(1.15)";
             } else {
                 // Pending steps
-                iconWrapper.classList.add("bg-light", "text-muted");
-                label.classList.add("text-muted");
+                iconWrapper.style.background = "#F7F6F2";
+                iconWrapper.style.borderColor = "#E7E5E0";
+                iconWrapper.style.color = "#A8A29E";
+                label.style.color = "#A8A29E";
+                label.style.fontWeight = "600";
             }
         });
     }
@@ -80,14 +133,17 @@
 
         statusBadge.textContent = statusDisplay;
 
-        // Clear existing bg/text classes
-        Object.values(BADGE_CLASSES).forEach(classList => {
-            classList.forEach(cls => statusBadge.classList.remove(cls));
-        });
-
-        // Add correct class
-        const targetClasses = BADGE_CLASSES[status] || ["bg-secondary", "text-white"];
-        targetClasses.forEach(cls => statusBadge.classList.add(cls));
+        // Apply inline styles from our new design system
+        const style = BADGE_STYLES[status] || { bg: "#F1F5F9", color: "#475569", border: "1px solid #E2E8F0" };
+        statusBadge.style.backgroundColor = style.bg;
+        statusBadge.style.color = style.color;
+        statusBadge.style.border = style.border;
+        statusBadge.style.borderRadius = "999px";
+        statusBadge.style.padding = "0.3rem 0.85rem";
+        statusBadge.style.fontSize = "0.82rem";
+        statusBadge.style.fontWeight = "700";
+        statusBadge.style.letterSpacing = "0.04em";
+        statusBadge.style.textTransform = "uppercase";
     }
 
     /**
@@ -129,6 +185,7 @@
                 const statusDisplay = data.status_display;
 
                 updateStatusBadge(currentStatus, statusDisplay);
+                updateEtaDisplay(data);
 
                 if (currentStatus === "CANCELLED" || data.is_cancelled || data.is_terminal) {
                     const timelineEl = document.getElementById("order-timeline-steps");
@@ -175,6 +232,15 @@
     // Initialize UI on page load
     updateStatusBadge(initialStatus, statusBadge ? statusBadge.textContent.trim() : "");
     updateOrderProgress(initialStatus);
+
+    const initialEta = {
+        status: initialStatus,
+        is_terminal: initialStatus === "COMPLETED" || initialStatus === "CANCELLED",
+        is_delayed: trackingPanel.dataset.isDelayed === "true",
+        estimated_prep_minutes: trackingPanel.dataset.prepMinutes ? parseInt(trackingPanel.dataset.prepMinutes, 10) : null,
+        estimated_ready_time: trackingPanel.dataset.readyTime || ""
+    };
+    updateEtaDisplay(initialEta);
 
     // Run polling loop if not already completed
     if (initialStatus !== "COMPLETED") {

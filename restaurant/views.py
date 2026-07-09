@@ -22,29 +22,47 @@ class MenuListView(ListView):
     context_object_name = "menu_items"
 
     def get_queryset(self):
-        # Default queryset with category pre-fetched
-        queryset = MenuItem.objects.all().select_related("category")
+        from django.db.models import Sum, OuterRef, Subquery, IntegerField
+        from django.db.models.functions import Coalesce
         
-        # Get category filter query parameter
+        # Subquery to calculate the sum of completed order quantities for each menu item
+        completed_qty_subquery = OrderItem.objects.filter(
+            order__status="COMPLETED",
+            menu_item=OuterRef('pk')
+        ).values('menu_item').annotate(
+            total_qty=Sum('quantity')
+        ).values('total_qty')
+        
+        # Annotate each menu item with its completed quantity (defaulting to 0 if none)
+        queryset = MenuItem.objects.all().select_related("category").annotate(
+            completed_quantity=Coalesce(Subquery(completed_qty_subquery), 0, output_field=IntegerField())
+        )
+        
+        # Preserve original server-side category filtering for backward compatibility and test validation
         category_id = self.request.GET.get("category")
         if category_id:
             try:
-                # Validate numeric ID
                 category_id = int(category_id)
-                # Verify category exists
                 if Category.objects.filter(id=category_id).exists():
                     queryset = queryset.filter(category_id=category_id)
             except ValueError:
-                # Graceful fallback: show all items if category ID is not an integer
                 pass
+                
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Add all categories to context for rendering the filters
+        
+        # Calculate popular items from completed orders
+        menu_items_list = list(self.get_queryset())
+        popular_items = [item for item in menu_items_list if item.is_available and item.completed_quantity > 0]
+        popular_items.sort(key=lambda x: (-x.completed_quantity, x.id))
+        popular_ids = [item.id for item in popular_items[:3]]
+        
+        context["popular_ids"] = popular_ids
         context["categories"] = Category.objects.all()
         
-        # Determine selected/active category for visual state
+        # Keep active_category for fallback or template highlighting if page is loaded with URL param
         active_category = None
         category_id = self.request.GET.get("category")
         if category_id:
@@ -88,12 +106,14 @@ def cart_sync(request):
 
     # Clean and merge duplicate IDs from input
     items_map = {}
+    instructions_map = {}
     for item in data["items"]:
         if not isinstance(item, dict) or "id" not in item or "quantity" not in item:
             continue
 
         item_id = str(item["id"]).strip()
         qty = item["quantity"]
+        instr = item.get("special_instructions", "")
 
         # Explicitly reject boolean quantities (since bool is a subclass of int in Python)
         if isinstance(qty, bool):
@@ -105,11 +125,23 @@ def cart_sync(request):
         if qty < 1:
             continue
 
+        # Sanitize instructions
+        if not isinstance(instr, str):
+            instr = ""
+        instr = instr.strip()[:250]
+
         # Merge quantities and cap at MAX_QUANTITY (20)
         if item_id in items_map:
             items_map[item_id] = min(items_map[item_id] + qty, 20)
+            if instr:
+                existing_instr = instructions_map.get(item_id, "")
+                if existing_instr and instr not in existing_instr:
+                    instructions_map[item_id] = f"{existing_instr}, {instr}"[:250]
+                else:
+                    instructions_map[item_id] = instr
         else:
             items_map[item_id] = min(qty, 20)
+            instructions_map[item_id] = instr
 
     # Single DB query to fetch matching available MenuItems
     valid_menu_items = MenuItem.objects.filter(
@@ -132,13 +164,18 @@ def cart_sync(request):
         if item_id_str in menu_items_by_id and item_id_str not in sanitized_cart:
             item_obj = menu_items_by_id[item_id_str]
             qty = items_map[item_id_str]
+            instr = instructions_map.get(item_id_str, "")
 
-            sanitized_cart[item_id_str] = {"quantity": qty}
+            sanitized_cart[item_id_str] = {
+                "quantity": qty,
+                "special_instructions": instr
+            }
             response_items.append({
                 "id": item_id_str,
                 "name": item_obj.name,
                 "price": f"{item_obj.price:.2f}",
-                "quantity": qty
+                "quantity": qty,
+                "special_instructions": instr
             })
 
     # Save to Django Session
@@ -210,6 +247,7 @@ class CartCheckoutView(FormView):
                             order=order,
                             menu_item=entry["menu_item"],
                             quantity=entry["quantity"],
+                            special_instructions=entry.get("special_instructions", ""),
                             price_at_order=entry["menu_item"].price,
                             item_name_at_order=entry["menu_item"].name,
                             category_name_at_order=entry["menu_item"].category.name if entry["menu_item"].category else "Unknown Category"
@@ -280,13 +318,23 @@ class CartCheckoutView(FormView):
                 qty = 20
                 has_changes = True
 
+            # Sanitize instructions
+            instr = details.get("special_instructions", "")
+            if not isinstance(instr, str):
+                instr = ""
+            instr = instr.strip()[:250]
+
             # If the item exists and is available in DB
             if item_id_str in menu_items_by_id:
                 menu_item = menu_items_by_id[item_id_str]
-                sanitized_cart[item_id_str] = {"quantity": qty}
+                sanitized_cart[item_id_str] = {
+                    "quantity": qty,
+                    "special_instructions": instr
+                }
                 validated_items.append({
                     "menu_item": menu_item,
                     "quantity": qty,
+                    "special_instructions": instr,
                     "line_total": menu_item.price * qty
                 })
             else:
@@ -395,8 +443,25 @@ class KitchenDashboardView(KitchenRequiredMixin, ListView):
     context_object_name = "orders"
 
     def get_queryset(self):
-        # Retrieve active orders only, ordered oldest first, optimized DB reads
-        return Order.objects.exclude(status__in=["COMPLETED", "CANCELLED"]).prefetch_related("items__menu_item").order_by("created_at")
+        sort_by = self.request.GET.get("sort", "oldest")
+        # Base query: active orders only
+        queryset = Order.objects.exclude(status__in=["COMPLETED", "CANCELLED"]).prefetch_related("items__menu_item")
+        
+        if sort_by == "newest":
+            return queryset.order_by("-created_at")
+        elif sort_by == "priority":
+            # Priority sort (URGENT -> PRIORITY -> NORMAL)
+            priority_map = {"URGENT": 1, "PRIORITY": 2, "NORMAL": 3}
+            orders_list = list(queryset)
+            orders_list.sort(key=lambda o: (priority_map.get(o.priority, 4), o.created_at))
+            return orders_list
+        elif sort_by == "delayed":
+            # Delayed first, then oldest first
+            orders_list = list(queryset)
+            orders_list.sort(key=lambda o: (0 if o.is_delayed else 1, o.created_at))
+            return orders_list
+        else:
+            return queryset.order_by("created_at")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -406,6 +471,7 @@ class KitchenDashboardView(KitchenRequiredMixin, ListView):
         context["received_orders"] = [o for o in orders if o.status == "RECEIVED"]
         context["preparing_orders"] = [o for o in orders if o.status == "PREPARING"]
         context["ready_orders"] = [o for o in orders if o.status == "READY"]
+        context["current_sort"] = self.request.GET.get("sort", "oldest")
         return context
 
 
@@ -448,43 +514,114 @@ ALLOWED_STATUS_TRANSITIONS = {
 
 class KitchenOrderStatusUpdateView(KitchenRequiredMixin, View):
     """
-    Enforces sequential status transitions for active orders.
+    Enforces sequential status transitions for active orders, and supports
+    editing priority or prep time by authorized staff.
     Accepts POST requests only. Uses transaction locks to prevent concurrency bypasses.
     """
     def post(self, request, pk, *args, **kwargs):
+        action = request.POST.get("action")
+        
         with transaction.atomic():
             # Apply row-level locks
             order = Order.objects.select_for_update().filter(id=pk).first()
             if not order:
-                logger.error(f"Kitchen status update failed: Order ID {pk} not found.")
+                logger.error(f"Kitchen operation failed: Order ID {pk} not found.")
                 messages.error(request, "Requested order not found.")
                 return redirect("restaurant:kitchen_dashboard")
 
-            requested_status = request.POST.get("status")
-            current_status = order.status
-
-            expected_next = ALLOWED_STATUS_TRANSITIONS.get(current_status)
-
-            if requested_status != expected_next:
-                logger.warning(
-                    f"Invalid status transition attempted: Order #{order.id} is in status {current_status}, "
-                    f"tried to transition to {requested_status}."
-                )
-                messages.error(
-                    request,
-                    f"Transition from {order.get_status_display()} to {requested_status or 'None'} is invalid."
-                )
+            if action == "priority":
+                new_priority = request.POST.get("priority")
+                if new_priority in ["NORMAL", "PRIORITY", "URGENT"]:
+                    old_priority = order.priority
+                    order.priority = new_priority
+                    order.save(update_fields=["priority"])
+                    
+                    from restaurant.models import AuditLog
+                    AuditLog.objects.create(
+                        actor=request.user,
+                        action="PRIORITY_CHANGE",
+                        target_type="Order",
+                        target_id=str(order.id),
+                        description=f"Changed Order #{order.id} priority from {old_priority} to {new_priority}."
+                    )
+                    
+                    logger.info(f"Order #{order.id} priority updated from {old_priority} to {new_priority} by user {request.user.username}.")
+                    messages.success(request, f"Order #{order.id} priority updated to {new_priority}.")
+                else:
+                    messages.error(request, "Invalid priority choice.")
                 return redirect("restaurant:kitchen_order_detail", pk=order.id)
 
-            # Transition is valid -> save state
-            order.status = requested_status
-            order.save(update_fields=["status"])
-            
-            logger.info(f"Order #{order.id} status updated successfully from {current_status} to {requested_status} by kitchen user {request.user.username}.")
-            messages.success(
-                request,
-                f"Order #{order.id} status updated to {order.get_status_display()}."
-            )
+            elif action == "prep_time":
+                prep_val = request.POST.get("estimated_preparation_minutes")
+                old_prep = order.estimated_preparation_minutes
+                if not prep_val or prep_val.strip() == "":
+                    order.estimated_preparation_minutes = None
+                    order.save(update_fields=["estimated_preparation_minutes"])
+                    
+                    from restaurant.models import AuditLog
+                    AuditLog.objects.create(
+                        actor=request.user,
+                        action="PREP_TIME_CHANGE",
+                        target_type="Order",
+                        target_id=str(order.id),
+                        description=f"Cleared estimated preparation time for Order #{order.id}."
+                    )
+                    
+                    messages.success(request, f"Cleared preparation time for Order #{order.id}.")
+                else:
+                    try:
+                        prep_minutes = int(prep_val)
+                        if 5 <= prep_minutes <= 180:
+                            order.estimated_preparation_minutes = prep_minutes
+                            order.save(update_fields=["estimated_preparation_minutes"])
+                            
+                            from restaurant.models import AuditLog
+                            AuditLog.objects.create(
+                                actor=request.user,
+                                action="PREP_TIME_CHANGE",
+                                target_type="Order",
+                                target_id=str(order.id),
+                                description=f"Updated estimated preparation time for Order #{order.id} to {prep_minutes} minutes."
+                            )
+                            
+                            logger.info(f"Order #{order.id} prep minutes updated from {old_prep} to {prep_minutes} by user {request.user.username}.")
+                            messages.success(request, f"Order #{order.id} preparation time set to {prep_minutes} minutes.")
+                        else:
+                            messages.error(request, "Estimated preparation time must be between 5 and 180 minutes.")
+                    except ValueError:
+                        messages.error(request, "Preparation time must be a valid integer.")
+                return redirect("restaurant:kitchen_order_detail", pk=order.id)
+
+            else:
+                requested_status = request.POST.get("status")
+                current_status = order.status
+                expected_next = ALLOWED_STATUS_TRANSITIONS.get(current_status)
+
+                if requested_status != expected_next:
+                    logger.warning(
+                        f"Invalid status transition attempted: Order #{order.id} is in status {current_status}, "
+                        f"tried to transition to {requested_status}."
+                    )
+                    messages.error(
+                        request,
+                        f"Transition from {order.get_status_display()} to {requested_status or 'None'} is invalid."
+                    )
+                    return redirect("restaurant:kitchen_order_detail", pk=order.id)
+
+                # Transition is valid -> save state
+                order.status = requested_status
+                if requested_status == "COMPLETED":
+                    from django.utils import timezone
+                    order.completed_at = timezone.now()
+                    order.save(update_fields=["status", "completed_at"])
+                else:
+                    order.save(update_fields=["status"])
+                
+                logger.info(f"Order #{order.id} status updated successfully from {current_status} to {requested_status} by kitchen user {request.user.username}.")
+                messages.success(
+                    request,
+                    f"Order #{order.id} status updated to {order.get_status_display()}."
+                )
 
         return redirect("restaurant:kitchen_dashboard")
 
@@ -542,6 +679,14 @@ class OrderTrackingStatusView(View):
         is_completed = order.status == "COMPLETED"
         is_cancelled = order.status == "CANCELLED"
         is_terminal = is_completed or is_cancelled
+        
+        estimated_ready_time = None
+        if order.estimated_preparation_minutes:
+            from django.utils import timezone
+            import datetime
+            ready_dt = order.created_at + datetime.timedelta(minutes=order.estimated_preparation_minutes)
+            local_ready_dt = timezone.localtime(ready_dt)
+            estimated_ready_time = local_ready_dt.strftime("%I:%M %p")
 
         response = JsonResponse({
             "success": True,
@@ -550,7 +695,10 @@ class OrderTrackingStatusView(View):
             "status_display": order.get_status_display(),
             "is_completed": is_completed,
             "is_cancelled": is_cancelled,
-            "is_terminal": is_terminal
+            "is_terminal": is_terminal,
+            "is_delayed": order.is_delayed,
+            "estimated_prep_minutes": order.estimated_preparation_minutes,
+            "estimated_ready_time": estimated_ready_time
         })
         response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
         return response
@@ -701,6 +849,25 @@ class ManagerDashboardView(ManagerRequiredMixin, TemplateView):
             total_revenue=Sum(F("price_at_order") * F("quantity"))
         ).order_by("-total_revenue")
         
+        # Cancellation rate: (Cancelled / Total) * 100
+        cancelled_count = status_counts["cancelled"] or 0
+        if total_orders_count > 0:
+            cancellation_rate = round((cancelled_count / total_orders_count) * 100, 1)
+        else:
+            cancellation_rate = 0.0
+
+        # Average Completion Time
+        completed_with_time = completed_orders.filter(completed_at__isnull=False)
+        avg_completion = completed_with_time.annotate(
+            duration=F("completed_at") - F("created_at")
+        ).aggregate(Avg("duration"))["duration__avg"]
+
+        if avg_completion:
+            total_seconds = avg_completion.total_seconds()
+            avg_completion_minutes = round(total_seconds / 60, 1)
+        else:
+            avg_completion_minutes = 0.0
+
         context.update({
             "filter_form": form,
             "range_type": range_type,
@@ -711,8 +878,106 @@ class ManagerDashboardView(ManagerRequiredMixin, TemplateView):
             "recent_orders": recent_orders,
             "top_items": top_items,
             "category_performance": category_perf,
+            "cancellation_rate": cancellation_rate,
+            "avg_completion_minutes": avg_completion_minutes,
+            "start_dt_str": start_dt.strftime("%Y-%m-%d"),
+            "end_dt_str": end_dt.strftime("%Y-%m-%d"),
         })
         return context
+
+
+import csv
+from django.http import HttpResponse
+from restaurant.models import AuditLog
+
+class ManagerCSVExportView(ManagerRequiredMixin, View):
+    """
+    Exports filtered order records within a date range to a CSV file.
+    Enforces spreadsheet formula injection protection.
+    """
+    def get(self, request, *args, **kwargs):
+        range_type = request.GET.get("range", "today")
+        start_str = request.GET.get("start")
+        end_str = request.GET.get("end")
+        
+        today = timezone.localdate()
+        
+        if range_type == "today":
+            start_dt = timezone.make_aware(datetime.datetime.combine(today, datetime.time.min))
+            end_dt = timezone.make_aware(datetime.datetime.combine(today, datetime.time.max))
+        elif range_type == "7d":
+            start_day = today - datetime.timedelta(days=7)
+            start_dt = timezone.make_aware(datetime.datetime.combine(start_day, datetime.time.min))
+            end_dt = timezone.make_aware(datetime.datetime.combine(today, datetime.time.max))
+        elif range_type == "30d":
+            start_day = today - datetime.timedelta(days=30)
+            start_dt = timezone.make_aware(datetime.datetime.combine(start_day, datetime.time.min))
+            end_dt = timezone.make_aware(datetime.datetime.combine(today, datetime.time.max))
+        elif range_type == "custom" and start_str and end_str:
+            try:
+                start_date = datetime.datetime.strptime(start_str, "%Y-%m-%d").date()
+                end_date = datetime.datetime.strptime(end_str, "%Y-%m-%d").date()
+                start_dt = timezone.make_aware(datetime.datetime.combine(start_date, datetime.time.min))
+                end_dt = timezone.make_aware(datetime.datetime.combine(end_date, datetime.time.max))
+            except ValueError:
+                start_dt = timezone.make_aware(datetime.datetime.combine(today, datetime.time.min))
+                end_dt = timezone.make_aware(datetime.datetime.combine(today, datetime.time.max))
+        else:
+            start_dt = timezone.make_aware(datetime.datetime.combine(today, datetime.time.min))
+            end_dt = timezone.make_aware(datetime.datetime.combine(today, datetime.time.max))
+            
+        orders = Order.objects.filter(created_at__range=(start_dt, end_dt)).order_by("-created_at")
+        
+        response = HttpResponse(content_type="text/csv; charset=utf-8")
+        filename = f"orders_analytics_{start_dt.strftime('%Y-%m-%d')}_to_{end_dt.strftime('%Y-%m-%d')}.csv"
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        
+        response.write(b'\xef\xbb\xbf')
+        
+        writer = csv.writer(response)
+        writer.writerow([
+            "Order ID", "Customer Name", "Customer Phone", "Table Number", 
+            "Created At", "Completed At", "Status", "Priority", 
+            "Subtotal (INR)", "Tax (INR)", "Grand Total (INR)"
+        ])
+        
+        def escape_csv(val):
+            if val is None:
+                return ""
+            s = str(val)
+            if s and s[0] in ['=', '+', '-', '@']:
+                return "'" + s
+            return s
+            
+        for order in orders:
+            completed_str = timezone.localtime(order.completed_at).strftime("%Y-%m-%d %H:%M:%S") if order.completed_at else "N/A"
+            created_str = timezone.localtime(order.created_at).strftime("%Y-%m-%d %H:%M:%S")
+            
+            writer.writerow([
+                escape_csv(order.id),
+                escape_csv(order.customer_name),
+                escape_csv(order.customer_phone),
+                escape_csv(order.table_number if order.table_number else "Takeaway"),
+                escape_csv(created_str),
+                escape_csv(completed_str),
+                escape_csv(order.get_status_display()),
+                escape_csv(order.get_priority_display()),
+                escape_csv(order.subtotal_amount),
+                escape_csv(order.tax_amount),
+                escape_csv(order.total_amount)
+            ])
+            
+        return response
+
+
+class ManagerAuditLogListView(ManagerRequiredMixin, ListView):
+    model = AuditLog
+    template_name = "restaurant/manager_audit_logs.html"
+    context_object_name = "audit_logs"
+    paginate_by = 25
+
+    def get_queryset(self):
+        return AuditLog.objects.all().select_related("actor").order_by("-timestamp")
 
 
 class ManagerOrderListView(ManagerRequiredMixin, ListView):
@@ -798,6 +1063,16 @@ class ManagerOrderCancelView(ManagerRequiredMixin, View):
                 
                 order.status = "CANCELLED"
                 order.save()
+                
+                from restaurant.models import AuditLog
+                AuditLog.objects.create(
+                    actor=request.user,
+                    action="ORDER_CANCEL",
+                    target_type="Order",
+                    target_id=str(order.id),
+                    description=f"Cancelled Order #{order.id}."
+                )
+                
                 logger.info(f"Order #{order.id} was successfully cancelled by manager {request.user.username}.")
                 messages.success(request, f"Order #{order.id} was successfully cancelled.")
         except Order.DoesNotExist:
@@ -846,8 +1121,17 @@ class ManagerMenuItemCreateView(ManagerRequiredMixin, CreateView):
     success_url = reverse_lazy("restaurant:manager_menu_list")
 
     def form_valid(self, form):
+        response = super().form_valid(form)
+        from restaurant.models import AuditLog
+        AuditLog.objects.create(
+            actor=self.request.user,
+            action="MENU_ITEM_CREATE",
+            target_type="MenuItem",
+            target_id=str(self.object.id),
+            description=f"Created menu item '{self.object.name}' (Price: ₹{self.object.price})."
+        )
         messages.success(self.request, "Menu item added successfully.")
-        return super().form_valid(form)
+        return response
 
 
 class ManagerMenuItemUpdateView(ManagerRequiredMixin, UpdateView):
@@ -857,8 +1141,17 @@ class ManagerMenuItemUpdateView(ManagerRequiredMixin, UpdateView):
     success_url = reverse_lazy("restaurant:manager_menu_list")
 
     def form_valid(self, form):
+        response = super().form_valid(form)
+        from restaurant.models import AuditLog
+        AuditLog.objects.create(
+            actor=self.request.user,
+            action="MENU_ITEM_UPDATE",
+            target_type="MenuItem",
+            target_id=str(self.object.id),
+            description=f"Updated menu item '{self.object.name}'."
+        )
         messages.success(self.request, "Menu item updated successfully.")
-        return super().form_valid(form)
+        return response
 
 
 class ManagerMenuItemAvailabilityView(ManagerRequiredMixin, View):
@@ -868,6 +1161,16 @@ class ManagerMenuItemAvailabilityView(ManagerRequiredMixin, View):
             item.is_available = not item.is_available
             item.save()
             status_str = "available" if item.is_available else "unavailable"
+            
+            from restaurant.models import AuditLog
+            AuditLog.objects.create(
+                actor=request.user,
+                action="MENU_ITEM_AVAILABILITY",
+                target_type="MenuItem",
+                target_id=str(item.id),
+                description=f"Toggled availability of '{item.name}' to {status_str}."
+            )
+            
             messages.success(request, f"Menu item '{item.name}' is now marked {status_str}.")
         except MenuItem.DoesNotExist:
             messages.error(request, "Menu item not found.")
@@ -894,8 +1197,17 @@ class ManagerCategoryCreateView(ManagerRequiredMixin, CreateView):
     success_url = reverse_lazy("restaurant:manager_category_list")
 
     def form_valid(self, form):
+        response = super().form_valid(form)
+        from restaurant.models import AuditLog
+        AuditLog.objects.create(
+            actor=self.request.user,
+            action="CATEGORY_CREATE",
+            target_type="Category",
+            target_id=str(self.object.id),
+            description=f"Created category '{self.object.name}'."
+        )
         messages.success(self.request, "Category created successfully.")
-        return super().form_valid(form)
+        return response
 
 
 class ManagerCategoryUpdateView(ManagerRequiredMixin, UpdateView):
@@ -905,5 +1217,56 @@ class ManagerCategoryUpdateView(ManagerRequiredMixin, UpdateView):
     success_url = reverse_lazy("restaurant:manager_category_list")
 
     def form_valid(self, form):
+        response = super().form_valid(form)
+        from restaurant.models import AuditLog
+        AuditLog.objects.create(
+            actor=self.request.user,
+            action="CATEGORY_UPDATE",
+            target_type="Category",
+            target_id=str(self.object.id),
+            description=f"Updated category '{self.object.name}'."
+        )
         messages.success(self.request, "Category updated successfully.")
-        return super().form_valid(form)
+        return response
+
+
+class OrderReceiptView(DetailView):
+    model = Order
+    template_name = "restaurant/order_receipt.html"
+    context_object_name = "order"
+    slug_field = "tracking_token"
+    slug_url_kwarg = "tracking_token"
+
+    def get_queryset(self):
+        return Order.objects.prefetch_related("items")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        order = self.object
+        context["subtotal"] = order.subtotal_amount.quantize(Decimal("0.01"))
+        context["tax"] = order.tax_amount.quantize(Decimal("0.01"))
+        context["grand_total"] = order.total_amount.quantize(Decimal("0.01"))
+        return context
+
+
+class ManagerOrderReceiptView(ManagerRequiredMixin, DetailView):
+    model = Order
+    template_name = "restaurant/order_receipt.html"
+    context_object_name = "order"
+
+    def get_queryset(self):
+        return Order.objects.prefetch_related("items")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        order = self.object
+        context["subtotal"] = order.subtotal_amount.quantize(Decimal("0.01"))
+        context["tax"] = order.tax_amount.quantize(Decimal("0.01"))
+        context["grand_total"] = order.total_amount.quantize(Decimal("0.01"))
+        context["is_manager"] = True
+        return context
+
+
+class StaffAccessView(TemplateView):
+    template_name = "restaurant/staff_access.html"
+
