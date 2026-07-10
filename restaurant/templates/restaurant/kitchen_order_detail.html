@@ -103,7 +103,7 @@
                     <div class="sd-overview-grid">
                         <div class="sd-overview-field">
                             <label>Customer</label>
-                            <span>{{ order.customer_name }}</span>
+                            <span>{{ order.customer_name }} {% if order.customer_phone %}({{ order.customer_phone }}){% endif %}</span>
                         </div>
                         <div class="sd-overview-field">
                             <label>Order Type</label>
@@ -156,12 +156,12 @@
                 <div class="sd-panel-content">
                     <div class="sd-financial-row">
                         <span>Subtotal</span>
-                        <span>₹{{ order.total_amount }}</span>
+                        <span>₹{{ subtotal }}</span>
                     </div>
                     <!-- Assuming backend total_amount is final, showing it here simply. -->
                     <div class="sd-financial-row total">
                         <span>Total</span>
-                        <span>₹{{ order.total_amount }}</span>
+                        <span>₹{{ grand_total }}</span>
                     </div>
                 </div>
             </div>

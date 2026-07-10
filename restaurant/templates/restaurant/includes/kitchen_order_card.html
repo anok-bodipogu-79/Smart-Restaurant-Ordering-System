@@ -35,7 +35,7 @@
         <ul class="sd-item-list">
             {% for item in order.items.all|slice:":3" %}
                 <li>
-                    <span class="item-qty">{{ item.quantity }}&times;</span>
+                    <span class="item-qty">{{ item.quantity }}x</span>
                     <span class="item-name">{{ item.menu_item.name }}</span>
                 </li>
             {% endfor %}

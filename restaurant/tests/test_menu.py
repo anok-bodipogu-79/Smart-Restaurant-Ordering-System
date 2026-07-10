@@ -30,7 +30,7 @@ class MenuViewTest(TestCase):
 
     def test_menu_url_resolves(self):
         url = reverse("restaurant:menu")
-        self.assertEqual(url, "/")
+        self.assertEqual(url, "/menu/")
 
     def test_menu_page_status_and_template(self):
         response = self.client.get(reverse("restaurant:menu"))

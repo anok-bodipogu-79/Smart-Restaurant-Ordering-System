@@ -794,28 +794,40 @@ class ManagerDashboardView(ManagerRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Validate date range filter form
-        form = DateRangeFilterForm(self.request.GET)
+        # Validate date range filter form supporting new period/start_date/end_date and legacy range/start/end
+        get_data = self.request.GET.copy()
+        if "range" in get_data and "period" not in get_data:
+            get_data["period"] = get_data["range"]
+            if get_data["period"] == "7d":
+                get_data["period"] = "7days"
+            elif get_data["period"] == "30d":
+                get_data["period"] = "30days"
+        if "start" in get_data and "start_date" not in get_data:
+            get_data["start_date"] = get_data["start"]
+        if "end" in get_data and "end_date" not in get_data:
+            get_data["end_date"] = get_data["end"]
+
+        form = DateRangeFilterForm(get_data)
         range_type = "today"
         start_date = None
         end_date = None
         if form.is_valid():
-            range_type = form.cleaned_data.get("range") or "today"
-            start_date = form.cleaned_data.get("start")
-            end_date = form.cleaned_data.get("end")
+            range_type = form.cleaned_data.get("period") or "today"
+            start_date = form.cleaned_data.get("start_date")
+            end_date = form.cleaned_data.get("end_date")
         else:
-            form = DateRangeFilterForm(initial={"range": "today"})
+            form = DateRangeFilterForm(initial={"period": "today"})
             
         today = timezone.localdate()
         
         if range_type == "today":
             start_dt = timezone.make_aware(datetime.datetime.combine(today, datetime.time.min))
             end_dt = timezone.make_aware(datetime.datetime.combine(today, datetime.time.max))
-        elif range_type == "7d":
+        elif range_type in ["7days", "7d"]:
             start_day = today - datetime.timedelta(days=7)
             start_dt = timezone.make_aware(datetime.datetime.combine(start_day, datetime.time.min))
             end_dt = timezone.make_aware(datetime.datetime.combine(today, datetime.time.max))
-        elif range_type == "30d":
+        elif range_type in ["30days", "30d"]:
             start_day = today - datetime.timedelta(days=30)
             start_dt = timezone.make_aware(datetime.datetime.combine(start_day, datetime.time.min))
             end_dt = timezone.make_aware(datetime.datetime.combine(today, datetime.time.max))
@@ -840,6 +852,14 @@ class ManagerDashboardView(ManagerRequiredMixin, TemplateView):
             completed=Count("id", filter=Q(status="COMPLETED")),
             cancelled=Count("id", filter=Q(status="CANCELLED")),
         )
+        
+        # Calculate percentages safely
+        total_cnt = total_orders_count
+        status_percentages = {}
+        for key in ["received", "preparing", "ready", "completed", "cancelled"]:
+            cnt = status_counts[key] or 0
+            pct = round((cnt / total_cnt) * 100, 1) if total_cnt > 0 else 0.0
+            status_percentages[key] = pct
         
         # Realized revenue is from status COMPLETED only
         completed_orders = orders_in_range.filter(status="COMPLETED")
@@ -889,8 +909,19 @@ class ManagerDashboardView(ManagerRequiredMixin, TemplateView):
         if avg_completion:
             total_seconds = avg_completion.total_seconds()
             avg_completion_minutes = round(total_seconds / 60, 1)
+            
+            hours = int(total_seconds // 3600)
+            minutes = int((total_seconds % 3600) // 60)
+            if hours > 0:
+                if minutes > 0:
+                    avg_completion_formatted = f"{hours}h {minutes}m"
+                else:
+                    avg_completion_formatted = f"{hours}h"
+            else:
+                avg_completion_formatted = f"{minutes}m" if minutes > 0 else "1m"
         else:
             avg_completion_minutes = 0.0
+            avg_completion_formatted = "--"
 
         # Average Rating from OrderFeedback within the selected range
         avg_rating_agg = OrderFeedback.objects.filter(
@@ -905,15 +936,18 @@ class ManagerDashboardView(ManagerRequiredMixin, TemplateView):
             "completed_revenue": completed_revenue,
             "avg_order_value": avg_order_value,
             "status_counts": status_counts,
+            "status_percentages": status_percentages,
             "recent_orders": recent_orders,
             "top_items": top_items,
             "category_performance": category_perf,
             "cancellation_rate": cancellation_rate,
             "avg_completion_minutes": avg_completion_minutes,
+            "avg_completion_formatted": avg_completion_formatted,
             "average_rating": average_rating,
             "start_dt_str": start_dt.strftime("%Y-%m-%d"),
             "end_dt_str": end_dt.strftime("%Y-%m-%d"),
         })
+        return context
 import csv
 from django.http import HttpResponse
 from restaurant.models import AuditLog
@@ -924,20 +958,24 @@ class ManagerCSVExportView(ManagerRequiredMixin, View):
     Enforces spreadsheet formula injection protection.
     """
     def get(self, request, *args, **kwargs):
-        range_type = request.GET.get("range", "today")
-        start_str = request.GET.get("start")
-        end_str = request.GET.get("end")
+        range_type = request.GET.get("period") or request.GET.get("range", "today")
+        if range_type == "7d":
+            range_type = "7days"
+        elif range_type == "30d":
+            range_type = "30days"
+        start_str = request.GET.get("start_date") or request.GET.get("start")
+        end_str = request.GET.get("end_date") or request.GET.get("end")
         
         today = timezone.localdate()
         
         if range_type == "today":
             start_dt = timezone.make_aware(datetime.datetime.combine(today, datetime.time.min))
             end_dt = timezone.make_aware(datetime.datetime.combine(today, datetime.time.max))
-        elif range_type == "7d":
+        elif range_type in ["7days", "7d"]:
             start_day = today - datetime.timedelta(days=7)
             start_dt = timezone.make_aware(datetime.datetime.combine(start_day, datetime.time.min))
             end_dt = timezone.make_aware(datetime.datetime.combine(today, datetime.time.max))
-        elif range_type == "30d":
+        elif range_type in ["30days", "30d"]:
             start_day = today - datetime.timedelta(days=30)
             start_dt = timezone.make_aware(datetime.datetime.combine(start_day, datetime.time.min))
             end_dt = timezone.make_aware(datetime.datetime.combine(today, datetime.time.max))
@@ -951,6 +989,7 @@ class ManagerCSVExportView(ManagerRequiredMixin, View):
                 start_dt = timezone.make_aware(datetime.datetime.combine(today, datetime.time.min))
                 end_dt = timezone.make_aware(datetime.datetime.combine(today, datetime.time.max))
         else:
+            range_type = "today"
             start_dt = timezone.make_aware(datetime.datetime.combine(today, datetime.time.min))
             end_dt = timezone.make_aware(datetime.datetime.combine(today, datetime.time.max))
             
@@ -1023,26 +1062,31 @@ class ManagerOrderListView(ManagerRequiredMixin, ListView):
             queryset = queryset.filter(status=status)
             
         # Filter by date range
-        range_type = self.request.GET.get("range", "today")
+        range_type = self.request.GET.get("period") or self.request.GET.get("range", "today")
+        if range_type == "7d":
+            range_type = "7days"
+        elif range_type == "30d":
+            range_type = "30days"
+        
         today = timezone.localdate()
         
         if range_type == "today":
             start_dt = timezone.make_aware(datetime.datetime.combine(today, datetime.time.min))
             end_dt = timezone.make_aware(datetime.datetime.combine(today, datetime.time.max))
             queryset = queryset.filter(created_at__range=(start_dt, end_dt))
-        elif range_type == "7d":
+        elif range_type in ["7days", "7d"]:
             start_day = today - datetime.timedelta(days=7)
             start_dt = timezone.make_aware(datetime.datetime.combine(start_day, datetime.time.min))
             end_dt = timezone.make_aware(datetime.datetime.combine(today, datetime.time.max))
             queryset = queryset.filter(created_at__range=(start_dt, end_dt))
-        elif range_type == "30d":
+        elif range_type in ["30days", "30d"]:
             start_day = today - datetime.timedelta(days=30)
             start_dt = timezone.make_aware(datetime.datetime.combine(start_day, datetime.time.min))
             end_dt = timezone.make_aware(datetime.datetime.combine(today, datetime.time.max))
             queryset = queryset.filter(created_at__range=(start_dt, end_dt))
         elif range_type == "custom":
-            start_str = self.request.GET.get("start")
-            end_str = self.request.GET.get("end")
+            start_str = self.request.GET.get("start_date") or self.request.GET.get("start")
+            end_str = self.request.GET.get("end_date") or self.request.GET.get("end")
             if start_str and end_str:
                 try:
                     start_date = datetime.datetime.strptime(start_str, "%Y-%m-%d").date()
@@ -1059,9 +1103,9 @@ class ManagerOrderListView(ManagerRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context["status_choices"] = Order.STATUS_CHOICES
         context["current_status"] = self.request.GET.get("status", "")
-        context["current_range"] = self.request.GET.get("range", "today")
-        context["start_date"] = self.request.GET.get("start", "")
-        context["end_date"] = self.request.GET.get("end", "")
+        context["current_range"] = self.request.GET.get("period") or self.request.GET.get("range", "today")
+        context["start_date"] = self.request.GET.get("start_date") or self.request.GET.get("start", "")
+        context["end_date"] = self.request.GET.get("end_date") or self.request.GET.get("end", "")
         
         params = self.request.GET.copy()
         if "page" in params:

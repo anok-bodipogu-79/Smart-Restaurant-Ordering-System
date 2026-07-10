@@ -27,10 +27,10 @@
         <!-- Date Filter -->
         <div style="flex: 1 1 200px;">
             <label for="id_range" class="small fw-semibold text-dark mb-1 d-block">Time Period</label>
-            <select name="range" id="id_range" class="sd-manager-input w-100" onchange="toggleCustomDates(this.value)">
+            <select name="period" id="id_range" class="sd-manager-input w-100" onchange="toggleCustomDates(this.value)">
                 <option value="today" {% if current_range == 'today' %}selected{% endif %}>Today</option>
-                <option value="7d" {% if current_range == '7d' %}selected{% endif %}>Last 7 Days</option>
-                <option value="30d" {% if current_range == '30d' %}selected{% endif %}>Last 30 Days</option>
+                <option value="7days" {% if current_range == '7days' or current_range == '7d' %}selected{% endif %}>Last 7 Days</option>
+                <option value="30days" {% if current_range == '30days' or current_range == '30d' %}selected{% endif %}>Last 30 Days</option>
                 <option value="custom" {% if current_range == 'custom' %}selected{% endif %}>Custom Range</option>
             </select>
         </div>
@@ -40,11 +40,11 @@
             <div class="d-flex gap-2">
                 <div class="w-50">
                     <label class="small fw-semibold text-dark mb-1 d-block">Start Date</label>
-                    <input type="date" name="start" value="{{ start_date }}" class="sd-manager-input w-100">
+                    <input type="date" name="start_date" value="{{ start_date }}" class="sd-manager-input w-100">
                 </div>
                 <div class="w-50">
                     <label class="small fw-semibold text-dark mb-1 d-block">End Date</label>
-                    <input type="date" name="end" value="{{ end_date }}" class="sd-manager-input w-100">
+                    <input type="date" name="end_date" value="{{ end_date }}" class="sd-manager-input w-100">
                 </div>
             </div>
         </div>

@@ -1465,3 +1465,312 @@ footer {
     gap: 0.75rem;
 }
 
+
+/* ============================================================
+   REDESIGNED MANAGER KPI CARDS SECTION
+   ============================================================ */
+.sd-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 992px) {
+    .sd-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 576px) {
+    .sd-kpi-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.sd-kpi-card {
+    background: #ffffff;
+    border: 1px solid #e5e2db;
+    border-radius: 16px;
+    padding: 24px;
+    min-height: 190px;
+    min-width: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+.sd-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* Subtle left border accent color */
+.sd-kpi-card.kpi-revenue { border-left: 4px solid var(--success, #2e7d32); }
+.sd-kpi-card.kpi-orders { border-left: 4px solid var(--brand-primary, #0f3325); }
+.sd-kpi-card.kpi-avg-value { border-left: 4px solid var(--accent-gold, #cda250); }
+.sd-kpi-card.kpi-avg-completion { border-left: 4px solid var(--info, #0288d1); }
+.sd-kpi-card.kpi-cancel-rate { border-left: 4px solid var(--danger, #d32f2f); }
+.sd-kpi-card.kpi-rating { border-left: 4px solid var(--accent-gold, #cda250); }
+
+/* Card Top Row */
+.sd-kpi-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.sd-kpi-title {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--text-muted, #73706b);
+    text-transform: uppercase;
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Square Icon Container */
+.sd-kpi-icon-container {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+/* Subtle tinted backgrounds */
+.sd-kpi-card.kpi-revenue .sd-kpi-icon-container { background: #eef7f0; color: #2e7d32; }
+.sd-kpi-card.kpi-orders .sd-kpi-icon-container { background: #eef3ef; color: #0f3325; }
+.sd-kpi-card.kpi-avg-value .sd-kpi-icon-container { background: #fffcf0; color: #cda250; }
+.sd-kpi-card.kpi-avg-completion .sd-kpi-icon-container { background: #f0f7ff; color: #0288d1; }
+.sd-kpi-card.kpi-cancel-rate .sd-kpi-icon-container { background: #fff2f2; color: #d32f2f; }
+.sd-kpi-card.kpi-rating .sd-kpi-icon-container { background: #fffcf0; color: #cda250; }
+
+/* Large primary metric */
+.sd-kpi-metric-value {
+    font-size: clamp(1.8rem, 2.5vw, 2.6rem);
+    font-weight: 800;
+    line-height: 1.2;
+    color: var(--text-primary, #0f3325);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 16px;
+}
+
+.sd-kpi-card.kpi-revenue .sd-kpi-metric-value { color: #2e7d32; }
+.sd-kpi-card.kpi-orders .sd-kpi-metric-value { color: #0f3325; }
+.sd-kpi-card.kpi-avg-value .sd-kpi-metric-value { color: #cda250; }
+.sd-kpi-card.kpi-avg-completion .sd-kpi-metric-value { color: #0288d1; }
+.sd-kpi-card.kpi-cancel-rate .sd-kpi-metric-value { color: #d32f2f; }
+.sd-kpi-card.kpi-rating .sd-kpi-metric-value { color: #cda250; }
+
+/* Small supporting description */
+.sd-kpi-description {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted, #73706b);
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+/* ============================================================
+   STATUS WORKFLOW PIPELINE REDESIGN
+   ============================================================ */
+.sd-status-pipeline-container {
+    background: #ffffff;
+    border: 1px solid #e5e2db;
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.sd-pipeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f2eff9;
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+}
+
+.sd-pipeline-title-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.sd-pipeline-subtitle {
+    font-size: 13px;
+    color: var(--text-muted, #73706b);
+}
+
+.sd-pipeline-summary-badge {
+    background: #eef3ef;
+    color: #0f3325;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    border: 1px solid rgba(15, 51, 37, 0.08);
+}
+
+.sd-pipeline-workflow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.sd-pipeline-stage-card {
+    flex: 1;
+    min-width: 0;
+    background: #ffffff;
+    border: 1px solid #e5e2db;
+    border-radius: 14px;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Individual Stage Accent Suffix Line */
+.sd-pipeline-stage-card.stage-received { border-left: 3px solid #0288d1; }
+.sd-pipeline-stage-card.stage-preparing { border-left: 3px solid #cda250; }
+.sd-pipeline-stage-card.stage-ready { border-left: 3px solid #10b981; }
+.sd-pipeline-stage-card.stage-completed { border-left: 3px solid #0f3325; }
+.sd-pipeline-stage-card.stage-cancelled { border-left: 3px solid #d32f2f; }
+
+.sd-stage-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.sd-stage-icon {
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stage-received .sd-stage-icon { color: #0288d1; }
+.stage-preparing .sd-stage-icon { color: #cda250; }
+.stage-ready .sd-stage-icon { color: #10b981; }
+.stage-completed .sd-stage-icon { color: #0f3325; }
+.stage-cancelled .sd-stage-icon { color: #d32f2f; }
+
+.sd-stage-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--text-muted, #73706b);
+}
+
+.sd-stage-count {
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--text-primary, #0f3325);
+    margin-bottom: 4px;
+}
+
+.sd-stage-percentage {
+    font-size: 13px;
+    color: var(--text-muted, #73706b);
+    margin-bottom: 8px;
+}
+
+/* Thin progress bar at bottom of card */
+.sd-stage-progress-bar {
+    height: 4px;
+    background: #e5e2db;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: auto;
+}
+
+.sd-stage-progress-bar .progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stage-received .progress-fill { background: #0288d1; }
+.stage-preparing .progress-fill { background: #cda250; }
+.stage-ready .progress-fill { background: #10b981; }
+.stage-completed .progress-fill { background: #0f3325; }
+.stage-cancelled .progress-fill { background: #d32f2f; }
+
+/* Sub directional arrows */
+.sd-pipeline-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #e5e2db;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+/* Divider before Cancelled */
+.sd-pipeline-divider {
+    width: 1px;
+    align-self: stretch;
+    background: #e5e2db;
+    margin: 0 8px;
+}
+
+/* Tablet responsiveness */
+@media (max-width: 992px) {
+    .sd-pipeline-workflow {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+    
+    .sd-pipeline-arrow {
+        display: none;
+    }
+    
+    .sd-pipeline-divider {
+        display: none;
+    }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 576px) {
+    .sd-pipeline-workflow {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .sd-pipeline-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .sd-pipeline-summary-badge {
+        align-self: flex-start;
+    }
+}
+

@@ -84,35 +84,35 @@ class OrderTrackingForm(forms.Form):
 from restaurant.models import Category, MenuItem
 
 class DateRangeFilterForm(forms.Form):
-    range = forms.ChoiceField(
+    period = forms.ChoiceField(
         choices=[
             ("today", "Today"),
-            ("7d", "Last 7 Days"),
-            ("30d", "Last 30 Days"),
+            ("7days", "Last 7 Days"),
+            ("30days", "Last 30 Days"),
             ("custom", "Custom Range"),
         ],
         required=False,
         initial="today"
     )
-    start = forms.DateField(
+    start_date = forms.DateField(
         required=False,
         widget=forms.DateInput(attrs={"type": "date", "class": "form-control"})
     )
-    end = forms.DateField(
+    end_date = forms.DateField(
         required=False,
         widget=forms.DateInput(attrs={"type": "date", "class": "form-control"})
     )
 
     def clean(self):
         cleaned_data = super().clean()
-        range_val = cleaned_data.get("range")
-        start = cleaned_data.get("start")
-        end = cleaned_data.get("end")
+        period_val = cleaned_data.get("period")
+        start_date = cleaned_data.get("start_date")
+        end_date = cleaned_data.get("end_date")
 
-        if range_val == "custom":
-            if not start or not end:
+        if period_val == "custom":
+            if not start_date or not end_date:
                 raise ValidationError("Both Start Date and End Date are required for a custom range.")
-            if start > end:
+            if start_date > end_date:
                 raise ValidationError("Start Date cannot be after End Date.")
         return cleaned_data
 

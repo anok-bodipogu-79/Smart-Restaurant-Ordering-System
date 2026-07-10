@@ -11,23 +11,23 @@
     </div>
     <div class="d-flex flex-wrap gap-2 align-items-center">
         <!-- Quick Actions -->
-        <a href="{% url 'restaurant:manager_csv_export' %}?range={{ range_type }}&start={{ start_dt_str }}&end={{ end_dt_str }}"
+        <a href="{% url 'restaurant:manager_csv_export' %}?period={{ range_type }}&start_date={{ start_dt_str }}&end_date={{ end_dt_str }}"
             class="sd-btn-primary py-2 px-3" style="font-size:0.8rem;">
             <i class="bi bi-file-earmark-spreadsheet-fill me-1"></i> Export CSV
         </a>
         <!-- Range Selection Form -->
         <form method="GET" action="{% url 'restaurant:manager_dashboard' %}" class="d-flex flex-wrap gap-2 align-items-center">
-            <select name="range" id="id_range" class="sd-manager-input py-1 pe-8" onchange="toggleCustomDates(this.value)">
+            <select name="period" id="id_range" class="sd-manager-input py-1 pe-8" onchange="toggleCustomDates(this.value)">
                 <option value="today" {% if range_type == 'today' %}selected{% endif %}>Today</option>
-                <option value="7d" {% if range_type == '7d' %}selected{% endif %}>Last 7 Days</option>
-                <option value="30d" {% if range_type == '30d' %}selected{% endif %}>Last 30 Days</option>
+                <option value="7days" {% if range_type == '7days' or range_type == '7d' %}selected{% endif %}>Last 7 Days</option>
+                <option value="30days" {% if range_type == '30days' or range_type == '30d' %}selected{% endif %}>Last 30 Days</option>
                 <option value="custom" {% if range_type == 'custom' %}selected{% endif %}>Custom Range</option>
             </select>
 
             <div id="custom-date-inputs" class="d-flex gap-2 align-items-center {% if range_type != 'custom' %}d-none{% endif %}">
-                <input type="date" name="start" value="{{ filter_form.start.value|default:'' }}" class="sd-manager-input py-1">
+                <input type="date" name="start_date" value="{{ filter_form.start_date.value|default:'' }}" class="sd-manager-input py-1">
                 <span class="text-muted small">to</span>
-                <input type="date" name="end" value="{{ filter_form.end.value|default:'' }}" class="sd-manager-input py-1">
+                <input type="date" name="end_date" value="{{ filter_form.end_date.value|default:'' }}" class="sd-manager-input py-1">
             </div>
 
             <button type="submit" class="sd-btn-primary py-1 px-3" style="font-size:0.8rem;">
@@ -38,131 +38,218 @@
 </div>
 
 <!-- KPI Cards Grid -->
-<div class="row g-3 mb-4">
-    <div class="col-md-2 col-sm-6">
-        <div class="metric-card success-metric h-100 border-0 glass-panel metric-glow-wrapper">
-            <div class="metric-glow-bg" style="background: var(--glow-green);"></div>
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <div class="metric-label">Completed Revenue</div>
-                    <div class="metric-value text-success mt-2">₹<span class="count-up" data-count="{{ completed_revenue }}">0</span></div>
-                </div>
-                <div class="metric-icon success clay-tile animate-float">
-                    <i class="bi bi-cash-stack"></i>
-                </div>
+<div class="sd-kpi-grid mb-4">
+    <!-- 1. Completed Revenue -->
+    <div class="sd-kpi-card kpi-revenue">
+        <div class="sd-kpi-card-top">
+            <span class="sd-kpi-title">Completed Revenue</span>
+            <div class="sd-kpi-icon-container">
+                <i class="bi bi-cash-stack"></i>
             </div>
-            <p class="text-muted small mb-0 mt-3"><i class="bi bi-info-circle me-1"></i>Realized sales count</p>
+        </div>
+        <div class="sd-kpi-metric-value">
+            ₹<span class="count-up" data-count="{{ completed_revenue }}">0</span>
+        </div>
+        <div class="sd-kpi-description">
+            <i class="bi bi-info-circle"></i> Revenue from completed orders
         </div>
     </div>
-    <div class="col-md-2 col-sm-6">
-        <div class="metric-card brand-metric h-100 border-0 glass-panel metric-glow-wrapper">
-            <div class="metric-glow-bg" style="background: var(--glow-forest);"></div>
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <div class="metric-label">Total Orders</div>
-                    <div class="metric-value mt-2" style="color:var(--brand-primary);"><span class="count-up" data-count="{{ total_orders }}">0</span></div>
-                </div>
-                <div class="metric-icon brand clay-tile animate-float" style="animation-delay: 0.15s">
-                    <i class="bi bi-cart-fill"></i>
-                </div>
+
+    <!-- 2. Total Orders -->
+    <div class="sd-kpi-card kpi-orders">
+        <div class="sd-kpi-card-top">
+            <span class="sd-kpi-title">Total Orders</span>
+            <div class="sd-kpi-icon-container">
+                <i class="bi bi-cart-fill"></i>
             </div>
-            <p class="text-muted small mb-0 mt-3"><i class="bi bi-cart me-1"></i>Active + terminal</p>
+        </div>
+        <div class="sd-kpi-metric-value">
+            <span class="count-up" data-count="{{ total_orders }}">0</span>
+        </div>
+        <div class="sd-kpi-description">
+            <i class="bi bi-cart"></i> Orders in selected period
         </div>
     </div>
-    <div class="col-md-2 col-sm-6">
-        <div class="metric-card gold-metric h-100 border-0 glass-panel metric-glow-wrapper">
-            <div class="metric-glow-bg" style="background: var(--glow-gold);"></div>
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <div class="metric-label">Average Value</div>
-                    <div class="metric-value text-gold mt-2">₹<span class="count-up" data-count="{{ avg_order_value }}">0</span></div>
-                </div>
-                <div class="metric-icon gold clay-tile animate-float" style="animation-delay: 0.3s">
-                    <i class="bi bi-graph-up-arrow"></i>
-                </div>
+
+    <!-- 3. Average Order Value -->
+    <div class="sd-kpi-card kpi-avg-value">
+        <div class="sd-kpi-card-top">
+            <span class="sd-kpi-title">Average Value</span>
+            <div class="sd-kpi-icon-container">
+                <i class="bi bi-graph-up-arrow"></i>
             </div>
-            <p class="text-muted small mb-0 mt-3"><i class="bi bi-graph-up me-1"></i>Per completed count</p>
+        </div>
+        <div class="sd-kpi-metric-value">
+            ₹<span class="count-up" data-count="{{ avg_order_value }}">0</span>
+        </div>
+        <div class="sd-kpi-description">
+            <i class="bi bi-graph-up"></i> Per completed order
         </div>
     </div>
-    <div class="col-md-2 col-sm-6">
-        <div class="metric-card info-metric h-100 border-0 glass-panel metric-glow-wrapper">
-            <div class="metric-glow-bg" style="background: var(--glow-forest);"></div>
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <div class="metric-label">Avg Completion</div>
-                    <div class="metric-value text-info mt-2">{% if avg_completion_minutes %}<span class="count-up" data-count="{{ avg_completion_minutes }}">0</span>m{% else %}--{% endif %}</div>
-                </div>
-                <div class="metric-icon info clay-tile animate-float" style="animation-delay: 0.45s">
-                    <i class="bi bi-hourglass-split"></i>
-                </div>
+
+    <!-- 4. Average Completion Time -->
+    <div class="sd-kpi-card kpi-avg-completion">
+        <div class="sd-kpi-card-top">
+            <span class="sd-kpi-title">Avg Completion</span>
+            <div class="sd-kpi-icon-container">
+                <i class="bi bi-hourglass-split"></i>
             </div>
-            <p class="text-muted small mb-0 mt-3"><i class="bi bi-lightning-fill me-1"></i>Cooking &amp; service</p>
+        </div>
+        <div class="sd-kpi-metric-value">
+            {{ avg_completion_formatted }}
+        </div>
+        <div class="sd-kpi-description">
+            <i class="bi bi-lightning-fill"></i> Kitchen and service duration
         </div>
     </div>
-    <div class="col-md-2 col-sm-6">
-        <div class="metric-card danger-metric h-100 border-0 glass-panel metric-glow-wrapper">
-            <div class="metric-glow-bg" style="background: var(--glow-red);"></div>
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <div class="metric-label">Cancel Rate</div>
-                    <div class="metric-value text-danger mt-2"><span class="count-up" data-count="{{ cancellation_rate }}">0</span>%</div>
-                </div>
-                <div class="metric-icon danger clay-tile animate-float" style="animation-delay: 0.6s">
-                    <i class="bi bi-x-circle"></i>
-                </div>
+
+    <!-- 5. Cancel Rate -->
+    <div class="sd-kpi-card kpi-cancel-rate">
+        <div class="sd-kpi-card-top">
+            <span class="sd-kpi-title">Cancel Rate</span>
+            <div class="sd-kpi-icon-container">
+                <i class="bi bi-x-circle"></i>
             </div>
-            <p class="text-muted small mb-0 mt-3"><i class="bi bi-shield-exclamation me-1"></i>Cancelled ratio</p>
+        </div>
+        <div class="sd-kpi-metric-value">
+            <span class="count-up" data-count="{{ cancellation_rate }}">0</span>%
+        </div>
+        <div class="sd-kpi-description">
+            <i class="bi bi-shield-exclamation"></i> Percentage of cancelled orders
         </div>
     </div>
-    <div class="col-md-2 col-sm-6">
-        <div class="metric-card gold-metric h-100 border-0 glass-panel metric-glow-wrapper">
-            <div class="metric-glow-bg" style="background: var(--glow-gold);"></div>
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <div class="metric-label">Average Rating</div>
-                    <div class="metric-value text-gold mt-2">{% if average_rating %}<span class="count-up" data-count="{{ average_rating|floatformat:1 }}">0.0</span> <i class="bi bi-star-fill small"></i>{% else %}--{% endif %}</div>
-                </div>
-                <div class="metric-icon gold clay-tile animate-float" style="animation-delay: 0.75s">
-                    <i class="bi bi-star"></i>
-                </div>
+
+    <!-- 6. Average Rating -->
+    <div class="sd-kpi-card kpi-rating">
+        <div class="sd-kpi-card-top">
+            <span class="sd-kpi-title">Average Rating</span>
+            <div class="sd-kpi-icon-container">
+                <i class="bi bi-star"></i>
             </div>
-            <p class="text-muted small mb-0 mt-3"><i class="bi bi-chat-heart me-1"></i>Customer feedback</p>
+        </div>
+        <div class="sd-kpi-metric-value">
+            {% if average_rating %}
+                <span class="count-up" data-count="{{ average_rating|floatformat:1 }}">0.0</span> <i class="bi bi-star-fill small" style="font-size: 0.5em; vertical-align: middle;"></i>
+            {% else %}
+                --
+            {% endif %}
+        </div>
+        <div class="sd-kpi-description">
+            <i class="bi bi-chat-heart"></i> Customer feedback score
         </div>
     </div>
 </div>
 
 <!-- Status Breakdown -->
-<div class="sd-analytics-panel mb-4">
-    <h5 class="sd-panel-heading mb-3">Order Status Breakdown</h5>
-    <div class="row g-3 text-center">
-        <div class="col-sm-2 col-4">
-            <div class="p-3 rounded-3" style="background:#EEF3EF;">
-                <span class="text-muted small d-block">Received</span>
-                <strong class="fs-4 text-info"><span class="count-up" data-count="{{ status_counts.received|default:0 }}">0</span></strong>
+<div class="sd-status-pipeline-container mb-4">
+    <div class="sd-pipeline-header">
+        <div class="sd-pipeline-title-group">
+            <h5 class="sd-panel-heading mb-1" style="font-size: 1.1rem; font-weight: 700; color: var(--brand-primary);">Order Status Breakdown</h5>
+            <p class="sd-pipeline-subtitle mb-0">Live distribution of orders across operational stages</p>
+        </div>
+        <div class="sd-pipeline-summary-badge">
+            <i class="bi bi-info-circle me-2"></i>
+            <span>{{ total_orders }} Total Orders</span>
+        </div>
+    </div>
+
+    <div class="sd-pipeline-workflow">
+        <!-- 1. Received -->
+        <div class="sd-pipeline-stage-card stage-received">
+            <div class="sd-stage-top">
+                <span class="sd-stage-icon"><i class="bi bi-inbox-fill"></i></span>
+                <span class="sd-stage-label">Received</span>
+            </div>
+            <div class="sd-stage-count">
+                <span class="count-up" data-count="{{ status_counts.received|default:0 }}">0</span>
+            </div>
+            <div class="sd-stage-percentage">
+                {{ status_percentages.received|default:"0.0" }}% of orders
+            </div>
+            <div class="sd-stage-progress-bar">
+                <div class="progress-fill" data-pct="{{ status_percentages.received|default:0 }}"></div>
             </div>
         </div>
-        <div class="col-sm-2 col-4">
-            <div class="p-3 rounded-3" style="background:#FEF3C7;">
-                <span class="text-muted small d-block">Preparing</span>
-                <strong class="fs-4 text-warning"><span class="count-up" data-count="{{ status_counts.preparing|default:0 }}">0</span></strong>
+
+        <div class="sd-pipeline-arrow">
+            <i class="bi bi-chevron-right"></i>
+        </div>
+
+        <!-- 2. Preparing -->
+        <div class="sd-pipeline-stage-card stage-preparing">
+            <div class="sd-stage-top">
+                <span class="sd-stage-icon"><i class="bi bi-fire"></i></span>
+                <span class="sd-stage-label">Preparing</span>
+            </div>
+            <div class="sd-stage-count">
+                <span class="count-up" data-count="{{ status_counts.preparing|default:0 }}">0</span>
+            </div>
+            <div class="sd-stage-percentage">
+                {{ status_percentages.preparing|default:"0.0" }}% of orders
+            </div>
+            <div class="sd-stage-progress-bar">
+                <div class="progress-fill" data-pct="{{ status_percentages.preparing|default:0 }}"></div>
             </div>
         </div>
-        <div class="col-sm-2 col-4">
-            <div class="p-3 rounded-3" style="background:#ECFDF5;">
-                <span class="text-muted small d-block">Ready</span>
-                <strong class="fs-4 text-success"><span class="count-up" data-count="{{ status_counts.ready|default:0 }}">0</span></strong>
+
+        <div class="sd-pipeline-arrow">
+            <i class="bi bi-chevron-right"></i>
+        </div>
+
+        <!-- 3. Ready -->
+        <div class="sd-pipeline-stage-card stage-ready">
+            <div class="sd-stage-top">
+                <span class="sd-stage-icon"><i class="bi bi-check-circle-fill"></i></span>
+                <span class="sd-stage-label">Ready</span>
+            </div>
+            <div class="sd-stage-count">
+                <span class="count-up" data-count="{{ status_counts.ready|default:0 }}">0</span>
+            </div>
+            <div class="sd-stage-percentage">
+                {{ status_percentages.ready|default:"0.0" }}% of orders
+            </div>
+            <div class="sd-stage-progress-bar">
+                <div class="progress-fill" data-pct="{{ status_percentages.ready|default:0 }}"></div>
             </div>
         </div>
-        <div class="col-sm-2 col-4">
-            <div class="p-3 rounded-3" style="background:#F5F3EE;">
-                <span class="text-muted small d-block">Completed</span>
-                <strong class="fs-4 text-secondary"><span class="count-up" data-count="{{ status_counts.completed|default:0 }}">0</span></strong>
+
+        <div class="sd-pipeline-arrow">
+            <i class="bi bi-chevron-right"></i>
+        </div>
+
+        <!-- 4. Completed -->
+        <div class="sd-pipeline-stage-card stage-completed">
+            <div class="sd-stage-top">
+                <span class="sd-stage-icon"><i class="bi bi-shield-check"></i></span>
+                <span class="sd-stage-label">Completed</span>
+            </div>
+            <div class="sd-stage-count">
+                <span class="count-up" data-count="{{ status_counts.completed|default:0 }}">0</span>
+            </div>
+            <div class="sd-stage-percentage">
+                {{ status_percentages.completed|default:"0.0" }}% of orders
+            </div>
+            <div class="sd-stage-progress-bar">
+                <div class="progress-fill" data-pct="{{ status_percentages.completed|default:0 }}"></div>
             </div>
         </div>
-        <div class="col-sm-2 col-4">
-            <div class="p-3 rounded-3" style="background:#FEE4E2;">
-                <span class="text-muted small d-block">Cancelled</span>
-                <strong class="fs-4 text-danger"><span class="count-up" data-count="{{ status_counts.cancelled|default:0 }}">0</span></strong>
+
+        <div class="sd-pipeline-divider"></div>
+
+        <!-- 5. Cancelled -->
+        <div class="sd-pipeline-stage-card stage-cancelled">
+            <div class="sd-stage-top">
+                <span class="sd-stage-icon"><i class="bi bi-x-circle-fill"></i></span>
+                <span class="sd-stage-label">Cancelled</span>
+            </div>
+            <div class="sd-stage-count">
+                <span class="count-up" data-count="{{ status_counts.cancelled|default:0 }}">0</span>
+            </div>
+            <div class="sd-stage-percentage">
+                {{ status_percentages.cancelled|default:"0.0" }}% of orders
+            </div>
+            <div class="sd-stage-progress-bar">
+                <div class="progress-fill" data-pct="{{ status_percentages.cancelled|default:0 }}"></div>
             </div>
         </div>
     </div>
@@ -296,6 +383,14 @@
 {% block extra_js %}
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        // Initialize progress-fill widths from data-pct attributes
+        document.querySelectorAll('.progress-fill').forEach(bar => {
+            const pct = bar.getAttribute('data-pct');
+            if (pct) {
+                bar.style.width = pct + '%';
+            }
+        });
+
         if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
             const counters = document.querySelectorAll('.count-up');
             const speed = 800; // Total transition duration in ms
