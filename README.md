@@ -1,242 +1,397 @@
-# Smart Restaurant Food Ordering & Kitchen Dashboard
+# SmartDine – Smart Restaurant Ordering System
 
-## Overview
-The **Smart Restaurant Food Ordering & Kitchen Dashboard** is a premium, end-to-end food ordering and kitchen dispatch system built using Django. It features a customer-facing menu interface, a localStorage-persisted and session-synchronized cart, a transaction-isolated checkout process, secure UUID order tracking, a split-screen Kitchen Dashboard, and a comprehensive Manager operations dashboard with date-range filters, revenue summaries, and category/item management.
+SmartDine is a premium, full-stack Django web application designed to streamline restaurant operations and elevate the customer dining experience. By integrating a seamless customer-facing ordering workflow, a real-time kitchen dispatch console, a robust manager operations portal, and a digital receipt engine, SmartDine serves as a complete digital operating system for modern hospitality.
 
-## Problem Statement
-Modern dining operations struggle with lag times and miscommunications between customers, servers, kitchen staff, and management. Common issues include:
-- Unsynchronized orders leading to misplaced tickets.
-- Security vulnerabilities where users can access internal dashboards using standard accounts.
-- Data integrity failures where deleting a menu item corrupts historical sales records.
-- Ephemeral filesystem losses when running uploads on modern cloud hosting services.
+[![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.13-blue?style=flat&logo=python&logoColor=white)](https://www.python.org/)
+[![Django Framework](https://img.shields.io/badge/django-5.x%20%7C%206.x-green?style=flat&logo=django&logoColor=white)](https://www.djangoproject.com/)
+[![PostgreSQL](https://img.shields.io/badge/postgresql-15-blue?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Bootstrap](https://img.shields.io/badge/bootstrap-5.3-purple?style=flat&logo=bootstrap&logoColor=white)](https://getbootstrap.com/)
+[![JavaScript](https://img.shields.io/badge/javascript-vanilla-yellow?style=flat&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![Cloudinary](https://img.shields.io/badge/cloudinary-media_storage-blueviolet?style=flat&logo=cloudinary&logoColor=white)](https://cloudinary.com/)
+[![Render Deployed](https://img.shields.io/badge/render-deployed-00C4B4?style=flat&logo=render&logoColor=white)](https://render.com/)
 
-## Solution
-This application provides a highly synchronized, four-interface system:
-- **Customer Interface**: Allows visitors to view, search, filter, and order items.
-- **Kitchen Dashboard**: Restricts access to kitchen staff, showing orders sorted by queue time with sequential status progression.
-- **Manager Console**: Provides restaurant analytics, category/item creation, and direct menu image uploading.
-- **Django Admin**: Provides full superuser management.
+* **Live Application URL**: [https://smart-restaurant-ordering-system-sk0j.onrender.com/](https://smart-restaurant-ordering-system-sk0j.onrender.com/)
+* **GitHub Repository**: [https://github.com/anok-bodipogu-79/Smart-Restaurant-Ordering-System](https://github.com/anok-bodipogu-79/Smart-Restaurant-Ordering-System)
 
-## Key Features
+---
 
-### Customer Features
-- **Real-Time Advanced Search**: Instantly find dishes matching name or description.
-- **Dietary & Spicy Filters**: Filter by Veg, Non-Veg, or Spicy options.
-- **Dynamic Sorting**: Sort dishes by Name (A-Z, Z-A), Price (Low-to-High, High-to-Low), or Most Popular.
-- **Special Instructions**: Add optional instructions (up to 250 characters) to individual cart items, which persist in localStorage, sync with django sessions, and are preserved on OrderItems.
-- **Database-Driven Popular Badges**: Displays a visually distinct `Popular` badge on the top 3 available items based on actual completed orders.
-- **Cart Sync & Revalidation**: Frontend localStorage cart automatically reconciles with backend session data to maintain server-authoritative pricing and availability.
-- **Light/Dark Mode Toggle**: Persistent browser theme selector.
-- **Direct UUID tracking links**: Live tracking status dashboard.
+## 1. Project Overview
 
-### Kitchen Features
-- Live split-view tracking of active orders.
-- Single-click sequential status transitions (`RECEIVED` -> `PREPARING` -> `READY` -> `COMPLETED`).
-- Automatic background polling to ensure dashboard synchronization.
+SmartDine unifies disjointed restaurant processes into a single, unified hospitality platform. Traditional restaurants face communication gaps between front-of-house customer ordering, back-of-house food preparation, and management oversight. SmartDine bridges this gap by offering:
+- **Customers**: Interactive menu browsing, filtering, search, session-based cart management, and real-time order tracking using unique, secure tracking tokens.
+- **Kitchen Staff**: A chronological, ticket-based Kitchen Display System (KDS) showing active orders and processing them through a strict, sequential status state machine.
+- **Managers**: Centralized operations management featuring a premium forest-green dashboard, live revenue and prep metrics, inventory controls, and immutable system audit logs.
 
-### Manager Features
-- Dashboard analytics (Revenue summaries, recent orders lists, item sales performance, category ratios).
-- Integrated category management and item editors.
-- Direct image file uploads with a local fallback URL system.
-- Eligible order cancellation controls.
+The system is styled under the **SmartDine Premium Hospitality UI** design language—an elegant theme characterized by warm minimalism, editorial serif typography, structured Bento-style grids, deep forest green primary elements (`#0F3325`), and burnished gold accents.
 
-### Admin Features
-- Administrative oversight of categories, items, and roles.
-- Image thumbnail rendering directly inside table lists.
-- Safe cascading deletion strategies.
+---
 
-### Production Engineering Features
-- Liveness and readiness health checks.
-- Comprehensive rotating console and file logging.
-- Secure production configuration utilizing Environment files and WhiteNoise static asset serving.
+## 2. Live Demo Access
 
-## Application Interfaces
-1. **Customer Front Window**: Accessible at `/`
-2. **Kitchen Operations Console**: Accessible at `/kitchen/`
-3. **Manager Operations Console**: Accessible at `/manager/`
-4. **Django Site Administrator**: Accessible at `/admin/`
+The deployed application is live and open for review.
 
-## System Architecture
-The application employs a standard Django Model-View-Template (MVT) architecture. Database access is optimized using indexing and select-related joins to minimize SQL querying overhead. Frontend interactivity is implemented using modern Bootstrap 5 and Vanilla JS.
+* **URL**: [https://smart-restaurant-ordering-system-sk0j.onrender.com/](https://smart-restaurant-ordering-system-sk0j.onrender.com/)
+* **Demo Staff Credentials**:
+  * **Username**: `demo`
+  * **Password**: `demopass`
+
+### Access Steps:
+1. Open the application landing page and click **Browse Menu**.
+2. Scroll to the footer of the menu page.
+3. Click the **Staff Access** link under the logo/navigation links.
+4. Select either **Kitchen Console** or **Manager Portal**.
+5. Log in using the `demo` / `demopass` credentials.
+
+> [!IMPORTANT]
+> **Evaluation Security Note**: The credentials above are restricted demo credentials created specifically for application evaluation and testing. Do not expose administrative passwords or production database variables in the codebase.
+
+---
+
+## 3. Application Roles
+
+| Role | Main Purpose | Key Capabilities |
+| :--- | :--- | :--- |
+| **Customer** | Browser-based ordering & tracking | View menu, search & filter dishes, manage cart, place dine-in/takeaway orders, track progress, download receipts, submit feedback. |
+| **Kitchen Staff** | Back-of-house order preparation | View chronological active order queue, update order preparation state, view special instructions, set preparation times. |
+| **Manager** | Store operations & business intelligence | Monitor sales metrics (revenue, cancel rate, prep times), manage catalog (menu items, categories, availability), cancel eligible orders, view immutable audit logs, export reports to CSV. |
+
+---
+
+## 4. Core Features
+
+### Customer Experience
+- **Interactive Menu**: Fully responsive menu catalog with real-time text query search, dynamic category filtering, and category sliders.
+- **Dietary & Heat Indicators**: Explicit badges indicating Vegetarian (`VEG`) and Spicy preferences.
+- **Dynamic Sorting**: Sort items on the fly by Price (Low $\rightarrow$ High or High $\rightarrow$ Low), Name (A $\rightarrow$ Z), and Popularity (computed dynamically from historical order volumes).
+- **Session-Based Cart**: Persistent browser-side local cart that automatically synchronizes with Django session state to ensure server-side price/availability verification.
+- **Dine-In Support**: Optional table selection and mandatory phone number validation utilizing standardized formatting checks.
+- **Order Tracking & Feedback**: Unique UUID tracking links allowing customers to monitor order status in real time and submit a 1-to-5 star rating and comment feedback upon order completion.
+- **Digital Receipt Engine**: Standard responsive layout-stable receipts formatted for 80mm thermal printers using CSS `@media print` rules.
+
+### Kitchen Operations
+- **Chronological Active Queue**: Active orders listed in columns by state (`RECEIVED`, `PREPARING`, `READY`), sorted oldest-first to prevent ticket stagnation.
+- **Strict State Machine**: Directional progression of order status. Attempts to bypass intermediate statuses or move orders backward are blocked by backend validations.
+- **Chef's Workspace Details**: Visible priority levels (`NORMAL`, `PRIORITY`, `URGENT`), elapsed waiting timers, custom customer instructions, and estimated preparation time configuration.
+- **Automatic Polling**: Client-side JavaScript polling to keep the dispatch board up-to-date with active tickets.
+
+### Manager Operations Center
+- **Bento Operations Dashboard**: A structured dashboard display tracking core KPIs: Total Revenue, Order Volume, Cancel Rate, and Average Prep Time (calculated dynamically).
+- **Menu CRUD Management**: Form-based interfaces for creating, updating, and deleting categories and menu items (including direct file image uploads).
+- **Inventory Toggle**: Instant switch to mark items "Available" or "Sold Out" on the customer menu.
+- **Immutable System Ledger**: Read-only access to custom system logs recording critical transactions (order placement, status updates, cancellations, price adjustments).
+- **CSV Data Export**: One-click download of all transaction details for external spreadsheet analytics.
+
+---
+
+## 5. Application Workflow
+
+The diagram below illustrates the end-to-end order flow from customer placement to manager analytics:
 
 ```mermaid
 graph TD
-    A[Customer Browser] -->|Orders / Sync| B(Django MVT App)
-    C[Kitchen Staff] -->|Tracks Queue| B
-    D[Manager Console] -->|Edits Items| B
-    B -->|Persists Data| E[(PostgreSQL / SQLite)]
+    A[Customer: Browses Menu] --> B(Adds Items to Cart)
+    B --> C{Checkout Form Submitted}
+    C -->|Validations Pass| D(Order Saved: status RECEIVED)
+    D --> E[Kitchen Staff: Active Queue]
+    E -->|Updates Status| F(Status: PREPARING)
+    F -->|Updates Status| G(Status: READY)
+    G -->|Updates Status| H(Status: COMPLETED)
+    H --> I[Customer: Submits Feedback & Prints Receipt]
+    H --> J[Manager: Analyzes Revenue & Order Logs]
+    D -->|Canceled by Manager| K(Status: CANCELLED)
 ```
 
-## Application Workflow
-1. **Browse & Cart**: Customer views items, adds to local storage cart, and syncs session state.
-2. **Checkout**: Customer submits order; server validates price databases inside an atomic transaction.
-3. **Queue**: Order appears on Kitchen Dashboard.
-4. **Dispatch**: Kitchen updates order status. Live polling keeps the Customer tracking page up to date.
-5. **Analytics**: Managers monitor order metrics, revenue aggregates, and menu stats.
+---
 
-## Technology Stack
-- **Backend Framework**: Python 3, Django 5.x
-- **Frontend Framework**: HTML5, Vanilla CSS, Vanilla JavaScript, Bootstrap 5, Bootstrap Icons
-- **Database Engine**: PostgreSQL (Production) / SQLite (Development)
-- **Asset Serving**: WhiteNoise (Static Files Serving)
-- **Image Processing**: Pillow 12.x
+## 6. System Architecture
 
-## Project Structure
-```
-├── restaurant/                 # Core app code
-│   ├── management/             # Custom commands
-│   ├── migrations/             # Migration files
-│   ├── static/                 # CSS/JS resources
-│   ├── templates/              # HTML layout templates
-│   ├── tests/                  # Test suites
-│   ├── admin.py                # Admin declarations
-│   ├── forms.py                # Django Forms
-│   ├── models.py               # DB Models
-│   ├── urls.py                 # Route URLs
-│   └── views.py                # App View controllers
-├── restaurant_project/         # Settings configuration package
-├── media/                      # Uploaded menu images (ignored)
-├── requirements.txt            # Dependency list
-├── render.yaml                 # Deployment file
-└── .env.example                # Config parameters
+SmartDine is built on a robust server-rendered MTV (Model-Template-View) pattern:
+
+```mermaid
+graph LR
+    subgraph Client [Client / Browser]
+        A[Customer UI]
+        B[Kitchen Console]
+        C[Manager Portal]
+    end
+    subgraph WebServer [Application Server]
+        D[Gunicorn WSGI]
+        E[Django App Core]
+        F[WhiteNoise Static Storage]
+    end
+    subgraph Persistence [Data & Media Storage]
+        G[(PostgreSQL / SQLite)]
+        H[Cloudinary CDN]
+    end
+
+    Client -->|HTTP Requests / Sessions| D
+    D --> E
+    E -->|Serves Static Files| F
+    E -->|ORM Operations| G
+    E -->|Uploads & Serves Images| H
 ```
 
-## Database Schema
-Models details:
-- **Category**: `name` (unique string), `slug`.
-- **MenuItem**: `name`, `description`, `price` (Decimal), `image` (upload path), `image_url` (external fallback URL), `is_available` (indexed boolean).
-- **Order**: `tracking_uuid` (indexed UUID), `customer_name`, `customer_phone`, `status` (indexed string), `subtotal_amount`, `tax_amount`, `total_amount`.
-- **OrderItem**: References `Order` and `MenuItem` (`on_delete=models.SET_NULL`). Stores `price_at_order`, `item_name_at_order`, and `category_name_at_order` snapshots.
+- **Production Server**: Deployed using **Gunicorn** to handle concurrency in combination with **WhiteNoise** for high-efficiency static file compression and caching.
+- **Media CDN**: Uses **Cloudinary Storage** in production to persist MenuItem images uploaded by managers, overcoming Render's ephemeral local disk storage.
+- **Database**: Django ORM interfaces with SQLite during development and connects dynamically to PostgreSQL in production environments.
 
-## Data Integrity Architecture
-When a menu item is deleted, the system uses `models.SET_NULL` on the referencing `OrderItem`. To prevent broken sales reports, the name, category, and unit price of the item are copied into historical snapshot columns on the `OrderItem` at checkout time. Financial metrics (subtotals, tax rates, and totals) are recorded as raw decimals on the `Order` model directly.
+---
 
-## Authentication and Role Separation
-- **Kitchen Dashboard**: Protected by the `@kitchen_required` decorator, which redirects users who are not part of the `Kitchen Staff` group to `/kitchen/login/`.
-- **Manager Dashboard**: Protected by the `@manager_required` decorator, which redirects users who are not part of the `Managers` group to `/manager/login/`.
-- **Django Admin**: Protected by superuser checks.
+## 7. Technology Stack
 
-## Cart Architecture
-The cart stores items inside browser `localStorage` to ensure immediate UI rendering and persistence. Changes are synchronized to the backend via async `POST` requests to `/cart/sync/`, which stores data in `request.session`. Before checkout, the system validates database prices and availability.
+| Layer | Technology |
+| :--- | :--- |
+| **Backend Framework** | Python 3.11+ / Django 5.x / 6.x |
+| **Frontend** | HTML5 / Vanilla CSS3 / JavaScript (ES6) / Bootstrap 5.3.3 |
+| **Database** | SQLite (Local Dev) / PostgreSQL (Production) |
+| **ORM** | Django Object-Relational Mapper |
+| **Media Hosting** | Cloudinary CDN (Production integration via `django-cloudinary-storage`) |
+| **Static Assets** | WhiteNoise (Compressed & cached static serving) |
+| **Document Generation** | xhtml2pdf (HTML to PDF translation for invoice downloads) |
+| **Server Engine** | Gunicorn (Green Unicorn WSGI HTTP Server) |
+| **Testing** | Django Unit Test framework (sqlite / Postgres test containers) |
 
-## Order Tracking Architecture
-Customer tracking is mapped via UUID URLs (e.g., `/tracking/<uuid>/`). This prevents sequential ID enumeration attacks. The page polls the backend status API dynamically, using a request buffer to prevent network bottlenecks.
+---
 
-## Menu Image Upload Architecture
-Managers can upload images locally or provide external image URLs:
-- **Validators**: Files must be JPEGs, PNGs, or WebPs under **5 MB**, verified using Pillow.
-- **Fallback Property**: `display_image_url` prioritized `image.url`, then `image_url`, and defaults to a local placeholder image.
+## 8. Database Schema & Data Models
 
-## Light and Dark Mode
-A centralized theme system is implemented via custom variables inside [style.css](file:///c:/Users/91934/Documents/FSD%20-%20Internship%20Tasks/Smart-Restaurant-Ordering-System/restaurant/static/restaurant/css/style.css).
-- Theme toggles are located inside navigation bars.
-- Selections are stored inside browser `localStorage`.
-- Settings initialize early inside the HTML `<head>` tag to prevent a "theme flash" on page load.
+The relational database schema is normalized to ensure data integrity and track operational changes:
 
-## Manager Analytics
-The dashboard computes operational statistics on the fly:
-- **Revenue Statistics**: Total sales, active counts, and cancelled totals.
-- **Top Menu Items**: Displays item orders count in descending order.
-- **Category Popularity**: Visual breakdown of orders per category.
-- **Date Filtering**: Supports narrowing metrics by date ranges.
+```mermaid
+erDiagram
+    Category ||--o{ MenuItem : "categorizes"
+    Order ||--|{ OrderItem : "contains"
+    MenuItem ||--o{ OrderItem : "references"
+    Order ||--o| OrderFeedback : "receives"
+    User ||--o{ AuditLog : "tracks_actor"
 
-## Installation
-1. Clone the repository.
-2. Initialize virtual environments:
+    Category {
+        int id PK
+        string name
+        string icon
+    }
+    MenuItem {
+        int id PK
+        int category_id FK
+        string name
+        string description
+        decimal price
+        boolean is_vegetarian
+        boolean is_spicy
+        boolean is_available
+        string image_url
+        string image
+    }
+    Order {
+        uuid tracking_token UK
+        int id PK
+        string customer_name
+        string customer_phone
+        int table_number
+        decimal subtotal_amount
+        decimal tax_amount
+        decimal tax_rate
+        decimal total_amount
+        string status
+        datetime created_at
+        datetime completed_at
+        int estimated_preparation_minutes
+        string priority
+    }
+    OrderItem {
+        int id PK
+        int order_id FK
+        int menu_item_id FK
+        int quantity
+        decimal price_at_order
+        string item_name_at_order
+        string category_name_at_order
+        string special_instructions
+    }
+    OrderFeedback {
+        int id PK
+        int order_id FK
+        int rating
+        string comment
+        datetime created_at
+    }
+    AuditLog {
+        int id PK
+        int actor_id FK
+        string action
+        string target_type
+        string target_id
+        string description
+        datetime timestamp
+    }
+```
+
+### Models Purpose
+* **Category**: Groups menu offerings (e.g., Appetizers, Main Course, Drinks) with customized dashboard icons.
+* **MenuItem**: Represents dishes, storing prices, dietary properties, availability, and Cloudinary media links.
+* **Order**: Stores checkout data, dine-in metadata, standard calculations, and tracking coordinates.
+* **OrderItem**: Core bridge storing quantity, custom text instructions, and crucial historical data.
+* **OrderFeedback**: Captures ratings and text reviews linked directly to completed orders.
+* **AuditLog**: Immutable system ledger recording administrative updates, status shifts, and user actions.
+
+---
+
+## 9. Key Engineering Decisions
+
+### 1. Financial Data Immutability
+To protect sales analytics, the system snapshots pricing data (`price_at_order`, `item_name_at_order`, `category_name_at_order`) inside `OrderItem` during transaction checkout. If a manager updates an item price or deletes a MenuItem, all past revenue statistics, print layouts, and ledger records remain structurally unaffected.
+
+### 2. Group-Based Custom Authorization Mixins
+Instead of relying solely on Django's generic `is_staff` check, custom authentication checks are performed:
+- **`KitchenRequiredMixin`**: Validates membership in the "Kitchen Staff" Django Group.
+- **`ManagerRequiredMixin`**: Validates membership in the "Managers" Django Group.
+Separating staff into explicit groups prevents kitchen operators from accessing managers' portals and vice versa.
+
+### 3. Read-Only Ledger Security
+Custom permissions are hardcoded on `AuditLog` inside `restaurant/admin.py`:
+```python
+def has_add_permission(self, request): return False
+def has_change_permission(self, request, obj=None): return False
+def has_delete_permission(self, request, obj=None): return False
+```
+This restricts audit log tampering, even for django admin superusers.
+
+---
+
+## 10. Local Installation & Configuration
+
+### Prerequisites
+* Python 3.10+
+* Virtualenv package
+
+### Setup Steps:
+1. **Clone the Repository**:
    ```bash
-   python -m venv venv
-   .\venv\Scripts\activate
+   git clone https://github.com/anok-bodipogu-79/Smart-Restaurant-Ordering-System.git
+   cd Smart-Restaurant-Ordering-System
    ```
-3. Install dependencies:
+
+2. **Initialize & Activate Virtual Environment**:
+   * **Windows**:
+     ```powershell
+     python -m venv venv
+     .\venv\Scripts\Activate.ps1
+     ```
+   * **macOS / Linux**:
+     ```bash
+     python3 -m venv venv
+     source venv/bin/activate
+     ```
+
+3. **Install Project Dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
 
-## Environment Configuration
-Create a `.env` file from the sample file:
-```bash
-copy .env.example .env
-```
-Supply your own configuration keys (e.g., database connection URLs).
+4. **Setup Local Environment Variables**:
+   * Copy the sample configuration:
+     ```bash
+     # Windows PowerShell
+     Copy-Item .env.example .env
+     # macOS / Linux
+     cp .env.example .env
+     ```
+   * Adjust values inside `.env` if using external Postgres databases or Cloudinary accounts. In local development, database defaults to SQLite and storage defaults to the filesystem when variables are omitted.
 
-## Database Setup
-1. Create and apply database migrations:
+5. **Run Migrations**:
    ```bash
-   python manage.py makemigrations
    python manage.py migrate
    ```
 
-## Seed Data
-Seed initial categories and menu items:
-```bash
-python manage.py seed_menu
-```
-Generate staff roles and test logins:
-```bash
-python manage.py create_demo_users
-```
+6. **Seed Initial Menu & Categories**:
+   ```bash
+   python manage.py seed_menu
+   ```
 
-## Running the Application
-Run the local development server:
-```bash
-python manage.py runserver
-```
+7. **Create Demo Accounts**:
+   ```bash
+   python manage.py create_demo_users
+   ```
+   *Creates a default kitchen user (`kitchen_demo` / `kitchenpass123`) and manager user (`manager_demo` / `managerpass123`).*
 
-## Application URLs
-- **Menu Browsing**: `http://127.0.0.1:8000/`
-- **Kitchen Dashboard**: `http://127.0.0.1:8000/kitchen/`
-- **Manager Console**: `http://127.0.0.1:8000/manager/`
-- **Django Admin**: `http://127.0.0.1:8000/admin/`
+8. **Start the Development Server**:
+   ```bash
+   python manage.py runserver
+   ```
+   * Access Customer Menu: `http://127.0.0.1:8000/menu/`
+   * Access Staff Gateway: `http://127.0.0.1:8000/staff-access/`
 
-## Testing
-Run the automated test suite:
+---
+
+## 11. Environment Variables Configuration
+
+| Variable | Purpose | Required in Prod | Default |
+| :--- | :--- | :--- | :--- |
+| `SECRET_KEY` | Encryption key used for Django signatures | **Yes** | Fallback in development |
+| `DEBUG` | Toggle development error output messages | No | `True` |
+| `DATABASE_URL` | PostgreSQL database connection string | **Yes** | SQLite file |
+| `ALLOWED_HOSTS` | List of allowed network interface domains | No | `localhost,127.0.0.1` |
+| `CSRF_TRUSTED_ORIGINS` | Permitted domains for cross-site request validation | **Yes** | Empty |
+| `ADMIN_USERNAME` | Automated superuser username | No | Empty |
+| `ADMIN_EMAIL` | Automated superuser email address | No | Empty |
+| `ADMIN_PASSWORD` | Automated superuser login password | No | Empty |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary storage account cloud directory | **Yes** | Empty (Dev writes local disk) |
+| `CLOUDINARY_API_KEY` | Cloudinary storage credential identifier | **Yes** | Empty (Dev writes local disk) |
+| `CLOUDINARY_API_SECRET` | Cloudinary storage secure password | **Yes** | Empty (Dev writes local disk) |
+
+---
+
+## 12. Testing Infrastructure
+
+The project comes with a comprehensive suite of unit and integration tests.
+
+### Running Tests:
 ```bash
 python manage.py test
 ```
+The test suite validates:
+- **Authentication**: Strict login restriction and mixin protection.
+- **Workflow State Machine**: Transitions between order states and boundary rules.
+- **Cart Sync Logic**: Integrity between browser-side LocalStorage and Django backend sessions.
+- **Analytics calculations**: Date range filtering logic and metric sums.
 
-## CI/CD
-A GitHub Actions workflow runs migrations checks, syntax validation, and executes the full test suite on push/pull requests to the `main` branch.
+---
 
-## Health Checks
-- **Liveness API**: `/health/live/` returns `200 OK`.
-- **Readiness API**: `/health/ready/` validates the database connection status.
+## 13. Production Deployment
 
-## Logging
-Logging outputs are formatted and rotated inside `logs/restaurant.log`. Critical events (checkout operations, cancellation records, database retries, and errors) are logged with stack traces.
+This project is pre-configured for automated deployment to **Render** via [render.yaml](file:///c:/Users/91934/Documents/FSD%20-%20Internship%20Tasks/Smart-Restaurant-Ordering-System/render.yaml).
 
-## Production Deployment
-The application is pre-configured for deployment on Render. `render.yaml` outlines the target blueprints. Production builds serve static files via WhiteNoise.
+### How to Deployed:
+1. Connect your GitHub repository to Render.
+2. Render will automatically detect `render.yaml` and provision:
+   * A Python web service running **Gunicorn** to run the WSGI application.
+   * A PostgreSQL database.
+3. The build command will install dependencies, collect static files, apply migrations, and create the administrator account.
+4. Set required variables (`ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`) in the Render environment settings dashboard.
 
-## Production Media Storage
-Render environments use ephemeral filesystems. In production, connect external cloud storage (such as Amazon S3 or Cloudinary) by adding Django storage backends (e.g., `django-storages` or `cloudinary-storage`) and configuring the appropriate keys in your `.env` settings.
+---
 
-## Production Validation
-Run deployment check flags:
-```bash
-python manage.py check --deploy
-```
+## 14. Screenshots
 
-## Screenshots
-*(Refer to local screenshots for interface previews.)*
+*(Screenshots can be generated and placed inside the repository's `docs/` directory. Visual previews of the Customer Menu, Kitchen Console, and Manager Portal interfaces are available on the live deployment: [https://smart-restaurant-ordering-system-sk0j.onrender.com/](https://smart-restaurant-ordering-system-sk0j.onrender.com/))*
 
-## Current Project Status
-- System Classification: **DEPLOYMENT READY**
-- Migration status: Applied up to `0008_menuitem_image`
-- Unit tests: 148 / 148 tests passing (100%)
+---
 
-## Known Limitations
-- Media file uploads use local storage by default, meaning uploads are lost when Render containers restart. Cloud media integration settings must be supplied in production.
+## 15. Future Enhancements
+- **Real-time Synchronization**: Integrate WebSockets using Django Channels and Redis to update the Kitchen queue and order tracking page immediately without client-side polling.
+- **Payments Gateway**: Integrate Stripe or Razorpay to process actual customer checkout transactions.
+- **Table QR Ordering**: Automatically assign and lock `table_number` based on scanned QR codes.
+- **Customer Profiles**: Allow returning customers to view historical orders, track points, and save favorite items.
 
-## Future Improvements
-- Integrate standard Cloudinary storage adapters.
-- Implement Django Channels / Redis to support real-time status updates via WebSockets instead of client polling.
+---
 
-## Documentation
-- Detailed configurations and runtime settings are documented in `OPERATIONS.md`.
-- Historical implementation logs are tracked in `PROJECT_STATUS.md`.
+## 16. Author
+* **Name**: Bodipogu Anok
+* **Course**: B.Tech – Artificial Intelligence & Data Science
+* **Institution**: Velagapudi Ramakrishna Siddhartha Engineering College
+* **GitHub Profile**: [https://github.com/anok-bodipogu-79](https://github.com/anok-bodipogu-79)
 
-## License
-The project is licensed under the MIT License.
+---
 
-## Author
-SmartDine Engineering Team.
+## 17. Acknowledgment
+This application was developed as a comprehensive final project demonstrating full-stack engineering skills, database optimization, role-based access management, and modern design implementation during a **Full Stack Web Development Internship**.

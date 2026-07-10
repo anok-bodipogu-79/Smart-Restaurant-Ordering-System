@@ -5,135 +5,122 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}SmartDine{% endblock %} | Smart Restaurant</title>
-    <meta name="description" content="SmartDine — Premium restaurant ordering. Freshly prepared, thoughtfully served.">
-    <!-- Google Fonts: Manrope + DM Serif Display -->
+    <meta name="description" content="SmartDine — Fresh Indian food, thoughtfully served.">
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap" rel="stylesheet">
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <!-- SmartDine Design System -->
-    <link rel="stylesheet" href="{% static 'restaurant/css/style.css' %}">
+    <!-- SmartDine CSS -->
+    <link rel="stylesheet" href="{% static 'restaurant/css/smartdine.css' %}">
     <!-- CSRF Token Meta -->
     <meta name="csrf-token" content="{{ csrf_token }}">
     {% block extra_css %}{% endblock %}
 </head>
-<body class="d-flex flex-column min-vh-100" data-cart-sync-url="{% url 'restaurant:cart_sync' %}">
+<body data-cart-sync-url="{% url 'restaurant:cart_sync' %}">
     <a href="#main-content" class="skip-link">Skip to content</a>
 
-    <!-- SmartDine Navigation -->
-    <nav class="navbar navbar-expand-lg sticky-top" role="navigation" aria-label="Main navigation">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'restaurant:menu' %}">
-                <span style="width:32px;height:32px;background:linear-gradient(135deg,#245A4C,#173F35);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                    <i class="bi bi-egg-fried text-white" style="font-size:0.9rem;"></i>
+    <!-- ===================== NAVBAR ===================== -->
+    <nav class="sd-navbar" role="navigation" aria-label="Main navigation">
+        <div class="sd-navbar-inner">
+            <!-- Brand -->
+            <a class="sd-brand" href="{% url 'restaurant:menu' %}" aria-label="SmartDine Home">
+                <span class="sd-brand-icon" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10" fill="white" fill-opacity="0.2"/>
+                        <path d="M8 6C8 6 7 8 9 10C11 12 12 14 12 16" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M12 6V16" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M16 6C16 6 17 8 15 10C13 12 12 14 12 16" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M8 18H16" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
                 </span>
-                <span class="brand-text fw-800">Smart<span>Dine</span></span>
+                <span class="sd-brand-name">SmartDine</span>
             </a>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <i class="bi bi-list fs-2" style="color:var(--text-primary);"></i>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.view_name == 'restaurant:menu' and not request.GET.category %}active{% endif %}"
-                           href="{% url 'restaurant:menu' %}">
-                            <i class="bi bi-grid-fill me-1" style="font-size:0.85rem;"></i>Menu
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.view_name == 'restaurant:order_tracking' %}active{% endif %}"
-                           href="{% url 'restaurant:order_tracking' %}">
-                            <i class="bi bi-geo-alt me-1" style="font-size:0.85rem;"></i>Track Order
-                        </a>
-                    </li>
-                </ul>
-
-                <div class="d-flex align-items-center gap-2">
-                    <a href="{% url 'restaurant:cart' %}" class="cart-indicator-container text-decoration-none" aria-label="View cart">
-                        <span class="cart-indicator-badge d-flex align-items-center gap-2">
-                            <i class="bi bi-bag" style="font-size:0.95rem;"></i>
-                            <span id="cart-count" class="fw-700">0</span>
-                        </span>
+            <!-- Nav Links -->
+            <ul class="sd-nav-links" role="list">
+                <li>
+                    <a class="sd-nav-link {% if request.resolver_match.view_name == 'restaurant:menu' %}sd-nav-link--active{% endif %}"
+                       href="{% url 'restaurant:menu' %}">
+                        <i class="bi bi-grid-fill" aria-hidden="true"></i>
+                        Menu
                     </a>
-                </div>
+                </li>
+                <li>
+                    <a class="sd-nav-link {% if request.resolver_match.view_name == 'restaurant:order_tracking' %}sd-nav-link--active{% endif %}"
+                       href="{% url 'restaurant:order_tracking' %}">
+                        <i class="bi bi-geo-alt" aria-hidden="true"></i>
+                        Track Order
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Mobile toggle + Cart -->
+            <div class="sd-navbar-right">
+                <a href="{% url 'restaurant:cart' %}" class="sd-cart-btn" aria-label="View cart">
+                    <i class="bi bi-cart3" aria-hidden="true"></i>
+                    <span class="sd-cart-badge" id="cart-count">0</span>
+                </a>
+                <button class="sd-mobile-toggle" type="button" id="mobileMenuToggle" aria-controls="mobileMenu" aria-expanded="false" aria-label="Toggle menu">
+                    <i class="bi bi-list"></i>
+                </button>
             </div>
+        </div>
+
+        <!-- Mobile menu -->
+        <div class="sd-mobile-menu" id="mobileMenu" hidden>
+            <a class="sd-mobile-link {% if request.resolver_match.view_name == 'restaurant:menu' %}sd-mobile-link--active{% endif %}"
+               href="{% url 'restaurant:menu' %}">
+                <i class="bi bi-grid-fill"></i> Menu
+            </a>
+            <a class="sd-mobile-link {% if request.resolver_match.view_name == 'restaurant:order_tracking' %}sd-mobile-link--active{% endif %}"
+               href="{% url 'restaurant:order_tracking' %}">
+                <i class="bi bi-geo-alt"></i> Track Order
+            </a>
         </div>
     </nav>
 
     <!-- Django Messages -->
-    <div class="container mt-3">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
+    {% if messages %}
+    <div class="sd-messages-container">
+        {% for message in messages %}
+        <div class="sd-alert sd-alert--{% if message.tags == 'error' %}danger{% elif message.tags %}{{ message.tags }}{% else %}info{% endif %}" role="alert">
+            {{ message }}
+            <button type="button" class="sd-alert-close" onclick="this.parentElement.remove()" aria-label="Close">×</button>
+        </div>
+        {% endfor %}
     </div>
+    {% endif %}
 
     <!-- Main Content -->
-    <main id="main-content" class="flex-grow-1 py-4">
+    <main id="main-content">
         {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
-    <footer class="py-5 mt-auto" style="background:var(--bg-secondary); border-top:1px solid var(--border-subtle); color:var(--text-muted);">
-        <div class="container">
-            <div class="row g-4 justify-content-between">
-                <!-- Brand Section -->
-                <div class="col-12 col-md-4 mb-3 mb-md-0">
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <span style="width:28px;height:28px;background:linear-gradient(135deg,#245A4C,#173F35);border-radius:6px;display:flex;align-items:center;justify-content:center;">
-                            <i class="bi bi-egg-fried text-white" style="font-size:0.8rem;"></i>
-                        </span>
-                        <span class="brand-text fw-800" style="font-size:1.1rem;color:var(--text-primary);">Smart<span style="color:var(--accent-gold);">Dine</span></span>
-                    </div>
-                    <p class="mb-0 text-xs" style="color:var(--text-muted); max-width:260px; line-height:1.6;">
-                        Freshly prepared. Thoughtfully served. Crafted delicacies from scratch for every order.
-                    </p>
-                </div>
-                <!-- Customer Links -->
-                <div class="col-6 col-md-3">
-                    <h6 class="fw-bold text-uppercase mb-3" style="font-size:0.75rem; letter-spacing:0.08em; color:var(--text-primary);">Customer</h6>
-                    <ul class="list-unstyled d-flex flex-column gap-2" style="font-size:0.85rem;">
-                        <li>
-                            <a href="{% url 'restaurant:menu' %}" class="text-decoration-none hover-gold transition-smooth" style="color:var(--text-secondary);">
-                                <i class="bi bi-chevron-right me-1" style="font-size:0.65rem; color:var(--brand-primary);"></i>Menu
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'restaurant:order_tracking' %}" class="text-decoration-none hover-gold transition-smooth" style="color:var(--text-secondary);">
-                                <i class="bi bi-chevron-right me-1" style="font-size:0.65rem; color:var(--brand-primary);"></i>Track Order
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-                <!-- Restaurant Links -->
-                <div class="col-6 col-md-3">
-                    <h6 class="fw-bold text-uppercase mb-3" style="font-size:0.75rem; letter-spacing:0.08em; color:var(--text-primary);">Restaurant</h6>
-                    <ul class="list-unstyled d-flex flex-column gap-2" style="font-size:0.85rem;">
-                        <li>
-                            <a href="{% url 'restaurant:staff_access' %}" class="text-decoration-none hover-gold transition-smooth" style="color:var(--text-secondary);">
-                                <i class="bi bi-chevron-right me-1" style="font-size:0.65rem; color:var(--brand-primary);"></i>Staff Access
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+    <footer class="sd-footer">
+        <div class="sd-footer-inner">
+            <div class="sd-footer-brand">
+                <span class="sd-brand-icon" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 6C8 6 7 8 9 10C11 12 12 14 12 16" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M12 6V16" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M16 6C16 6 17 8 15 10C13 12 12 14 12 16" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M8 18H16" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                </span>
+                <span class="sd-brand-name">SmartDine</span>
             </div>
-            <!-- Bottom Copyright Section -->
-            <div class="border-top mt-4 pt-3 d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
-                <p class="mb-0 text-xs" style="color:var(--text-disabled);">
-                    &copy; 2026 <strong style="color:var(--brand-primary);">SmartDine</strong> Restaurant. All rights reserved.
-                </p>
-                <span class="text-xs" style="color:var(--text-disabled);">Authorized Personnel Only</span>
+            <p class="sd-footer-tagline">Freshly prepared. Thoughtfully served.</p>
+            <div class="sd-footer-links">
+                <a href="{% url 'restaurant:menu' %}">Menu</a>
+                <a href="{% url 'restaurant:order_tracking' %}">Track Order</a>
+                <a href="{% url 'restaurant:staff_access' %}">Staff Access</a>
             </div>
+            <p class="sd-footer-copy">© 2026 SmartDine Restaurant. All rights reserved.</p>
         </div>
     </footer>
 
@@ -141,6 +128,15 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <!-- Cart JS -->
     <script src="{% static 'restaurant/js/cart.js' %}"></script>
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobileMenuToggle').addEventListener('click', function() {
+            const menu = document.getElementById('mobileMenu');
+            const expanded = this.getAttribute('aria-expanded') === 'true';
+            this.setAttribute('aria-expanded', !expanded);
+            menu.hidden = expanded;
+        });
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

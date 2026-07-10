@@ -188,3 +188,18 @@ class AuditLog(models.Model):
     def __str__(self):
         actor_name = self.actor.username if self.actor else "System"
         return f"{self.timestamp} - {actor_name}: {self.action} on {self.target_type}"
+
+
+class OrderFeedback(models.Model):
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='feedback')
+    rating = models.PositiveIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+    comment = models.TextField(blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Feedback for Order #{self.order.id} - {self.rating} Stars"

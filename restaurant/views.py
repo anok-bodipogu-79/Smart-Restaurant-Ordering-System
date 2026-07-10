@@ -3,17 +3,23 @@ import logging
 from decimal import Decimal
 from django.db import transaction
 from django.contrib import messages
-from django.http import JsonResponse
-from django.shortcuts import redirect
+from django.template.loader import render_to_string
+from django.http import JsonResponse, HttpResponse
+from django.shortcuts import redirect, get_object_or_404, render
 from django.urls import reverse
 from django.views import View
 from django.views.generic import ListView, TemplateView, DetailView, FormView
 from django.contrib.auth.views import LoginView as DjangoLoginView, LogoutView as DjangoLogoutView
 from django.contrib.auth.mixins import UserPassesTestMixin
-from restaurant.models import Category, MenuItem, Order, OrderItem
+from restaurant.models import Category, MenuItem, Order, OrderItem, OrderFeedback
 from restaurant.forms import CheckoutForm, OrderTrackingForm
 
 logger = logging.getLogger(__name__)
+
+
+class LandingView(View):
+    def get(self, request, *args, **kwargs):
+        return redirect(reverse("restaurant:menu"))
 
 
 class MenuListView(ListView):
@@ -60,6 +66,7 @@ class MenuListView(ListView):
         popular_ids = [item.id for item in popular_items[:3]]
         
         context["popular_ids"] = popular_ids
+        context["featured_items"] = popular_items[:5]
         context["categories"] = Category.objects.all()
         
         # Keep active_category for fallback or template highlighting if page is loaded with URL param
@@ -643,6 +650,23 @@ class OrderTrackingView(FormView):
         return redirect("restaurant:order_tracking_detail", tracking_token=tracking_token)
 
 
+def order_again_lookup(request):
+    if request.method == "POST":
+        phone = request.POST.get("phone", "").strip()
+        if not phone:
+            messages.error(request, "Please enter a valid phone number.")
+            return redirect("restaurant:order_tracking")
+            
+        past_orders = Order.objects.filter(customer_phone=phone).order_by("-created_at")
+        if not past_orders.exists():
+            messages.error(request, f"No past orders found for {phone}.")
+            return redirect("restaurant:order_tracking")
+            
+        return render(request, "restaurant/order_again_list.html", {"orders": past_orders, "phone": phone})
+    
+    return redirect("restaurant:order_tracking")
+
+
 class OrderTrackingDetailView(DetailView):
     model = Order
     template_name = "restaurant/order_tracking_detail.html"
@@ -868,6 +892,12 @@ class ManagerDashboardView(ManagerRequiredMixin, TemplateView):
         else:
             avg_completion_minutes = 0.0
 
+        # Average Rating from OrderFeedback within the selected range
+        avg_rating_agg = OrderFeedback.objects.filter(
+            order__created_at__range=(start_dt, end_dt)
+        ).aggregate(Avg('rating'))
+        average_rating = avg_rating_agg['rating__avg']
+
         context.update({
             "filter_form": form,
             "range_type": range_type,
@@ -880,12 +910,10 @@ class ManagerDashboardView(ManagerRequiredMixin, TemplateView):
             "category_performance": category_perf,
             "cancellation_rate": cancellation_rate,
             "avg_completion_minutes": avg_completion_minutes,
+            "average_rating": average_rating,
             "start_dt_str": start_dt.strftime("%Y-%m-%d"),
             "end_dt_str": end_dt.strftime("%Y-%m-%d"),
         })
-        return context
-
-
 import csv
 from django.http import HttpResponse
 from restaurant.models import AuditLog
@@ -1247,6 +1275,61 @@ class OrderReceiptView(DetailView):
         context["tax"] = order.tax_amount.quantize(Decimal("0.01"))
         context["grand_total"] = order.total_amount.quantize(Decimal("0.01"))
         return context
+
+
+def download_receipt_pdf(request, tracking_token):
+    order = get_object_or_404(Order.objects.prefetch_related("items"), tracking_token=tracking_token)
+    
+    # We use the same context as OrderReceiptView
+    context = {
+        "order": order,
+        "subtotal": order.subtotal_amount.quantize(Decimal("0.01")),
+        "tax": order.tax_amount.quantize(Decimal("0.01")),
+        "grand_total": order.total_amount.quantize(Decimal("0.01")),
+    }
+    
+    html_string = render_to_string("restaurant/order_receipt.html", context)
+    
+    # Generate PDF
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="receipt_{order.id}.pdf"'
+    
+    try:
+        from xhtml2pdf import pisa
+        pisa_status = pisa.CreatePDF(html_string, dest=response)
+        if pisa_status.err:
+            return HttpResponse("Error generating PDF", status=500)
+    except ImportError:
+        return HttpResponse("PDF generation library is not installed.", status=500)
+        
+    return response
+
+
+def submit_order_feedback(request, tracking_token):
+    if request.method == "POST":
+        order = get_object_or_404(Order, tracking_token=tracking_token)
+        if order.status != "COMPLETED":
+            messages.error(request, "Feedback can only be submitted for completed orders.")
+            return redirect("restaurant:order_tracking_status", tracking_token=tracking_token)
+            
+        rating = request.POST.get("rating")
+        comment = request.POST.get("comment", "")
+        
+        try:
+            rating = int(rating)
+            if 1 <= rating <= 5:
+                # Update or create
+                OrderFeedback.objects.update_or_create(
+                    order=order,
+                    defaults={'rating': rating, 'comment': comment}
+                )
+                messages.success(request, "Thank you for your feedback!")
+            else:
+                messages.error(request, "Invalid rating value.")
+        except (ValueError, TypeError):
+            messages.error(request, "Invalid rating value.")
+            
+    return redirect("restaurant:order_tracking_status", tracking_token=tracking_token)
 
 
 class ManagerOrderReceiptView(ManagerRequiredMixin, DetailView):

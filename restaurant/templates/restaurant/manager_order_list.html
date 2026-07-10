@@ -3,158 +3,161 @@
 {% block title %}Manage Orders{% endblock %}
 
 {% block content %}
-<div class="container py-2">
-    
-    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom mt-3">
-        <div>
-            <h1 class="fw-bold text-dark mb-1">Orders Registry</h1>
-            <p class="text-secondary mb-0">Browse and manage dining and takeaway orders.</p>
-        </div>
+<div class="sd-manager-header flex-wrap gap-3">
+    <div>
+        <h1 class="sd-manager-title">Orders Registry</h1>
+        <p class="sd-manager-subtitle mb-0">Browse and manage dining and takeaway orders.</p>
     </div>
+</div>
 
-    <!-- Filters Section -->
-    <div class="card p-4 bg-white mb-4 border-0 shadow-sm rounded-4">
-        <form method="GET" action="{% url 'restaurant:manager_order_list' %}" class="row g-3 align-items-end">
-            <!-- Status Filter -->
-            <div class="col-md-3">
-                <label for="id_status" class="form-label">Status State</label>
-                <select name="status" id="id_status" class="form-select rounded-pill">
-                    <option value="">-- All Statuses --</option>
-                    {% for choice in status_choices %}
-                        <option value="{{ choice.0 }}" {% if current_status == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <!-- Date Filter -->
-            <div class="col-md-3">
-                <label for="id_range" class="form-label">Time Period</label>
-                <select name="range" id="id_range" class="form-select rounded-pill" onchange="toggleCustomDates(this.value)">
-                    <option value="today" {% if current_range == 'today' %}selected{% endif %}>Today</option>
-                    <option value="7d" {% if current_range == '7d' %}selected{% endif %}>Last 7 Days</option>
-                    <option value="30d" {% if current_range == '30d' %}selected{% endif %}>Last 30 Days</option>
-                    <option value="custom" {% if current_range == 'custom' %}selected{% endif %}>Custom Range</option>
-                </select>
-            </div>
+<!-- Filters Section -->
+<div class="sd-manager-toolbar mb-4">
+    <form method="GET" action="{% url 'restaurant:manager_order_list' %}" class="w-100 d-flex flex-wrap gap-3 align-items-end">
+        <!-- Status Filter -->
+        <div style="flex: 1 1 200px;">
+            <label for="id_status" class="small fw-semibold text-dark mb-1 d-block">Status State</label>
+            <select name="status" id="id_status" class="sd-manager-input w-100">
+                <option value="">-- All Statuses --</option>
+                {% for choice in status_choices %}
+                <option value="{{ choice.0 }}" {% if current_status == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
+                {% endfor %}
+            </select>
+        </div>
 
-            <!-- Custom Dates -->
-            <div class="col-md-4 custom-date-fields {% if current_range != 'custom' %}d-none{% endif %}" id="custom-date-inputs">
-                <div class="row g-2">
-                    <div class="col-6">
-                        <label class="form-label">Start Date</label>
-                        <input type="date" name="start" value="{{ start_date }}" class="form-control rounded-pill">
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label">End Date</label>
-                        <input type="date" name="end" value="{{ end_date }}" class="form-control rounded-pill">
-                    </div>
+        <!-- Date Filter -->
+        <div style="flex: 1 1 200px;">
+            <label for="id_range" class="small fw-semibold text-dark mb-1 d-block">Time Period</label>
+            <select name="range" id="id_range" class="sd-manager-input w-100" onchange="toggleCustomDates(this.value)">
+                <option value="today" {% if current_range == 'today' %}selected{% endif %}>Today</option>
+                <option value="7d" {% if current_range == '7d' %}selected{% endif %}>Last 7 Days</option>
+                <option value="30d" {% if current_range == '30d' %}selected{% endif %}>Last 30 Days</option>
+                <option value="custom" {% if current_range == 'custom' %}selected{% endif %}>Custom Range</option>
+            </select>
+        </div>
+
+        <!-- Custom Dates -->
+        <div class="custom-date-fields {% if current_range != 'custom' %}d-none{% endif %}" id="custom-date-inputs" style="flex: 2 1 300px;">
+            <div class="d-flex gap-2">
+                <div class="w-50">
+                    <label class="small fw-semibold text-dark mb-1 d-block">Start Date</label>
+                    <input type="date" name="start" value="{{ start_date }}" class="sd-manager-input w-100">
+                </div>
+                <div class="w-50">
+                    <label class="small fw-semibold text-dark mb-1 d-block">End Date</label>
+                    <input type="date" name="end" value="{{ end_date }}" class="sd-manager-input w-100">
                 </div>
             </div>
+        </div>
 
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold text-uppercase">
-                    <i class="bi bi-funnel"></i> Apply
-                </button>
-            </div>
-        </form>
+        <div>
+            <button type="submit" class="sd-btn-primary py-2 px-4">
+                <i class="bi bi-funnel me-1"></i> Apply Filters
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Orders Table -->
+<div class="sd-manager-table-wrapper mb-4">
+    {% if orders %}
+    <div class="table-responsive">
+        <table class="sd-manager-table">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer Name</th>
+                    <th>Phone</th>
+                    <th>Table #</th>
+                    <th>Placed At</th>
+                    <th>Subtotal</th>
+                    <th>Tax (5%)</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td><strong class="text-dark">#{{ order.id }}</strong></td>
+                    <td><span class="fw-semibold">{{ order.customer_name }}</span></td>
+                    <td class="text-muted">{{ order.customer_phone }}</td>
+                    <td>
+                        {% if order.table_number %}
+                        <span class="sd-badge gray">Table #{{ order.table_number }}</span>
+                        {% else %}
+                        <span class="sd-badge gray bg-light">Takeaway</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-muted">{{ order.created_at|date:"M d, h:i A" }}</td>
+                    <td>₹{{ order.subtotal_amount }}</td>
+                    <td>₹{{ order.tax_amount }}</td>
+                    <td><strong class="text-dark">₹{{ order.total_amount }}</strong></td>
+                    <td>
+                        {% if order.status == 'RECEIVED' %}
+                            <span class="sd-badge info">{{ order.get_status_display }}</span>
+                        {% elif order.status == 'PREPARING' %}
+                            <span class="sd-badge warning">{{ order.get_status_display }}</span>
+                        {% elif order.status == 'READY' %}
+                            <span class="sd-badge success">{{ order.get_status_display }}</span>
+                        {% elif order.status == 'COMPLETED' %}
+                            <span class="sd-badge gray">{{ order.get_status_display }}</span>
+                        {% elif order.status == 'CANCELLED' %}
+                            <span class="sd-badge danger">{{ order.get_status_display }}</span>
+                        {% else %}
+                            <span class="sd-badge gray">{{ order.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <a href="{% url 'restaurant:manager_order_detail' order.id %}" class="sd-btn-secondary py-1 px-2" style="font-size:0.75rem;">
+                            <i class="bi bi-eye me-1"></i> View Detail
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 
-    <!-- Orders Table -->
-    <div class="card p-4 bg-white mb-4 border-0 shadow-sm rounded-4">
-        {% if orders %}
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Order ID</th>
-                            <th>Customer Name</th>
-                            <th>Phone</th>
-                            <th>Table #</th>
-                            <th>Placed At</th>
-                            <th>Subtotal</th>
-                            <th>Tax (5%)</th>
-                            <th>Total</th>
-                            <th>Status</th>
-                            <th class="text-end">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for order in orders %}
-                            <tr>
-                                <td><strong>#{{ order.id }}</strong></td>
-                                <td>{{ order.customer_name }}</td>
-                                <td>{{ order.customer_phone }}</td>
-                                <td>
-                                    {% if order.table_number %}
-                                        Table #{{ order.table_number }}
-                                    {% else %}
-                                        <span class="text-secondary">Takeaway</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ order.created_at|date:"M d, h:i A" }}</td>
-                                <td>₹{{ order.subtotal_amount }}</td>
-                                <td>₹{{ order.tax_amount }}</td>
-                                <td class="fw-bold text-dark">₹{{ order.total_amount }}</td>
-                                <td>
-                                    <span class="badge 
-                                        {% if order.status == 'RECEIVED' %}bg-info
-                                        {% elif order.status == 'PREPARING' %}bg-warning text-dark
-                                        {% elif order.status == 'READY' %}bg-success
-                                        {% elif order.status == 'COMPLETED' %}bg-secondary
-                                        {% elif order.status == 'CANCELLED' %}bg-danger{% endif %} text-uppercase px-2 py-1">
-                                        {{ order.get_status_display }}
-                                    </span>
-                                </td>
-                                <td class="text-end">
-                                    <a href="{% url 'restaurant:manager_order_detail' order.id %}" class="btn btn-outline-brand btn-sm rounded-pill px-3">
-                                        <i class="bi bi-eye"></i> View
-                                    </a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="d-flex justify-content-center p-3 border-top">
+        <nav aria-label="Orders navigation">
+            <ul class="pagination pagination-sm mb-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link text-dark" href="?page={{ page_obj.previous_page_number }}{% if query_params %}&{{ query_params }}{% endif %}" aria-label="Previous">Prev</a>
+                </li>
+                {% endif %}
 
-            <!-- Pagination -->
-            {% if is_paginated %}
-                <nav class="d-flex justify-content-center mt-4">
-                    <ul class="pagination pagination-sm mb-0">
-                        {% if page_obj.has_previous %}
-                            <li class="page-item">
-                                <a class="page-link rounded-start-pill px-3" href="?page={{ page_obj.previous_page_number }}{% if query_params %}&{{ query_params }}{% endif %}">Previous</a>
-                            </li>
-                        {% endif %}
-                        
-                        {% for num in page_obj.paginator.page_range %}
-                            {% if page_obj.number == num %}
-                                <li class="page-item active">
-                                    <span class="page-link px-3">{{ num }}</span>
-                                </li>
-                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                                <li class="page-item">
-                                    <a class="page-link px-3" href="?page={{ num }}{% if query_params %}&{{ query_params }}{% endif %}">{{ num }}</a>
-                                </li>
-                            {% endif %}
-                        {% endfor %}
+                {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <li class="page-item active">
+                    <span class="page-link" style="background-color:#0F3325; border-color:#0F3325;">{{ num }}</span>
+                </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link text-dark" href="?page={{ num }}{% if query_params %}&{{ query_params }}{% endif %}">{{ num }}</a>
+                </li>
+                {% endif %}
+                {% endfor %}
 
-                        {% if page_obj.has_next %}
-                            <li class="page-item">
-                                <a class="page-link rounded-end-pill px-3" href="?page={{ page_obj.next_page_number }}{% if query_params %}&{{ query_params }}{% endif %}">Next</a>
-                            </li>
-                        {% endif %}
-                    </ul>
-                </nav>
-            {% endif %}
-
-        {% else %}
-            <div class="alert alert-light text-center py-5 mb-0 text-muted">
-                <i class="bi bi-receipt display-4 d-block mb-3"></i>
-                No orders match your filter criteria.
-            </div>
-        {% endif %}
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link text-dark" href="?page={{ page_obj.next_page_number }}{% if query_params %}&{{ query_params }}{% endif %}" aria-label="Next">Next</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
     </div>
+    {% endif %}
 
+    {% else %}
+    <div class="sd-empty-state py-5">
+        <i class="bi bi-receipt"></i>
+        <div class="small fw-semibold mt-2">No orders match your filter criteria.</div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
 

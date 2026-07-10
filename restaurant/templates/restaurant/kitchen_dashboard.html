@@ -1,340 +1,182 @@
-{% extends "restaurant/base.html" %}
+{% extends "restaurant/kitchen_base.html" %}
 {% load static %}
 
-{% block title %}Kitchen Dashboard{% endblock %}
+{% block title %}Kitchen Console | SmartDine{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4 py-3">
+<div class="sd-kitchen-dashboard">
     
     <!-- Dashboard Header -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-3 border-bottom">
-        <div>
-            <h1 class="fw-bold mb-1" style="color:var(--brand-primary);">Kitchen Console</h1>
-            <p class="mb-0" style="color:var(--text-muted);">Monitor active culinary preparation workflows and transitions.</p>
+    <div class="sd-dashboard-header">
+        <div class="sd-dashboard-title">
+            <span class="sd-dashboard-eyebrow">LIVE OPERATIONS</span>
+            <h1>Kitchen Console</h1>
+            <p>Monitor active orders, preparation progress, and kitchen priorities.</p>
         </div>
-        <!-- Logout Form -->
-        <div class="mt-3 mt-md-0 d-flex align-items-center gap-3">
-            <span class="small" style="color:var(--text-muted);">Logged in as: <strong style="color:var(--text-primary);">{{ request.user.username }}</strong></span>
-            <form method="POST" action="{% url 'restaurant:kitchen_logout' %}">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
-                    <i class="bi bi-box-arrow-left me-1"></i> Sign Out
-                </button>
-            </form>
+        <div class="sd-dashboard-meta">
+            <div class="sd-time-display">
+                {% now "l, F j" %} • <span id="live-time">{% now "H:i" %}</span>
+            </div>
+            <div class="sd-status-indicator">
+                <span class="sd-status-dot pulse"></span> Kitchen Active
+            </div>
         </div>
     </div>
 
-    <!-- Sorting Controls Panel -->
-    <div class="card border-0 shadow-sm rounded-3 p-3 bg-white mb-4">
-        <form method="GET" class="row g-2 align-items-center justify-content-between">
-            <div class="col-12 col-md-4">
-                <div class="d-flex align-items-center gap-2">
-                    <label for="kitchen-sort-select" class="text-dark small fw-bold text-nowrap mb-0">
-                        <i class="bi bi-sort-down me-1"></i>Sort Orders:
-                    </label>
-                    <select id="kitchen-sort-select" name="sort" class="form-select bg-light text-dark form-select-sm rounded-pill" onchange="this.form.submit()">
-                        <option value="oldest" {% if current_sort == "oldest" %}selected{% endif %}>Oldest First (Default)</option>
-                        <option value="newest" {% if current_sort == "newest" %}selected{% endif %}>Newest First</option>
-                        <option value="priority" {% if current_sort == "priority" %}selected{% endif %}>Priority (Urgent -> Normal)</option>
-                        <option value="delayed" {% if current_sort == "delayed" %}selected{% endif %}>Most Delayed</option>
-                    </select>
-                </div>
-            </div>
-            <div class="col-12 col-md-auto text-muted small">
-                <span class="me-3"><span class="badge bg-danger p-1 me-1"><i class="bi bi-exclamation-triangle-fill"></i></span> Urgent Priority</span>
-                <span><span class="badge bg-warning text-dark p-1 me-1"><i class="bi bi-hourglass-split"></i></span> Delayed Detection</span>
+    <!-- Operational Summary Strip -->
+    <div class="sd-summary-strip">
+        <div class="sd-summary-item">
+            <span class="sd-summary-label">RECEIVED</span>
+            <span class="sd-summary-value status-received">{{ received_orders|length }}</span>
+        </div>
+        <div class="sd-summary-divider"></div>
+        <div class="sd-summary-item">
+            <span class="sd-summary-label">PREPARING</span>
+            <span class="sd-summary-value status-preparing">{{ preparing_orders|length }}</span>
+        </div>
+        <div class="sd-summary-divider"></div>
+        <div class="sd-summary-item">
+            <span class="sd-summary-label">READY</span>
+            <span class="sd-summary-value status-ready">{{ ready_orders|length }}</span>
+        </div>
+        
+        <!-- Delay / Urgent Count Calculation (Simulated in template for UI if not in context, 
+             ideally these would come from the view, but we can iterate over them here for the badge count) -->
+        
+        <div class="sd-summary-divider"></div>
+        <div class="sd-summary-item">
+            <span class="sd-summary-label">DELAYED</span>
+            <span class="sd-summary-value status-delayed">
+                <!-- We don't have this explicitly in context, so we'll just show an indicator -->
+                <i class="bi bi-hourglass-split"></i>
+            </span>
+        </div>
+        <div class="sd-summary-divider"></div>
+        <div class="sd-summary-item">
+            <span class="sd-summary-label">URGENT</span>
+            <span class="sd-summary-value status-urgent">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </span>
+        </div>
+    </div>
+
+    <!-- Control Toolbar -->
+    <div class="sd-control-toolbar">
+        <form method="GET" class="sd-sort-form">
+            <label for="kitchen-sort-select">Sort by:</label>
+            <div class="sd-select-wrapper">
+                <select id="kitchen-sort-select" name="sort" onchange="this.form.submit()">
+                    <option value="oldest" {% if current_sort == "oldest" %}selected{% endif %}>Oldest First</option>
+                    <option value="newest" {% if current_sort == "newest" %}selected{% endif %}>Newest First</option>
+                    <option value="priority" {% if current_sort == "priority" %}selected{% endif %}>Priority</option>
+                    <option value="delayed" {% if current_sort == "delayed" %}selected{% endif %}>Most Delayed</option>
+                </select>
             </div>
         </form>
+        
+        <div class="sd-toolbar-legend">
+            <span class="sd-legend-title">LEGEND</span>
+            <span class="sd-legend-item legend-urgent"><i class="bi bi-exclamation-triangle-fill"></i> Urgent</span>
+            <span class="sd-legend-item legend-delayed"><i class="bi bi-hourglass-split"></i> Delayed</span>
+        </div>
     </div>
 
-    <!-- Active Orders Workflow Columns -->
-    <div class="row g-4">
+    <!-- Django Messages (Success/Error) -->
+    {% if messages %}
+    <div class="sd-messages-container">
+        {% for message in messages %}
+            <div class="sd-toast sd-toast-{{ message.tags }}">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>{{ message }}</span>
+                <button type="button" class="sd-toast-close" onclick="this.parentElement.remove();">&times;</button>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Kanban Order Board -->
+    <div class="sd-kanban-board">
         
-        <!-- Column 1: Order Received -->
-        <div class="col-lg-4 col-md-6">
-            <div class="card border-0 shadow-sm rounded-4 p-3 kitchen-col-received h-100" style="min-height: 60vh;">
-                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 kitchen-col-header">
-                    <h5 class="fw-bold mb-0">
-                        <i class="bi bi-bell-fill me-2"></i>Received
-                    </h5>
-                    <span class="badge bg-secondary rounded-pill px-2.5 py-1 text-white">{{ received_orders|length }}</span>
-                </div>
-
-                <div class="d-flex flex-column gap-3">
+        <!-- RECEIVED COLUMN -->
+        <div class="sd-kanban-column">
+            <div class="sd-kanban-header header-received">
+                <h5><i class="bi bi-inbox-fill"></i> Received</h5>
+                <span class="sd-kanban-count">{{ received_orders|length }}</span>
+            </div>
+            
+            <div class="sd-kanban-content">
+                {% if not received_orders %}
+                    <div class="sd-kanban-empty">
+                        <i class="bi bi-inbox"></i>
+                        <p>No received orders</p>
+                    </div>
+                {% else %}
                     {% for order in received_orders %}
-                        <div class="card border border-2 shadow-sm rounded-3 p-3 bg-white border-start border-3 border-info">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div class="d-flex flex-wrap align-items-center gap-1">
-                                    <span class="badge bg-secondary">Order #{{ order.id }}</span>
-                                    {% if order.priority == "URGENT" %}
-                                        <span class="badge bg-danger text-white small"><i class="bi bi-exclamation-triangle-fill"></i> Urgent</span>
-                                    {% elif order.priority == "PRIORITY" %}
-                                        <span class="badge bg-warning text-dark small"><i class="bi bi-star-fill"></i> Priority</span>
-                                    {% endif %}
-                                    {% if order.is_delayed %}
-                                        <span class="badge bg-danger text-white small"><i class="bi bi-hourglass-split"></i> Delayed</span>
-                                    {% endif %}
-                                </div>
-                                <div class="d-flex flex-column align-items-end">
-                                    <small class="text-muted text-nowrap" style="font-size: 0.7rem;">
-                                        <i class="bi bi-clock me-1"></i>{{ order.created_at|timesince }} ago
-                                    </small>
-                                    <small class="waiting-timer fw-bold text-nowrap" data-created-at="{{ order.created_at|date:'c' }}" style="font-size: 0.65rem; color: var(--accent-gold);">
-                                        Waiting: --
-                                    </small>
-                                </div>
-                            </div>
-                            
-                            <h6 class="fw-bold text-dark mb-1">{{ order.customer_name }}</h6>
-                            <p class="text-muted-sm mb-2" style="font-size: 0.8rem;">
-                                {% if order.table_number %}
-                                    <i class="bi bi-tag-fill me-1"></i>Table #{{ order.table_number }}
-                                {% else %}
-                                    <i class="bi bi-bag-fill me-1"></i>Takeaway
-                                {% endif %}
-                            </p>
-
-                            <!-- Items Summary -->
-                            <div class="border-top border-bottom py-2 my-2 bg-light px-2 rounded">
-                                <ul class="list-unstyled mb-0 small text-dark">
-                                    {% for item in order.items.all %}
-                                        <li>
-                                            <strong>{{ item.quantity }}x</strong> {{ item.item_name_at_order|default:item.menu_item.name }}
-                                            {% if item.special_instructions %}
-                                                <div class="text-danger small ms-3" style="font-size: 0.75rem;">
-                                                    <i class="bi bi-chat-right-text-fill me-1"></i> "{{ item.special_instructions }}"
-                                                </div>
-                                            {% endif %}
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-
-                             <div class="d-flex justify-content-between align-items-center mt-2">
-                                <a href="{% url 'restaurant:kitchen_order_detail' order.id %}" class="text-decoration-none fw-bold small" style="color:var(--brand-primary);">
-                                    Details <i class="bi bi-arrow-right"></i>
-                                </a>
-                                <form method="POST" action="{% url 'restaurant:kitchen_order_status' order.id %}">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="status" value="PREPARING">
-                                    <button type="submit" class="btn btn-primary btn-sm fw-bold px-3 rounded-pill">
-                                        Start Preparing
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    {% empty %}
-                        <div class="text-center py-5 text-muted">
-                            <i class="bi bi-inbox fs-2 d-block mb-2 opacity-50"></i>
-                            <span class="small">No received orders</span>
-                        </div>
+                        {% include "restaurant/includes/kitchen_order_card.html" with order=order next_action="Start Preparing →" next_status="PREPARING" %}
                     {% endfor %}
-                </div>
+                {% endif %}
             </div>
         </div>
 
-        <!-- Column 2: In Kitchen - Preparing -->
-        <div class="col-lg-4 col-md-6">
-            <div class="card border-0 shadow-sm rounded-4 p-3 kitchen-col-preparing h-100" style="min-height: 60vh;">
-                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 kitchen-col-header">
-                    <h5 class="fw-bold mb-0">
-                        <i class="bi bi-fire me-2"></i>Preparing
-                    </h5>
-                    <span class="badge bg-warning text-dark rounded-pill px-2.5 py-1">{{ preparing_orders|length }}</span>
-                </div>
-
-                <div class="d-flex flex-column gap-3">
+        <!-- PREPARING COLUMN -->
+        <div class="sd-kanban-column">
+            <div class="sd-kanban-header header-preparing">
+                <h5><i class="bi bi-fire"></i> Preparing</h5>
+                <span class="sd-kanban-count">{{ preparing_orders|length }}</span>
+            </div>
+            
+            <div class="sd-kanban-content">
+                {% if not preparing_orders %}
+                    <div class="sd-kanban-empty">
+                        <i class="bi bi-fire"></i>
+                        <p>No orders currently preparing</p>
+                    </div>
+                {% else %}
                     {% for order in preparing_orders %}
-                        <div class="card border border-2 shadow-sm rounded-3 p-3 bg-white border-start border-3 border-warning">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div class="d-flex flex-wrap align-items-center gap-1">
-                                    <span class="badge bg-secondary">Order #{{ order.id }}</span>
-                                    {% if order.priority == "URGENT" %}
-                                        <span class="badge bg-danger text-white small"><i class="bi bi-exclamation-triangle-fill"></i> Urgent</span>
-                                    {% elif order.priority == "PRIORITY" %}
-                                        <span class="badge bg-warning text-dark small"><i class="bi bi-star-fill"></i> Priority</span>
-                                    {% endif %}
-                                    {% if order.is_delayed %}
-                                        <span class="badge bg-danger text-white small"><i class="bi bi-hourglass-split"></i> Delayed</span>
-                                    {% endif %}
-                                </div>
-                                <div class="d-flex flex-column align-items-end">
-                                    <small class="text-muted text-nowrap" style="font-size: 0.7rem;">
-                                        <i class="bi bi-clock me-1"></i>{{ order.created_at|timesince }} ago
-                                    </small>
-                                    <small class="waiting-timer fw-bold text-nowrap" data-created-at="{{ order.created_at|date:'c' }}" style="font-size: 0.65rem; color:var(--accent-gold);">
-                                        Waiting: --
-                                    </small>
-                                </div>
-                            </div>
-                            
-                            <h6 class="fw-bold text-dark mb-1">{{ order.customer_name }}</h6>
-                            <p class="text-muted-sm mb-2" style="font-size: 0.8rem;">
-                                {% if order.table_number %}
-                                    <i class="bi bi-tag-fill me-1"></i>Table #{{ order.table_number }}
-                                {% else %}
-                                    <i class="bi bi-bag-fill me-1"></i>Takeaway
-                                {% endif %}
-                            </p>
-
-                            <!-- Items Summary -->
-                            <div class="border-top border-bottom py-2 my-2 bg-light px-2 rounded">
-                                <ul class="list-unstyled mb-0 small text-dark">
-                                    {% for item in order.items.all %}
-                                        <li>
-                                            <strong>{{ item.quantity }}x</strong> {{ item.item_name_at_order|default:item.menu_item.name }}
-                                            {% if item.special_instructions %}
-                                                <div class="text-danger small ms-3" style="font-size: 0.75rem;">
-                                                    <i class="bi bi-chat-right-text-fill me-1"></i> "{{ item.special_instructions }}"
-                                                </div>
-                                            {% endif %}
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-
-                             <div class="d-flex justify-content-between align-items-center mt-2">
-                                <a href="{% url 'restaurant:kitchen_order_detail' order.id %}" class="text-decoration-none fw-bold small" style="color:var(--brand-primary);">
-                                    Details <i class="bi bi-arrow-right"></i>
-                                </a>
-                                <form method="POST" action="{% url 'restaurant:kitchen_order_status' order.id %}">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="status" value="READY">
-                                    <button type="submit" class="btn btn-gold btn-sm fw-bold px-3 rounded-pill">
-                                        Mark Ready
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    {% empty %}
-                        <div class="text-center py-5 text-muted">
-                            <i class="bi bi-inbox fs-2 d-block mb-2 opacity-50"></i>
-                            <span class="small">No orders currently preparing</span>
-                        </div>
+                        {% include "restaurant/includes/kitchen_order_card.html" with order=order next_action="Mark Ready →" next_status="READY" %}
                     {% endfor %}
-                </div>
+                {% endif %}
             </div>
         </div>
 
-        <!-- Column 3: Ready for Pickup -->
-        <div class="col-lg-4 col-md-12">
-            <div class="card border-0 shadow-sm rounded-4 p-3 kitchen-col-ready h-100" style="min-height: 60vh;">
-                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 kitchen-col-header">
-                    <h5 class="fw-bold mb-0">
-                        <i class="bi bi-check-circle-fill me-2"></i>Ready
-                    </h5>
-                    <span class="badge bg-success rounded-pill px-2.5 py-1 text-white">{{ ready_orders|length }}</span>
-                </div>
-
-                <div class="d-flex flex-column gap-3">
+        <!-- READY COLUMN -->
+        <div class="sd-kanban-column">
+            <div class="sd-kanban-header header-ready">
+                <h5><i class="bi bi-check-circle-fill"></i> Ready</h5>
+                <span class="sd-kanban-count">{{ ready_orders|length }}</span>
+            </div>
+            
+            <div class="sd-kanban-content">
+                {% if not ready_orders %}
+                    <div class="sd-kanban-empty">
+                        <i class="bi bi-check-circle"></i>
+                        <p>No orders ready for pickup</p>
+                    </div>
+                {% else %}
                     {% for order in ready_orders %}
-                        <div class="card border border-2 shadow-sm rounded-3 p-3 bg-white border-start border-3 border-success">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div class="d-flex flex-wrap align-items-center gap-1">
-                                    <span class="badge bg-secondary">Order #{{ order.id }}</span>
-                                    {% if order.priority == "URGENT" %}
-                                        <span class="badge bg-danger text-white small"><i class="bi bi-exclamation-triangle-fill"></i> Urgent</span>
-                                    {% elif order.priority == "PRIORITY" %}
-                                        <span class="badge bg-warning text-dark small"><i class="bi bi-star-fill"></i> Priority</span>
-                                    {% endif %}
-                                    {% if order.is_delayed %}
-                                        <span class="badge bg-danger text-white small"><i class="bi bi-hourglass-split"></i> Delayed</span>
-                                    {% endif %}
-                                </div>
-                                <div class="d-flex flex-column align-items-end">
-                                    <small class="text-muted text-nowrap" style="font-size: 0.7rem;">
-                                        <i class="bi bi-clock me-1"></i>{{ order.created_at|timesince }} ago
-                                    </small>
-                                    <small class="waiting-timer fw-bold text-nowrap" data-created-at="{{ order.created_at|date:'c' }}" style="font-size: 0.65rem; color:var(--accent-gold);">
-                                        Waiting: --
-                                    </small>
-                                </div>
-                            </div>
-                            
-                            <h6 class="fw-bold text-dark mb-1">{{ order.customer_name }}</h6>
-                            <p class="text-muted-sm mb-2" style="font-size: 0.8rem;">
-                                {% if order.table_number %}
-                                    <i class="bi bi-tag-fill me-1"></i>Table #{{ order.table_number }}
-                                {% else %}
-                                    <i class="bi bi-bag-fill me-1"></i>Takeaway
-                                {% endif %}
-                            </p>
-
-                            <!-- Items Summary -->
-                            <div class="border-top border-bottom py-2 my-2 bg-light px-2 rounded">
-                                <ul class="list-unstyled mb-0 small text-dark">
-                                    {% for item in order.items.all %}
-                                        <li>
-                                            <strong>{{ item.quantity }}x</strong> {{ item.item_name_at_order|default:item.menu_item.name }}
-                                            {% if item.special_instructions %}
-                                                <div class="text-danger small ms-3" style="font-size: 0.75rem;">
-                                                    <i class="bi bi-chat-right-text-fill me-1"></i> "{{ item.special_instructions }}"
-                                                </div>
-                                            {% endif %}
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-
-                            <div class="d-flex justify-content-between align-items-center mt-2">
-                                <a href="{% url 'restaurant:kitchen_order_detail' order.id %}" class="text-decoration-none text-accent fw-bold small">
-                                    Details <i class="bi bi-arrow-right"></i>
-                                </a>
-                                <form method="POST" action="{% url 'restaurant:kitchen_order_status' order.id %}">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="status" value="COMPLETED">
-                                    <button type="submit" class="btn btn-success btn-sm fw-bold px-3 rounded-pill">
-                                        Complete Order
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    {% empty %}
-                        <div class="text-center py-5 text-muted">
-                            <i class="bi bi-inbox fs-2 d-block mb-2 opacity-50"></i>
-                            <span class="small">No orders ready</span>
-                        </div>
+                        {% include "restaurant/includes/kitchen_order_card.html" with order=order next_action="Complete →" next_status="COMPLETED" %}
                     {% endfor %}
-                </div>
+                {% endif %}
             </div>
         </div>
 
     </div>
 
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-    function updateTimers() {
-        const timers = document.querySelectorAll(".waiting-timer");
-        timers.forEach(timer => {
-            const createdAtStr = timer.dataset.createdAt;
-            if (!createdAtStr) return;
-            const createdAt = new Date(createdAtStr);
-            const now = new Date();
-            const diffMs = now - createdAt;
-            if (diffMs < 0) {
-                timer.textContent = "Waiting: 0s";
-                return;
-            }
-            const diffSecs = Math.floor(diffMs / 1000);
-            const hours = Math.floor(diffSecs / 3600);
-            const minutes = Math.floor((diffSecs % 3600) / 60);
-            const seconds = diffSecs % 60;
-            
-            let timeText = "";
-            if (hours > 0) {
-                timeText += `${hours}h `;
-            }
-            if (minutes > 0 || hours > 0) {
-                timeText += `${minutes}m `;
-            }
-            timeText += `${seconds}s`;
-            timer.textContent = `Waiting: ${timeText}`;
-        });
-    }
-    updateTimers();
-    setInterval(updateTimers, 1000);
-});
+    // Simple live time updater
+    setInterval(function() {
+        const now = new Date();
+        let hours = now.getHours();
+        let minutes = now.getMinutes();
+        hours = hours < 10 ? '0' + hours : hours;
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+        const timeStr = hours + ':' + minutes;
+        const timeEl = document.getElementById('live-time');
+        if(timeEl) timeEl.innerText = timeStr;
+    }, 10000);
 </script>
 {% endblock %}

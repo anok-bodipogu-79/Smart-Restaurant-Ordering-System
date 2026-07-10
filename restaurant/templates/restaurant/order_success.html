@@ -123,13 +123,13 @@
                 </div>
 
                 <div class="mt-2 text-center d-flex flex-column gap-2">
-                    <a href="{% url 'restaurant:order_receipt' order.tracking_token %}" class="btn btn-outline-brand rounded-pill w-100 py-2 fw-bold text-uppercase">
+                    <a href="{% url 'restaurant:order_receipt' order.tracking_token %}" class="btn btn-outline-brand w-100 py-2 fw-bold text-uppercase">
                         <i class="bi bi-file-earmark-text-fill me-2"></i>View Digital Receipt
                     </a>
-                    <a href="{% url 'restaurant:order_tracking_detail' order.tracking_token %}" class="btn btn-primary rounded-pill w-100 py-2 fw-bold text-uppercase">
+                    <a href="{% url 'restaurant:order_tracking_detail' order.tracking_token %}" class="btn btn-premium w-100 py-2 fw-bold text-uppercase">
                         <i class="bi bi-geo-alt-fill me-2"></i>Track Order
                     </a>
-                    <a href="{% url 'restaurant:menu' %}" class="btn btn-secondary rounded-pill w-100 py-2 fw-bold text-uppercase">
+                    <a href="{% url 'restaurant:menu' %}" class="btn btn-secondary w-100 py-2 fw-bold text-uppercase">
                         <i class="bi bi-house-door-fill me-2"></i>Back to Menu
                     </a>
                 </div>

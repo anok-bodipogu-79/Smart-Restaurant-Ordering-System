@@ -1,0 +1,69 @@
+<div class="sd-order-card {% if order.priority == 'URGENT' %}is-urgent{% endif %} {% if order.is_delayed %}is-delayed{% endif %}">
+    
+    <!-- Top Row -->
+    <div class="sd-card-top-row">
+        <div class="sd-order-number">Order #{{ order.id }}</div>
+        <div class="sd-card-badges">
+            {% if order.priority == 'URGENT' %}
+                <span class="sd-badge sd-badge-urgent">URGENT</span>
+            {% endif %}
+            {% if order.is_delayed %}
+                <span class="sd-badge sd-badge-delayed">DELAYED</span>
+            {% endif %}
+            
+            <!-- Waiting Time -->
+            <span class="sd-waiting-time {% if order.is_delayed %}delayed-time{% elif order.priority == 'URGENT' %}urgent-time{% endif %}" data-created-at="{{ order.created_at|date:'c' }}">
+                {{ order.created_at|timesince }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Second Row: Customer Info -->
+    <div class="sd-customer-info">
+        <span class="sd-customer-name">{{ order.customer_name }}</span>
+        <span class="sd-dining-type">
+            {% if order.table_number %}
+                <i class="bi bi-tag-fill"></i> Table {{ order.table_number }}
+            {% else %}
+                <i class="bi bi-bag-fill"></i> Takeaway
+            {% endif %}
+        </span>
+    </div>
+
+    <!-- Third Row: Item Summary -->
+    <div class="sd-item-summary">
+        <ul class="sd-item-list">
+            {% for item in order.items.all|slice:":3" %}
+                <li>
+                    <span class="item-qty">{{ item.quantity }}&times;</span>
+                    <span class="item-name">{{ item.menu_item.name }}</span>
+                </li>
+            {% endfor %}
+            {% if order.items.count > 3 %}
+                <li class="item-more">+ {{ order.items.count|add:"-3" }} more items</li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <!-- Fourth Row: Prep Estimate (Optional) -->
+    {% if order.estimated_prep_time %}
+    <div class="sd-prep-estimate">
+        <i class="bi bi-stopwatch"></i> Est. {{ order.estimated_prep_time }} min
+    </div>
+    {% endif %}
+
+    <!-- Bottom Action Area -->
+    <div class="sd-card-actions">
+        <a href="{% url 'restaurant:kitchen_order_detail' order.id %}" class="sd-btn-details">
+            View Details
+        </a>
+        <form method="POST" action="{% url 'restaurant:kitchen_order_status' order.id %}" class="sd-action-form">
+            {% csrf_token %}
+            <input type="hidden" name="status" value="{{ next_status }}">
+            <button type="submit" class="sd-btn-next-action">
+                {{ next_action }}
+            </button>
+        </form>
+    </div>
+
+</div>

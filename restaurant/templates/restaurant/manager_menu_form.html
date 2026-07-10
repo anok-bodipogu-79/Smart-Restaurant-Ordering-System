@@ -3,33 +3,36 @@
 {% block title %}{% if object %}Edit MenuItem '{{ object.name }}'{% else %}Add MenuItem{% endif %}{% endblock %}
 
 {% block content %}
-<div class="container py-2 d-flex justify-content-center">
-    <div class="col-lg-8">
-        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-            
-            <!-- Header -->
-            <div class="d-flex align-items-center border-bottom pb-3 mb-4">
-                <div>
-                    <a href="{% url 'restaurant:manager_menu_list' %}" class="btn btn-link text-decoration-none text-muted p-0 d-block mb-1">
-                        <i class="bi bi-chevron-left me-1"></i> Back to Menu Items
-                    </a>
-                    <h3 class="fw-bold text-dark mb-0">
-                        {% if object %}
-                            <i class="bi bi-pencil-square me-2" style="color:var(--brand-primary);"></i>Edit: {{ object.name }}
-                        {% else %}
-                            <i class="bi bi-plus-circle me-2" style="color:var(--brand-primary);"></i>Add New Menu Item
-                        {% endif %}
-                    </h3>
-                </div>
-            </div>
+<div class="sd-manager-header flex-wrap gap-3">
+    <div>
+        <a href="{% url 'restaurant:manager_menu_list' %}" class="text-decoration-none text-muted small d-inline-flex align-items-center mb-2" style="font-weight: 500;">
+            <i class="bi bi-chevron-left me-1"></i> Back to Menu Items
+        </a>
+        <h1 class="sd-manager-title">
+            {% if object %}
+                Edit: {{ object.name }}
+            {% else %}
+                Add New Menu Item
+            {% endif %}
+        </h1>
+        <p class="sd-manager-subtitle mb-0">Manage culinary offerings and attributes.</p>
+    </div>
+</div>
 
+<div class="row">
+    <div class="col-lg-8">
+        <div class="sd-analytics-panel">
             <form method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 
-                <div class="row g-3">
+                <div class="sd-panel-heading mb-3 border-bottom pb-2">
+                    <span>Basic Details</span>
+                </div>
+                
+                <div class="row g-3 mb-4">
                     <!-- Name -->
                     <div class="col-md-6">
-                        <label for="id_name" class="form-label">Item Name</label>
+                        <label for="id_name" class="small fw-semibold text-dark mb-1">Item Name</label>
                         {{ form.name }}
                         {% if form.name.errors %}
                             {% for error in form.name.errors %}
@@ -40,7 +43,7 @@
 
                     <!-- Category -->
                     <div class="col-md-6">
-                        <label for="id_category" class="form-label">Category</label>
+                        <label for="id_category" class="small fw-semibold text-dark mb-1">Category</label>
                         {{ form.category }}
                         {% if form.category.errors %}
                             {% for error in form.category.errors %}
@@ -51,7 +54,7 @@
 
                     <!-- Price -->
                     <div class="col-md-6">
-                        <label for="id_price" class="form-label">Price (INR)</label>
+                        <label for="id_price" class="small fw-semibold text-dark mb-1">Price (INR)</label>
                         {{ form.price }}
                         {% if form.price.errors %}
                             {% for error in form.price.errors %}
@@ -59,21 +62,27 @@
                             {% endfor %}
                         {% endif %}
                     </div>
-
-                    <!-- Image URL -->
-                    <div class="col-md-6">
-                        <label for="id_image_url" class="form-label">External Image URL <span class="text-muted">(Optional Fallback)</span></label>
-                        {{ form.image_url }}
-                        {% if form.image_url.errors %}
-                            {% for error in form.image_url.errors %}
+                    
+                    <!-- Description -->
+                    <div class="col-12">
+                        <label for="id_description" class="small fw-semibold text-dark mb-1">Description</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            {% for error in form.description.errors %}
                                 <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i> {{ error }}</div>
                             {% endfor %}
                         {% endif %}
                     </div>
+                </div>
 
+                <div class="sd-panel-heading mb-3 border-bottom pb-2">
+                    <span>Media</span>
+                </div>
+                
+                <div class="row g-3 mb-4">
                     <!-- Direct Image Upload -->
                     <div class="col-md-6">
-                        <label for="id_image" class="form-label">Upload Image File <span class="text-success">(Preferred)</span></label>
+                        <label for="id_image" class="small fw-semibold text-dark mb-1">Upload Image File <span class="text-muted">(Preferred)</span></label>
                         {{ form.image }}
                         {% if form.image.errors %}
                             {% for error in form.image.errors %}
@@ -82,63 +91,63 @@
                         {% endif %}
                         <div id="image-preview-container" class="mt-2 d-none">
                             <span class="d-block small text-muted mb-1">New Image Preview:</span>
-                            <img id="image-preview" src="" alt="Selected Preview" class="img-thumbnail rounded-3" style="max-height: 150px;">
+                            <img id="image-preview" src="" alt="Selected Preview" class="rounded-3 border" style="max-height: 120px; object-fit: cover;">
                         </div>
                     </div>
 
-                    <!-- Current Image Display when editing -->
-                    {% if object and object.image %}
-                    <div class="col-md-6 mt-2">
-                        <span class="d-block small fw-bold text-secondary mb-1">Current Uploaded Image:</span>
-                        <img src="{{ object.image.url }}" alt="{{ object.name }}" class="img-thumbnail rounded-3" style="max-height: 150px; object-fit: cover;">
-                    </div>
-                    {% elif object and object.image_url %}
-                    <div class="col-md-6 mt-2">
-                        <span class="d-block small fw-bold text-secondary mb-1">Current External Image URL:</span>
-                        <img src="{{ object.image_url }}" alt="{{ object.name }}" class="img-thumbnail rounded-3" style="max-height: 150px; object-fit: cover;">
-                    </div>
-                    {% endif %}
-
-                    <!-- Description -->
-                    <div class="col-12">
-                        <label for="id_description" class="form-label">Description</label>
-                        {{ form.description }}
-                        {% if form.description.errors %}
-                            {% for error in form.description.errors %}
+                    <!-- Image URL -->
+                    <div class="col-md-6">
+                        <label for="id_image_url" class="small fw-semibold text-dark mb-1">External Image URL <span class="text-muted">(Fallback)</span></label>
+                        {{ form.image_url }}
+                        {% if form.image_url.errors %}
+                            {% for error in form.image_url.errors %}
                                 <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i> {{ error }}</div>
                             {% endfor %}
                         {% endif %}
                     </div>
 
-                    <!-- Attributes/Checkboxes -->
-                    <div class="col-12 border-top pt-3 mt-3">
-                        <h6 class="fw-bold text-dark mb-3">Attributes &amp; Availability</h6>
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <div class="form-check form-switch">
-                                    {{ form.is_available }}
-                                    <label class="form-check-label fw-bold text-secondary" for="id_is_available">Available for Order</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-check form-switch">
-                                    {{ form.is_vegetarian }}
-                                    <label class="form-check-label fw-bold text-secondary" for="id_is_vegetarian">Vegetarian Diet</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-check form-switch">
-                                    {{ form.is_spicy }}
-                                    <label class="form-check-label fw-bold text-secondary" for="id_is_spicy">Spicy Flavor</label>
-                                </div>
-                            </div>
+                    <!-- Current Image Display when editing -->
+                    {% if object and object.image %}
+                    <div class="col-12 mt-3">
+                        <span class="d-block small fw-bold text-muted mb-1">Current Uploaded Image:</span>
+                        <img src="{{ object.image.url }}" alt="{{ object.name }}" class="rounded-3 border" style="height: 80px; width: 80px; object-fit: cover;">
+                    </div>
+                    {% elif object and object.image_url %}
+                    <div class="col-12 mt-3">
+                        <span class="d-block small fw-bold text-muted mb-1">Current External Image URL:</span>
+                        <img src="{{ object.image_url }}" alt="{{ object.name }}" class="rounded-3 border" style="height: 80px; width: 80px; object-fit: cover;">
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="sd-panel-heading mb-3 border-bottom pb-2">
+                    <span>Attributes &amp; Availability</span>
+                </div>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="form-check form-switch">
+                            {{ form.is_available }}
+                            <label class="form-check-label fw-semibold text-dark" for="id_is_available">Available for Order</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check form-switch">
+                            {{ form.is_vegetarian }}
+                            <label class="form-check-label fw-semibold text-dark" for="id_is_vegetarian">Vegetarian Diet</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check form-switch">
+                            {{ form.is_spicy }}
+                            <label class="form-check-label fw-semibold text-dark" for="id_is_spicy">Spicy Flavor</label>
                         </div>
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-end gap-2 border-top pt-4 mt-4">
-                    <a href="{% url 'restaurant:manager_menu_list' %}" class="btn btn-secondary rounded-pill px-4">Cancel</a>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Save Changes</button>
+                <div class="d-flex justify-content-end gap-2 border-top pt-4">
+                    <a href="{% url 'restaurant:manager_menu_list' %}" class="sd-btn-secondary px-4">Cancel</a>
+                    <button type="submit" class="sd-btn-primary px-4">Save Changes</button>
                 </div>
 
             </form>
@@ -173,6 +182,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Add manager styling to form inputs dynamically if they don't have it
+    const inputs = document.querySelectorAll('input[type="text"], input[type="number"], input[type="url"], textarea, select');
+    inputs.forEach(input => {
+        if (!input.classList.contains('form-control') && !input.classList.contains('form-select')) {
+            // Keep existing form-control classes if Django added them, but append our styling if needed
+        }
+        // Force borders to match design system
+        input.style.border = "1px solid #E5E2DB";
+        input.style.borderRadius = "6px";
+        input.style.padding = "8px 12px";
+        input.style.width = "100%";
+        input.style.fontSize = "0.85rem";
+        input.style.outline = "none";
+    });
 });
 </script>
 {% endblock %}

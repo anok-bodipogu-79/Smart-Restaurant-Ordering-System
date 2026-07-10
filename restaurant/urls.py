@@ -1,6 +1,6 @@
 from django.urls import path
 from restaurant.views import (
-    MenuListView, CartView, cart_sync, CartCheckoutView, OrderSuccessView,
+    LandingView, MenuListView, CartView, cart_sync, CartCheckoutView, OrderSuccessView,
     KitchenLoginView, KitchenLogoutView, KitchenDashboardView, 
     KitchenOrderDetailView, KitchenOrderStatusUpdateView,
     OrderTrackingView, OrderTrackingDetailView, OrderTrackingStatusView,
@@ -9,13 +9,15 @@ from restaurant.views import (
     ManagerMenuItemListView, ManagerMenuItemCreateView, ManagerMenuItemUpdateView,
     ManagerMenuItemAvailabilityView, ManagerCategoryListView, ManagerCategoryCreateView,
     ManagerCategoryUpdateView, ManagerCSVExportView, ManagerAuditLogListView,
-    OrderReceiptView, ManagerOrderReceiptView, StaffAccessView
+    OrderReceiptView, ManagerOrderReceiptView, StaffAccessView,
+    download_receipt_pdf, submit_order_feedback, order_again_lookup
 )
 
 app_name = "restaurant"
 
 urlpatterns = [
-    path("", MenuListView.as_view(), name="menu"),
+    path("", LandingView.as_view(), name="landing"),
+    path("menu/", MenuListView.as_view(), name="menu"),
     path("cart/", CartView.as_view(), name="cart"),
     path("cart/sync/", cart_sync, name="cart_sync"),
     path("checkout/", CartCheckoutView.as_view(), name="checkout"),
@@ -31,6 +33,13 @@ urlpatterns = [
     
     # Digital Receipt Customer Route
     path("receipt/<uuid:tracking_token>/", OrderReceiptView.as_view(), name="order_receipt"),
+    path("receipt/<uuid:tracking_token>/pdf/", download_receipt_pdf, name="order_receipt_pdf"),
+
+    # Order Feedback Route
+    path("track/<uuid:tracking_token>/feedback/", submit_order_feedback, name="submit_order_feedback"),
+
+    # Order Again Phone Lookup Route
+    path("order-again/", order_again_lookup, name="order_again_lookup"),
 
     # Manager Routes
     path("manager/login/", ManagerLoginView.as_view(), name="manager_login"),

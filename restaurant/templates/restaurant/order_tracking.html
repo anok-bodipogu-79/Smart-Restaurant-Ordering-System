@@ -39,17 +39,33 @@
                     {% endif %}
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100 py-2 rounded-pill fw-bold mb-3"
+                <button type="submit" class="btn btn-premium w-100 py-2 fw-bold mb-3"
                         style="font-size:0.95rem;">
                     <i class="bi bi-search me-1"></i>Track Progress
                 </button>
+            </form>
 
-                <div class="text-center">
-                    <a href="{% url 'restaurant:menu' %}" class="text-decoration-none text-muted-sm small">
-                        <i class="bi bi-arrow-left me-1"></i> Return to menu
-                    </a>
+            <hr class="my-4 text-muted">
+
+            <div class="text-center mb-3">
+                <h6 class="fw-bold" style="color:var(--text-primary);">Order Again?</h6>
+                <p class="small text-muted mb-0">Enter your phone number to see past orders.</p>
+            </div>
+            
+            <form method="POST" action="{% url 'restaurant:order_again_lookup' %}">
+                {% csrf_token %}
+                <div class="input-group mb-3">
+                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-telephone text-muted"></i></span>
+                    <input type="text" name="phone" class="form-control bg-light border-start-0" placeholder="e.g. 555-1234" required>
+                    <button class="btn btn-outline-brand px-3" type="submit">Lookup</button>
                 </div>
             </form>
+
+            <div class="text-center mt-4">
+                <a href="{% url 'restaurant:menu' %}" class="text-decoration-none text-muted-sm small">
+                    <i class="bi bi-arrow-left me-1"></i> Return to menu
+                </a>
+            </div>
         </div>
     </div>
 </div>

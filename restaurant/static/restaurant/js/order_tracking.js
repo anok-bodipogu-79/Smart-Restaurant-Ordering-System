@@ -96,24 +96,21 @@
                 label.style.fontWeight = "700";
             } else if (idx === currentIdx) {
                 // Current active step
+                iconWrapper.classList.add("neumorphic-active");
+                iconWrapper.style.background = "var(--surface-primary)";
+                iconWrapper.style.borderColor = "transparent";
+                
                 if (status === "RECEIVED") {
-                    iconWrapper.style.background = "#F1F5F9";
-                    iconWrapper.style.borderColor = "#94A3B8";
-                    iconWrapper.style.color = "#475569";
-                    label.style.color = "#475569";
+                    iconWrapper.style.color = "var(--text-primary)";
+                    label.style.color = "var(--text-primary)";
                 } else if (status === "PREPARING") {
-                    iconWrapper.style.background = "#FEF3C7";
-                    iconWrapper.style.borderColor = "#B7791F";
-                    iconWrapper.style.color = "#B7791F";
-                    label.style.color = "#B7791F";
+                    iconWrapper.style.color = "var(--accent-gold)";
+                    label.style.color = "var(--accent-gold)";
                 } else if (status === "READY" || status === "COMPLETED") {
-                    iconWrapper.style.background = "#DCFCE7";
-                    iconWrapper.style.borderColor = "#173F35";
-                    iconWrapper.style.color = "#173F35";
-                    label.style.color = "#173F35";
+                    iconWrapper.style.color = "var(--brand-primary)";
+                    label.style.color = "var(--brand-primary)";
                 }
                 label.style.fontWeight = "700";
-                iconWrapper.style.transform = "scale(1.15)";
             } else {
                 // Pending steps
                 iconWrapper.style.background = "#F7F6F2";
@@ -137,13 +134,8 @@
         const style = BADGE_STYLES[status] || { bg: "#F1F5F9", color: "#475569", border: "1px solid #E2E8F0" };
         statusBadge.style.backgroundColor = style.bg;
         statusBadge.style.color = style.color;
-        statusBadge.style.border = style.border;
-        statusBadge.style.borderRadius = "999px";
-        statusBadge.style.padding = "0.3rem 0.85rem";
-        statusBadge.style.fontSize = "0.82rem";
-        statusBadge.style.fontWeight = "700";
-        statusBadge.style.letterSpacing = "0.04em";
-        statusBadge.style.textTransform = "uppercase";
+        statusBadge.style.border = "none";
+        statusBadge.classList.add("clay-badge");
     }
 
     /**

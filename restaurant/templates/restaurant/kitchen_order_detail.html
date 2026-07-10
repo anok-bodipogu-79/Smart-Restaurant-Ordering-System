@@ -1,184 +1,172 @@
-{% extends "restaurant/base.html" %}
+{% extends "restaurant/kitchen_base.html" %}
 {% load static %}
 
-{% block title %}Kitchen Order Detail{% endblock %}
+{% block title %}Order #{{ order.id }} | Kitchen Console{% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="sd-kitchen-detail-page">
 
-    <!-- Header Actions -->
-    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-        <div>
-            <a href="{% url 'restaurant:kitchen_dashboard' %}" class="btn btn-link text-decoration-none text-muted-sm p-0">
-                <i class="bi bi-chevron-left me-1"></i> Back to Dashboard
+    <!-- Detail Header -->
+    <div class="sd-detail-header">
+        <div class="sd-detail-header-left">
+            <a href="{% url 'restaurant:kitchen_dashboard' %}" class="sd-btn-back">
+                <i class="bi bi-arrow-left"></i> Kitchen Console
             </a>
-            <h1 class="fw-bold text-dark mt-2">Order #{{ order.id }}</h1>
+            <div class="sd-detail-title-row">
+                <h1>Order #{{ order.id }}</h1>
+                {% if order.priority == 'URGENT' %}
+                    <span class="sd-badge sd-badge-urgent">URGENT</span>
+                {% endif %}
+                {% if order.is_delayed %}
+                    <span class="sd-badge sd-badge-delayed">DELAYED</span>
+                {% endif %}
+            </div>
+            <div class="sd-detail-meta">
+                {% if order.table_number %}Table {{ order.table_number }} (Dine-in){% else %}Takeaway{% endif %}
+                &bull; Received {{ order.created_at|timesince }} ago
+                &bull; {{ order.get_priority_display }} Priority
+            </div>
         </div>
-        <div>
-            <!-- Transition Button inside header if transition exists -->
+        
+        <div class="sd-detail-header-right">
             {% if next_status %}
                 <form method="POST" action="{% url 'restaurant:kitchen_order_status' order.id %}">
                     {% csrf_token %}
                     <input type="hidden" name="status" value="{{ next_status }}">
-                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                    <button type="submit" class="sd-btn-primary-action">
                         {% if next_status == 'PREPARING' %}
-                            <i class="bi bi-play-fill me-1"></i> Start Preparing
+                            Start Preparing <i class="bi bi-arrow-right"></i>
                         {% elif next_status == 'READY' %}
-                            <i class="bi bi-check-lg me-1"></i> Mark Ready
+                            Mark Ready <i class="bi bi-arrow-right"></i>
                         {% elif next_status == 'COMPLETED' %}
-                            <i class="bi bi-box-seam me-1"></i> Complete Order
+                            Complete Order <i class="bi bi-check2"></i>
                         {% endif %}
                     </button>
                 </form>
             {% else %}
-                <span class="badge bg-secondary px-3 py-2 text-uppercase">Workflow Finished</span>
+                <div class="sd-status-finished">Workflow Finished</div>
             {% endif %}
         </div>
     </div>
 
-    <div class="row g-4">
+    <!-- Django Messages (Success/Error) -->
+    {% if messages %}
+    <div class="sd-messages-container">
+        {% for message in messages %}
+            <div class="sd-toast sd-toast-{{ message.tags }}">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>{{ message }}</span>
+                <button type="button" class="sd-toast-close" onclick="this.parentElement.remove();">&times;</button>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- 2-Column Main Layout -->
+    <div class="sd-detail-grid">
         
-        <!-- Left Side: Customer & Transition Parameters -->
-        <div class="col-lg-8">
-            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4">
-                <h5 class="fw-bold mb-4 border-bottom pb-2" style="color:var(--brand-primary);">
-                    <i class="bi bi-person-fill me-2"></i>Customer Info
-                </h5>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <span class="text-muted-sm d-block small">Customer Name</span>
-                        <strong class="text-dark">{{ order.customer_name }}</strong>
-                    </div>
-                    <div class="col-md-6">
-                        <span class="text-muted-sm d-block small">Phone Number</span>
-                        <strong class="text-dark">{{ order.customer_phone }}</strong>
-                    </div>
-                    <div class="col-md-6">
-                        <span class="text-muted-sm d-block small">Dining Configuration</span>
-                        <strong class="text-dark">
-                            {% if order.table_number %}
-                                Table #{{ order.table_number }} (Dine-in)
-                            {% else %}
-                                Takeaway / Pickup
-                            {% endif %}
-                        </strong>
-                    </div>
-                    <div class="col-md-6">
-                        <span class="text-muted-sm d-block small">Current Status</span>
-                        <span class="badge 
-                            {% if order.status == 'RECEIVED' %}bg-info
-                            {% elif order.status == 'PREPARING' %}bg-warning
-                            {% elif order.status == 'READY' %}bg-success
-                            {% else %}bg-secondary{% endif %} px-2 py-1 text-uppercase">
-                            {{ order.get_status_display }}
-                        </span>
-                    </div>
-                    <div class="col-md-6">
-                        <span class="text-muted-sm d-block small">Created Timestamp</span>
-                        <strong class="text-dark">{{ order.created_at|date:"F d, Y h:i A" }}</strong>
-                    </div>
+        <!-- LEFT: MAIN CONTENT -->
+        <div class="sd-detail-main">
+            <div class="sd-panel">
+                <div class="sd-panel-header">
+                    <h2>Order Items</h2>
                 </div>
-            </div>
-
-            <!-- List of OrderItems -->
-            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
-                <h5 class="fw-bold mb-4 border-bottom pb-2" style="color:var(--brand-primary);">
-                    <i class="bi bi-list-check me-2"></i>Itemized Order List
-                </h5>
-                <div class="table-responsive">
-                    <table class="table table-borderless align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th scope="col" class="text-dark fw-bold">Menu Item</th>
-                                <th scope="col" class="text-dark fw-bold text-center">Quantity</th>
-                                <th scope="col" class="text-dark fw-bold text-end">Price at Order</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in order.items.all %}
-                                <tr class="border-bottom">
-                                    <td class="py-3">
-                                        <div class="text-dark fw-bold">{{ item.item_name_at_order|default:item.menu_item.name }}</div>
-                                        {% if item.special_instructions %}
-                                            <div class="text-danger small mt-1" style="font-size: 0.8rem; font-style: italic;">
-                                                <i class="bi bi-chat-right-text-fill me-1"></i> Special Note: "{{ item.special_instructions }}"
-                                            </div>
-                                        {% endif %}
-                                    </td>
-                                    <td class="py-3 text-center text-muted-sm">{{ item.quantity }}</td>
-                                    <td class="py-3 text-end text-muted-sm">₹{{ item.price_at_order }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                <div class="sd-panel-content p-0">
+                    <ul class="sd-detail-item-list">
+                        {% for item in order.items.all %}
+                        <li>
+                            <div class="sd-item-qty">{{ item.quantity }}&times;</div>
+                            <div class="sd-item-info">
+                                <div class="sd-item-name">{{ item.menu_item.name }}</div>
+                                {% if item.special_instructions %}
+                                <div class="sd-item-notes">
+                                    <i class="bi bi-info-circle"></i> {{ item.special_instructions }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
                 </div>
             </div>
         </div>
 
-        <!-- Right Side: Order Totals summary calculations -->
-        <div class="col-lg-4">
-            <!-- Kitchen Intelligence Parameters -->
-            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4">
-                <h5 class="fw-bold mb-4 border-bottom pb-2" style="color:var(--brand-primary);">
-                    <i class="bi bi-gear-fill me-2"></i>Kitchen Parameters
-                </h5>
-
-                <!-- Priority Form -->
-                <form method="POST" action="{% url 'restaurant:kitchen_order_status' order.id %}" class="mb-4">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="priority">
-                    <div class="mb-3">
-                        <label for="id_priority" class="form-label text-dark small fw-bold">Order Priority</label>
-                        <select id="id_priority" name="priority" class="form-select bg-light text-dark">
-                            <option value="NORMAL" {% if order.priority == "NORMAL" %}selected{% endif %}>Normal</option>
-                            <option value="PRIORITY" {% if order.priority == "PRIORITY" %}selected{% endif %}>Priority</option>
-                            <option value="URGENT" {% if order.priority == "URGENT" %}selected{% endif %}>Urgent</option>
-                        </select>
+        <!-- RIGHT: OPERATIONAL SIDEBAR -->
+        <div class="sd-detail-sidebar">
+            
+            <!-- Order Overview -->
+            <div class="sd-panel">
+                <div class="sd-panel-header">
+                    <h2>Order Overview</h2>
+                </div>
+                <div class="sd-panel-content">
+                    <div class="sd-overview-grid">
+                        <div class="sd-overview-field">
+                            <label>Customer</label>
+                            <span>{{ order.customer_name }}</span>
+                        </div>
+                        <div class="sd-overview-field">
+                            <label>Order Type</label>
+                            <span>{% if order.table_number %}Dine-in (T{{ order.table_number }}){% else %}Takeaway / Pickup{% endif %}</span>
+                        </div>
+                        <div class="sd-overview-field">
+                            <label>Current Status</label>
+                            <span class="sd-status-text {{ order.status|lower }}">{{ order.get_status_display }}</span>
+                        </div>
+                        <div class="sd-overview-field">
+                            <label>Waiting</label>
+                            <span class="sd-waiting-text">{{ order.created_at|timesince }}</span>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-outline-primary btn-sm w-100 rounded-pill">
-                        <i class="bi bi-save me-1"></i> Update Priority
-                    </button>
-                </form>
-
-                <!-- Preparation Time Form -->
-                <form method="POST" action="{% url 'restaurant:kitchen_order_status' order.id %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="prep_time">
-                    <div class="mb-3">
-                        <label for="id_prep_minutes" class="form-label text-dark small fw-bold">Est. Preparation (Minutes)</label>
-                        <input type="number" id="id_prep_minutes" name="estimated_preparation_minutes" 
-                               class="form-control bg-light text-dark" min="5" max="180" 
-                               placeholder="e.g. 25" value="{{ order.estimated_preparation_minutes|default_if_none:'' }}">
-                        <div class="form-text small text-muted-sm" style="font-size: 0.75rem;">Range: 5 to 180 mins. Leave empty to clear.</div>
-                    </div>
-                    <button type="submit" class="btn btn-outline-primary btn-sm w-100 rounded-pill">
-                        <i class="bi bi-hourglass-split me-1"></i> Update Prep Time
-                    </button>
-                </form>
+                </div>
             </div>
 
-            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white sticky-lg-top" style="top: 100px;">
-                <h5 class="fw-bold border-bottom pb-2 mb-4" style="color:var(--brand-primary);">
-                    <i class="bi bi-receipt me-2"></i>Financial Totals
-                </h5>
 
-                <div class="d-flex justify-content-between mb-2">
-                    <span class="text-muted small">Subtotal</span>
-                    <span class="fw-bold text-dark small">₹{{ subtotal }}</span>
-                </div>
-                
-                <div class="d-flex justify-content-between mb-3 border-bottom pb-3">
-                    <span class="text-muted small">Estimated Tax (5%)</span>
-                    <span class="fw-bold text-dark small">₹{{ tax }}</span>
-                </div>
 
-                <div class="d-flex justify-content-between align-items-center mb-0">
-                    <span class="fs-5 fw-bold" style="color:var(--text-primary);">Grand Total</span>
-                    <span class="fs-4 fw-bold" style="color:var(--accent-gold);">₹{{ grand_total }}</span>
+            <!-- Timing Information -->
+            <div class="sd-panel">
+                <div class="sd-panel-header">
+                    <h2>Timing Information</h2>
+                </div>
+                <div class="sd-panel-content">
+                    <ul class="sd-timing-list">
+                        <li>
+                            <span>Order Received</span>
+                            <strong>{{ order.created_at|date:"h:i A" }}</strong>
+                        </li>
+                        <li>
+                            <span>Waiting Duration</span>
+                            <strong>{{ order.created_at|timesince }}</strong>
+                        </li>
+                        {% if order.estimated_prep_time %}
+                        <li>
+                            <span>Estimated Completion</span>
+                            <strong>{{ order.estimated_prep_time }} min from start</strong>
+                        </li>
+                        {% endif %}
+                    </ul>
                 </div>
             </div>
+
+            <!-- Financial Totals (Reduced Prominence) -->
+            <div class="sd-panel sd-panel-muted">
+                <div class="sd-panel-header">
+                    <h2>Order Summary</h2>
+                </div>
+                <div class="sd-panel-content">
+                    <div class="sd-financial-row">
+                        <span>Subtotal</span>
+                        <span>₹{{ order.total_amount }}</span>
+                    </div>
+                    <!-- Assuming backend total_amount is final, showing it here simply. -->
+                    <div class="sd-financial-row total">
+                        <span>Total</span>
+                        <span>₹{{ order.total_amount }}</span>
+                    </div>
+                </div>
+            </div>
+
         </div>
-
     </div>
 
 </div>

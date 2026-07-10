@@ -4,63 +4,84 @@
 {% block title %}Staff Access Portal{% endblock %}
 
 {% block content %}
-<div class="container py-5 d-flex flex-column align-items-center justify-content-center" style="min-height: 70vh;">
-
+<div class="sd-staff-page">
+    
     <!-- Intro Header -->
-    <div class="text-center mb-5">
-        <span style="font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent-gold);display:block;margin-bottom:0.5rem;">
-            Staff Workspaces
-        </span>
-        <h1 class="editorial-heading mb-3" style="font-size:clamp(1.75rem,4vw,2.75rem);">
-            SmartDine Staff Access
-        </h1>
-        <p class="mx-auto text-muted mb-0" style="max-width:440px;font-size:0.95rem;line-height:1.6;">
-            Select your operational workspace to continue. Authenticated credentials are required to proceed.
+    <div class="sd-staff-intro">
+        <span class="sd-staff-eyebrow">STAFF WORKSPACES</span>
+        <h1 class="sd-staff-heading">SmartDine Staff Access</h1>
+        <p class="sd-staff-desc">
+            Choose your operational workspace to continue. Secure authentication is required for all staff areas.
         </p>
-        <div class="title-underline mx-auto mt-3" style="width:60px;"></div>
+        <div class="sd-staff-divider"></div>
     </div>
 
-    <!-- Bento Workspaces Grid -->
-    <div class="portal-grid w-100 mb-5">
+    <!-- Workspace Grid -->
+    <div class="sd-workspace-grid">
         
-        <!-- Kitchen Console Bento Card -->
-        <a href="{% url 'restaurant:kitchen_login' %}" class="portal-card kitchen-portal" aria-label="Access Kitchen Console">
-            <div class="portal-card-icon-wrap" style="background:var(--accent-gold-soft);color:var(--accent-gold);">
-                <i class="bi bi-fire fs-4"></i>
+        <!-- Kitchen Console Card -->
+        <div class="sd-workspace-card sd-card-kitchen">
+            <div class="sd-card-header">
+                <span class="sd-card-role">01 / KITCHEN OPERATIONS</span>
+                <div class="sd-card-icon-wrap">
+                    <i class="bi bi-fire" aria-hidden="true"></i>
+                </div>
             </div>
-            <h3 class="portal-card-title">Kitchen Console</h3>
-            <p class="portal-card-desc">
+            <h3 class="sd-card-title">Kitchen Console</h3>
+            <p class="sd-card-desc">
                 Manage live order preparation, kitchen workflows, priorities, and order status transitions in real time.
             </p>
-            <span class="portal-card-action">
-                Kitchen Login <i class="bi bi-arrow-right"></i>
-            </span>
-        </a>
-
-        <!-- Manager Portal Bento Card -->
-        <a href="{% url 'restaurant:manager_login' %}" class="portal-card manager-portal" aria-label="Access Manager Portal">
-            <div class="portal-card-icon-wrap" style="background:var(--brand-primary-soft);color:var(--brand-primary);">
-                <i class="bi bi-shield-check fs-4"></i>
+            <ul class="sd-card-features">
+                <li><i class="bi bi-check2" aria-hidden="true"></i> Live Order Queue</li>
+                <li><i class="bi bi-check2" aria-hidden="true"></i> Preparation Workflow</li>
+                <li><i class="bi bi-check2" aria-hidden="true"></i> Order Status Updates</li>
+            </ul>
+            <div class="sd-card-footer">
+                <span class="sd-card-status">OPERATIONAL WORKSPACE</span>
+                <a href="{% url 'restaurant:kitchen_login' %}" class="sd-btn-kitchen" aria-label="Access Kitchen Console">
+                    Access Kitchen Console <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                </a>
             </div>
-            <h3 class="portal-card-title">Manager Portal</h3>
-            <p class="portal-card-desc">
+        </div>
+
+        <!-- Manager Portal Card -->
+        <div class="sd-workspace-card sd-card-manager">
+            <div class="sd-card-header">
+                <span class="sd-card-role">02 / MANAGEMENT</span>
+                <div class="sd-card-icon-wrap">
+                    <i class="bi bi-shield-check" aria-hidden="true"></i>
+                </div>
+            </div>
+            <h3 class="sd-card-title">Manager Portal</h3>
+            <p class="sd-card-desc">
                 Manage orders, menu items, categories, restaurant operations, performance insights, and audit logs.
             </p>
-            <span class="portal-card-action">
-                Manager Login <i class="bi bi-arrow-right"></i>
-            </span>
-        </a>
+            <ul class="sd-card-features">
+                <li><i class="bi bi-check2" aria-hidden="true"></i> Menu & Category Management</li>
+                <li><i class="bi bi-check2" aria-hidden="true"></i> Sales & Performance Insights</li>
+                <li><i class="bi bi-check2" aria-hidden="true"></i> Audit & Operations Control</li>
+            </ul>
+            <div class="sd-card-footer">
+                <span class="sd-card-status">AUTHORIZED ACCESS</span>
+                <a href="{% url 'restaurant:manager_login' %}" class="sd-btn-manager" aria-label="Access Manager Portal">
+                    Access Manager Portal <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                </a>
+            </div>
+        </div>
 
+    </div>
+
+    <!-- Security Notice -->
+    <div class="sd-security-notice">
+        <i class="bi bi-shield-lock" aria-hidden="true"></i>
+        <span>Authorized personnel only. Access attempts and authentication activity may be recorded for security and audit purposes.</span>
     </div>
 
     <!-- Actions & Notes -->
-    <div class="text-center">
-        <a href="{% url 'restaurant:menu' %}" class="btn btn-secondary rounded-pill px-4 py-2 text-decoration-none fw-bold" style="font-size:0.875rem;">
-            <i class="bi bi-arrow-left me-1"></i> Return to Menu
+    <div class="sd-staff-actions">
+        <a href="{% url 'restaurant:menu' %}" class="sd-btn-return">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i> Return to Customer Menu
         </a>
-        <p class="mt-4 mb-0 text-xs text-stone-400" style="color:var(--text-disabled); font-weight: 500;">
-            <i class="bi bi-shield-lock me-1"></i> Authorized personnel only. Access attempt logs are recorded in the audit trail.
-        </p>
     </div>
 
 </div>

@@ -1,0 +1,70 @@
+{% extends "restaurant/base.html" %}
+{% load static %}
+
+{% block title %}Past Orders for {{ phone }}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 800px;">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{% url 'restaurant:order_tracking' %}" class="btn btn-link text-decoration-none text-muted-sm p-0 mb-2">
+                <i class="bi bi-arrow-left me-1"></i> Back to Tracking
+            </a>
+            <h1 class="fw-bold mb-0" style="color:var(--text-primary);">Past Orders</h1>
+            <p class="text-muted small mb-0">Phone: <strong>{{ phone }}</strong></p>
+        </div>
+        <div>
+            <a href="{% url 'restaurant:menu' %}" class="btn btn-primary rounded-pill px-4">
+                <i class="bi bi-plus-lg me-1"></i> New Order
+            </a>
+        </div>
+    </div>
+
+    {% if orders %}
+        <div class="d-flex flex-column gap-3">
+            {% for order in orders %}
+            <div class="card glass-panel border-0 rounded-4 p-3 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
+                    <div>
+                        <span class="fw-bold" style="color:var(--brand-primary);">Order #{{ order.id }}</span>
+                        <span class="text-muted small ms-2"><i class="bi bi-clock me-1"></i>{{ order.created_at|date:"M d, Y h:i A" }}</span>
+                    </div>
+                    <div>
+                        {% if order.status == 'COMPLETED' %}
+                            <span class="badge bg-success rounded-pill px-2 py-1">Completed</span>
+                        {% elif order.status == 'CANCELLED' %}
+                            <span class="badge bg-danger rounded-pill px-2 py-1">Cancelled</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark rounded-pill px-2 py-1">In Progress</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="small text-muted mb-3">
+                    <ul class="list-unstyled mb-0">
+                        {% for item in order.items.all %}
+                            <li>{{ item.quantity }}x {{ item.item_name_at_order }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-dark">Total: ₹{{ order.total_amount }}</span>
+                    <a href="{% url 'restaurant:order_tracking_detail' order.tracking_token %}" class="btn btn-outline-brand btn-sm rounded-pill px-3">
+                        View Details
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5 glass-panel rounded-4">
+            <i class="bi bi-receipt text-muted fs-1 mb-3"></i>
+            <h5 class="fw-bold">No orders found</h5>
+            <p class="text-muted">We couldn't find any past orders associated with this phone number.</p>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

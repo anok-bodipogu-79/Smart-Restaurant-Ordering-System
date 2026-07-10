@@ -78,13 +78,24 @@ function saveCart(cart) {
     synchronizeCartWithServer();
 }
 
-// Update the navigation cart count badge
 function updateCartCount(cart) {
     const cartCountElement = document.getElementById("cart-count");
     if (!cartCountElement) return;
 
     const totalUnits = cart.reduce((sum, item) => sum + item.quantity, 0);
+    const oldCount = parseInt(cartCountElement.textContent, 10) || 0;
     cartCountElement.textContent = String(totalUnits);
+    
+    // Add bounce-pulse if increased
+    if (totalUnits > oldCount) {
+        const badge = cartCountElement.closest('.badge') || cartCountElement;
+        badge.classList.remove('pulse-animation'); // Assuming a pulse or bounce class
+        void badge.offsetWidth; // trigger reflow
+        badge.classList.add('pulse-animation');
+        // Let's use a custom inline animation just to be safe, or add a class if defined
+        badge.style.animation = 'bounceScale 0.5s ease-out';
+        setTimeout(() => badge.style.animation = '', 500);
+    }
 }
 
 // Synchronize frontend cart with Django Session cart backend
@@ -165,31 +176,87 @@ function addItemToCart(id, name, price) {
         if (existingItem.quantity < MAX_QUANTITY) {
             existingItem.quantity += 1;
             saveCart(cart);
-            showButtonFeedback(id, "Added");
-        } else {
-            showButtonFeedback(id, "Max (20) Reached", true);
+            syncMenuCardUI(id);
         }
     } else {
         cart.push({ id, name, price: parseFloat(price), quantity: 1, special_instructions: "" });
         saveCart(cart);
-        showButtonFeedback(id, "Added");
+        syncMenuCardUI(id);
     }
 }
 
-// Provide UI feedback on the Add to Cart button
+function updateItemQuantity(id, delta) {
+    const cart = getCart();
+    const existingItem = cart.find(item => item.id === id);
+    if (!existingItem) return;
+
+    if (delta > 0 && existingItem.quantity < MAX_QUANTITY) {
+        existingItem.quantity += 1;
+    } else if (delta < 0) {
+        if (existingItem.quantity > 1) {
+            existingItem.quantity -= 1;
+        } else {
+            // Remove from cart
+            const itemIndex = cart.findIndex(item => item.id === id);
+            if (itemIndex > -1) {
+                cart.splice(itemIndex, 1);
+            }
+        }
+    }
+    saveCart(cart);
+    syncMenuCardUI(id);
+}
+
+// Update the inline quantity controller UI on the menu page
+function syncMenuCardUI(id) {
+    const cart = getCart();
+    const existingItem = cart.find(item => item.id === id);
+    
+    const addBtn = document.getElementById(`add-btn-${id}`);
+    const qtyCtrl = document.getElementById(`qty-ctrl-${id}`);
+    const qtyDisplay = document.getElementById(`qty-display-${id}`);
+    
+    if (!addBtn || !qtyCtrl || !qtyDisplay) return;
+
+    if (existingItem) {
+        // Item is in cart: show controller, hide add button
+        qtyDisplay.textContent = existingItem.quantity;
+        addBtn.classList.add('d-none');
+        qtyCtrl.classList.remove('d-none');
+        // Support both display patterns
+        if (qtyCtrl.classList.contains('quantity-controller')) {
+            qtyCtrl.classList.add('d-flex');
+        }
+    } else {
+        // Item not in cart: show add button, hide controller
+        addBtn.classList.remove('d-none');
+        qtyCtrl.classList.add('d-none');
+        if (qtyCtrl.classList.contains('quantity-controller')) {
+            qtyCtrl.classList.remove('d-flex');
+        }
+    }
+}
+
+// Provide UI feedback on the Add to Cart button (No longer used on menu cards, kept for compatibility if needed elsewhere)
 function showButtonFeedback(id, message, isWarning = false) {
     const button = document.querySelector(`button[data-item-id="${id}"]`);
     if (!button) return;
 
     const originalHTML = button.innerHTML;
     button.disabled = true;
-    if (isWarning) {
-        button.classList.replace("btn-add-cart", "btn-warning");
-        button.textContent = message;
-    } else {
-        button.classList.replace("btn-add-cart", "btn-success");
-        button.innerHTML = `<i class="bi bi-check-lg"></i> ${message}`;
-    }
+    
+    button.style.transform = 'scale(0.92)';
+    
+    setTimeout(() => {
+        if (isWarning) {
+            button.classList.replace("btn-add-cart", "btn-warning");
+            button.textContent = message;
+        } else {
+            button.classList.replace("btn-add-cart", "btn-success");
+            button.innerHTML = `<i class="bi bi-check-lg" style="animation: fadeInUp 0.3s;"></i> ${message}`;
+        }
+        button.style.transform = 'scale(1)';
+    }, 150);
 
     setTimeout(() => {
         button.disabled = false;
@@ -344,17 +411,40 @@ document.addEventListener("DOMContentLoaded", () => {
     synchronizeCartWithServer();
 
     // 2. Setup Add to Cart click listeners (Menu Page)
-    const menuGrid = document.querySelector(".row-cols-1"); // main catalog grid
+    const menuGrid = document.querySelector(".sd-menu-grid") || document.querySelector(".row-cols-1"); // main catalog grid
     if (menuGrid) {
+        // Initialize UI for all visible cards
+        cart.forEach(item => {
+            syncMenuCardUI(item.id);
+        });
+
         menuGrid.addEventListener("click", (e) => {
-            const button = e.target.closest(".btn-add-cart");
-            if (button) {
-                const id = button.dataset.itemId;
-                const name = button.dataset.itemName;
-                const price = button.dataset.itemPrice;
+            // Add button
+            const addButton = e.target.closest(".btn-add-cart");
+            if (addButton) {
+                const id = addButton.dataset.itemId;
+                const name = addButton.dataset.itemName;
+                const price = addButton.dataset.itemPrice;
                 if (id && name && price) {
                     addItemToCart(id, name, price);
                 }
+                return;
+            }
+            
+            // Inline Quantity Increment
+            const incButton = e.target.closest(".btn-qty-inc");
+            if (incButton) {
+                const id = incButton.dataset.itemId;
+                if (id) updateItemQuantity(id, 1);
+                return;
+            }
+
+            // Inline Quantity Decrement
+            const decButton = e.target.closest(".btn-qty-dec");
+            if (decButton) {
+                const id = decButton.dataset.itemId;
+                if (id) updateItemQuantity(id, -1);
+                return;
             }
         });
     }

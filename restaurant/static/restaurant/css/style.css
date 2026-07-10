@@ -261,22 +261,23 @@ p {
     text-decoration: none !important;
 }
 .cart-indicator-badge {
-    background-color: var(--brand-primary);
-    color: #FFFFFF;
-    padding: 0.45rem 1rem;
-    border-radius: 50px;
-    font-size: 0.82rem;
-    font-weight: 600;
+    background-color: var(--surface-primary);
+    color: var(--text-primary);
+    padding: 0.4rem 0.85rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
     transition: var(--transition-smooth);
-    border: 1px solid transparent;
-    gap: 6px;
+    border: 1px solid var(--border-strong);
+    gap: 8px;
+    box-shadow: var(--shadow-xs);
 }
 .cart-indicator-badge:hover {
-    background-color: var(--brand-primary-hover);
+    background-color: var(--surface-hover);
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(23, 63, 53, 0.18);
+    box-shadow: var(--shadow-sm);
+    color: var(--brand-primary);
 }
-
 /* ============================================================
    BUTTON SYSTEM — Premium Hospitality
    ============================================================ */
@@ -285,38 +286,40 @@ p {
 .btn {
     font-family: var(--primary-font);
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: 0.9rem;
     letter-spacing: 0.01em;
     border-radius: 10px;
-    padding: 0.55rem 1.25rem;
+    padding: 0.6rem 1.25rem;
     transition: var(--transition-smooth);
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     cursor: pointer;
 }
 
 /* Primary — Forest Green Gradient */
 .btn-primary, .btn-accent, .btn-brand {
-    background: linear-gradient(135deg, #245A4C 0%, #173F35 100%) !important;
+    background: var(--brand-primary) !important;
     color: #FFFFFF !important;
-    border: none !important;
-    box-shadow: 0 4px 12px rgba(23, 63, 53, 0.18) !important;
+    border: 1px solid var(--brand-primary) !important;
+    box-shadow: var(--shadow-sm) !important;
 }
 .btn-primary:hover, .btn-accent:hover, .btn-brand:hover {
-    background: linear-gradient(135deg, #1a4a3e 0%, #0F3028 100%) !important;
+    background: var(--brand-primary-hover) !important;
+    border-color: var(--brand-primary-hover) !important;
     transform: translateY(-1px) !important;
-    box-shadow: 0 8px 20px rgba(23, 63, 53, 0.26) !important;
+    box-shadow: var(--shadow-md) !important;
     color: #FFFFFF !important;
 }
 .btn-primary:active, .btn-accent:active, .btn-brand:active {
     transform: translateY(0) !important;
+    box-shadow: var(--shadow-sm) !important;
 }
 .btn-primary:disabled, .btn-accent:disabled {
-    opacity: 0.55 !important;
+    opacity: 0.6 !important;
     transform: none !important;
+    box-shadow: none !important;
 }
-
 /* Gold — Burnished Gold Gradient */
 .btn-gold {
     background: linear-gradient(135deg, #C58A32 0%, #A86D18 100%) !important;
@@ -333,25 +336,26 @@ p {
 
 /* Secondary — Light surface */
 .btn-secondary {
-    background: linear-gradient(135deg, #FFFFFF 0%, #F2F5F2 100%) !important;
-    color: var(--brand-primary) !important;
-    border: 1px solid #D7E2DC !important;
+    background: var(--surface-primary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-strong) !important;
     box-shadow: var(--shadow-xs) !important;
 }
 .btn-secondary:hover {
-    background: linear-gradient(135deg, #F4F8F5 0%, #E8F0EB 100%) !important;
+    background: var(--surface-hover) !important;
     transform: translateY(-1px) !important;
     color: var(--brand-primary) !important;
+    border-color: var(--border-strong) !important;
 }
 
 /* Sage soft button */
 .btn-sage {
-    background: linear-gradient(135deg, #F3F7F4 0%, #E4EEE8 100%) !important;
+    background: var(--bg-sage) !important;
     color: var(--brand-primary) !important;
-    border: 1px solid #C8DDD0 !important;
+    border: 1px solid var(--accent-sage-soft) !important;
 }
 .btn-sage:hover {
-    background: linear-gradient(135deg, #E4EEE8 0%, #D5E6DA 100%) !important;
+    background: var(--accent-sage-soft) !important;
     transform: translateY(-1px) !important;
     color: var(--brand-primary) !important;
 }
@@ -361,7 +365,6 @@ p {
     background-color: var(--success) !important;
     color: #FFFFFF !important;
     border: none !important;
-    box-shadow: 0 4px 12px rgba(21, 128, 61, 0.16) !important;
 }
 .btn-success:hover {
     filter: brightness(0.9);
@@ -370,13 +373,13 @@ p {
 
 /* Danger */
 .btn-danger {
-    background-color: var(--danger) !important;
-    color: #FFFFFF !important;
-    border: none !important;
-    box-shadow: 0 4px 12px rgba(180, 35, 24, 0.14) !important;
+    background-color: transparent !important;
+    color: var(--danger) !important;
+    border: 1px solid var(--border-strong) !important;
 }
 .btn-danger:hover {
-    filter: brightness(0.9);
+    background: var(--danger-soft) !important;
+    border-color: var(--danger) !important;
     transform: translateY(-1px) !important;
 }
 
@@ -395,7 +398,7 @@ p {
 .btn-outline-primary, .btn-outline-brand {
     background: transparent !important;
     color: var(--brand-primary) !important;
-    border: 1.5px solid var(--brand-primary) !important;
+    border: 1px solid var(--brand-primary) !important;
 }
 .btn-outline-primary:hover, .btn-outline-brand:hover {
     background: var(--brand-primary-soft) !important;
@@ -404,43 +407,47 @@ p {
 }
 .btn-outline-secondary {
     background: transparent !important;
-    color: var(--text-secondary) !important;
-    border: 1.5px solid var(--border-strong) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-strong) !important;
 }
 .btn-outline-secondary:hover {
-    background: var(--bg-secondary) !important;
-    color: var(--text-primary) !important;
+    background: var(--surface-hover) !important;
+    color: var(--brand-primary) !important;
     border-color: var(--border-strong) !important;
     transform: translateY(-1px) !important;
 }
 .btn-outline-danger {
     background: transparent !important;
     color: var(--danger) !important;
-    border: 1.5px solid var(--danger) !important;
+    border: 1px solid var(--border-strong) !important;
 }
 .btn-outline-danger:hover {
     background: var(--danger-soft) !important;
     transform: translateY(-1px) !important;
+    color: var(--danger) !important;
+    border-color: var(--danger) !important;
 }
 .btn-outline-warning {
     background: transparent !important;
     color: var(--warning) !important;
-    border: 1.5px solid var(--warning) !important;
+    border: 1px solid var(--border-strong) !important;
 }
 .btn-outline-warning:hover {
     background: var(--warning-soft) !important;
     transform: translateY(-1px) !important;
     color: var(--warning) !important;
+    border-color: var(--warning) !important;
 }
 .btn-outline-success {
     background: transparent !important;
     color: var(--success) !important;
-    border: 1.5px solid var(--success) !important;
+    border: 1px solid var(--border-strong) !important;
 }
 .btn-outline-success:hover {
     background: var(--success-soft) !important;
     transform: translateY(-1px) !important;
     color: var(--success) !important;
+    border-color: var(--success) !important;
 }
 
 /* btn-check activated state for dietary/filter radio groups */
@@ -524,38 +531,35 @@ p {
     background: var(--surface-primary);
     color: var(--text-secondary);
     font-weight: 600;
-    font-size: 0.82rem;
-    border: 1px solid var(--border-default);
-    border-radius: 50px;
-    padding: 0.45rem 1rem;
+    font-size: 0.85rem;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 0.5rem 1.25rem;
     transition: var(--transition-smooth);
-    box-shadow: var(--shadow-xs);
     cursor: pointer;
     white-space: nowrap;
     letter-spacing: 0.01em;
 }
 .btn-category:hover, .btn-filter:hover {
-    background: var(--brand-primary-soft);
+    background: var(--surface-hover);
     color: var(--brand-primary);
-    border-color: #B5CEBD;
     transform: translateY(-1px);
 }
 .btn-category.active-filter, .btn-filter.active-filter {
     background: var(--brand-primary);
     color: #FFFFFF;
     border-color: var(--brand-primary);
-    box-shadow: 0 4px 12px rgba(23, 63, 53, 0.22);
+    box-shadow: var(--shadow-sm);
 }
 .btn-filter {
     background: var(--surface-primary);
     color: var(--text-secondary);
     font-weight: 600;
-    font-size: 0.82rem;
+    font-size: 0.85rem;
     border: 1px solid var(--border-default);
-    border-radius: 50px;
-    padding: 0.45rem 1rem;
+    border-radius: 8px;
+    padding: 0.5rem 1.25rem;
     transition: var(--transition-smooth);
-    box-shadow: var(--shadow-xs);
 }
 
 /* ============================================================

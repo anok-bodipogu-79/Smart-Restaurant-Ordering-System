@@ -16,7 +16,7 @@
             <p class="small mb-0" style="color:var(--text-muted);">Secure Tracking ID: <code>{{ order.tracking_token }}</code></p>
         </div>
         <div>
-            <a href="{% url 'restaurant:menu' %}" class="btn btn-primary rounded-pill px-4">
+            <a href="{% url 'restaurant:menu' %}" class="btn btn-premium px-4 py-2">
                 <i class="bi bi-house-door me-1"></i> Return to Menu
             </a>
         </div>
@@ -177,20 +177,53 @@
                     <span class="fs-4 fw-bold" style="color:var(--accent-gold);">₹{{ grand_total }}</span>
                 </div>
 
-                <div class="mb-3">
-                    <a href="{% url 'restaurant:order_receipt' order.tracking_token %}" class="btn btn-outline-brand rounded-pill w-100 fw-bold py-2 text-uppercase btn-sm">
+                <div class="mb-3 d-flex flex-column gap-2">
+                    <a href="{% url 'restaurant:order_receipt' order.tracking_token %}" class="btn btn-outline-brand w-100 fw-bold py-2 text-uppercase btn-sm">
                         <i class="bi bi-file-earmark-text-fill me-1"></i> View Digital Receipt
+                    </a>
+                    <a href="{% url 'restaurant:order_receipt_pdf' order.tracking_token %}" class="btn btn-secondary w-100 fw-bold py-2 text-uppercase btn-sm">
+                        <i class="bi bi-download me-1"></i> Download PDF
                     </a>
                 </div>
 
                 {% if order.table_number %}
-                    <div class="alert alert-light border rounded-3 p-2 small mt-0 mb-0 text-center text-muted">
+                    <div class="alert alert-light border rounded-3 p-2 small mt-0 mb-4 text-center text-muted">
                         <i class="bi bi-tag-fill me-1"></i> Table #{{ order.table_number }} (Dine-in Order)
                     </div>
                 {% else %}
-                    <div class="alert alert-light border rounded-3 p-2 small mt-0 mb-0 text-center text-muted">
+                    <div class="alert alert-light border rounded-3 p-2 small mt-0 mb-4 text-center text-muted">
                         <i class="bi bi-bag-fill me-1"></i> Takeaway / Pickup Order
                     </div>
+                {% endif %}
+
+                {% if order.status == 'COMPLETED' %}
+                <div class="card bg-light border-0 rounded-4 p-3 mt-4">
+                    <h6 class="fw-bold mb-3" style="color:var(--brand-primary);">Rate Your Experience</h6>
+                    {% if order.feedback %}
+                        <div class="text-success small fw-bold">
+                            <i class="bi bi-check-circle-fill me-1"></i> Thank you! You rated this {{ order.feedback.rating }} stars.
+                        </div>
+                    {% else %}
+                        <form method="POST" action="{% url 'restaurant:submit_order_feedback' order.tracking_token %}">
+                            {% csrf_token %}
+                            <div class="mb-2 d-flex justify-content-between">
+                                {% for i in "12345" %}
+                                <div class="form-check form-check-inline m-0 p-0 text-center">
+                                    <input class="form-check-input d-none" type="radio" name="rating" id="rating{{ i }}" value="{{ i }}" required>
+                                    <label class="form-check-label px-2 py-1 border rounded-3 text-muted" for="rating{{ i }}" style="cursor:pointer;"
+                                           onclick="this.closest('form').querySelectorAll('label').forEach(l => {l.style.background='transparent'; l.style.borderColor='#dee2e6'; l.style.color='#6c757d'}); this.style.background='var(--brand-primary-soft)'; this.style.borderColor='var(--brand-primary)'; this.style.color='var(--brand-primary)';">
+                                        {{ i }} <i class="bi bi-star-fill text-warning"></i>
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div class="mb-2">
+                                <textarea name="comment" class="form-control form-control-sm rounded-3" rows="2" placeholder="Any comments? (Optional)"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-premium btn-sm w-100 fw-bold py-2">Submit Feedback</button>
+                        </form>
+                    {% endif %}
+                </div>
                 {% endif %}
             </div>
         </div>

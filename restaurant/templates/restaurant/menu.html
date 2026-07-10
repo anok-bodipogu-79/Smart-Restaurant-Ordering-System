@@ -4,220 +4,281 @@
 {% block title %}Menu{% endblock %}
 
 {% block content %}
-<div class="container py-2">
 
-    <!-- =============================================
-         EDITORIAL MENU HERO
-         ============================================= -->
-    <div class="text-center mb-4 mt-2" style="padding:1.5rem 0 0.5rem;">
-        <span style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent-gold);display:block;margin-bottom:0.6rem;">
-            <i class="bi bi-star-fill me-1" style="font-size:0.65rem;"></i>Our Restaurant
-        </span>
-        <h1 class="editorial-heading mb-2" style="font-size:clamp(2rem,5vw,3.25rem);">
-            Freshly prepared.<br>
-            <em>Thoughtfully served.</em>
+<!-- ============================================================
+     HERO SECTION — Split layout, compact ~380px height
+     ============================================================ -->
+<section class="sd-hero" aria-label="Welcome hero">
+    <div class="sd-hero-left">
+        <p class="sd-hero-eyebrow">Good Food. Great Experience.</p>
+        <h1 class="sd-hero-heading">
+            Made fresh.<br>
+            <span class="sd-hero-heading--green">Served with care.</span>
         </h1>
-        <p class="mx-auto mb-0" style="max-width:480px;color:var(--text-muted);font-size:0.95rem;line-height:1.65;">
-            Curated Indian delicacies, crafted from scratch for every order.
+        <p class="sd-hero-body">
+            Explore handcrafted Indian favourites,<br class="d-none d-md-block">
+            comforting classics, and refreshing drinks<br class="d-none d-md-block">
+            prepared for every craving.
         </p>
-        <div class="title-underline mx-auto mt-3"></div>
+        <a href="#menu-section" class="sd-btn-browse">
+            Browse Menu <i class="bi bi-arrow-right" aria-hidden="true"></i>
+        </a>
     </div>
 
-    <!-- =============================================
-         CHEF'S HIGHLIGHTS — Horizontal Scroll Section
-         Data: popular_ids from completed orders
-         Fallback: spicy available items
-         ============================================= -->
-    {% with featured_items=menu_items %}
-        {# Build a list of featured items: popular first, then spicy #}
-        {% if menu_items %}
-        <section class="featured-scroll-section" aria-label="Chef's Highlights">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div>
-                    <span class="section-label">
-                        <i class="bi bi-stars me-1"></i>Chef's Highlights
-                    </span>
-                    <h2 class="fw-700 mb-0 mt-1" style="font-size:1.15rem;color:var(--text-primary);">Popular &amp; Recommended</h2>
-                </div>
-                <div class="d-flex gap-2">
-                    <button class="featured-scroll-btn" id="scroll-left-btn" aria-label="Scroll left">
-                        <i class="bi bi-chevron-left" style="font-size:0.85rem;"></i>
-                    </button>
-                    <button class="featured-scroll-btn" id="scroll-right-btn" aria-label="Scroll right">
-                        <i class="bi bi-chevron-right" style="font-size:0.85rem;"></i>
-                    </button>
-                </div>
-            </div>
+    <div class="sd-hero-right" aria-hidden="true" id="hero-carousel-container">
+        <!-- Curved divider element -->
+        <div class="sd-hero-curve"></div>
 
-            <div class="featured-scroll-track" id="featured-scroll-track" role="list">
-                {% for item in menu_items %}
-                    {% if item.is_available %}
-                        {% if item.id in popular_ids %}
-                        <div class="featured-item-card" role="listitem"
-                             onclick="document.getElementById('item-card-{{ item.id }}')?.scrollIntoView({behavior:'smooth',block:'center'})"
-                             title="{{ item.name }}">
-                            <div class="featured-img-wrap">
-                                <img src="{{ item.display_image_url }}" alt="{{ item.name }}" class="featured-img" loading="lazy">
-                                <!-- Diet dot on featured image -->
-                                <span class="badge-diet-pill {% if item.is_vegetarian %}badge-diet-veg{% else %}badge-diet-nonveg{% endif %}"
-                                      style="top:8px;left:8px;">
-                                    <span style="width:6px;height:6px;border-radius:50%;background:#fff;display:inline-block;flex-shrink:0;"></span>
-                                    {% if item.is_vegetarian %}Veg{% else %}Non-Veg{% endif %}
-                                </span>
-                            </div>
-                            <div class="featured-item-info">
-                                <div class="d-flex justify-content-between align-items-start mb-1 gap-1">
-                                    <span class="featured-item-name">{{ item.name }}</span>
-                                    <span class="featured-item-price flex-shrink-0">₹{{ item.price }}</span>
-                                </div>
-                                <div class="d-flex gap-1 flex-wrap mt-1">
-                                    <span class="featured-item-tag featured-tag-popular">
-                                        <i class="bi bi-star-fill" style="font-size:0.6rem;"></i>Popular
-                                    </span>
-                                    {% if item.is_spicy %}
-                                    <span class="featured-item-tag featured-tag-spicy">
-                                        <i class="bi bi-fire" style="font-size:0.6rem;"></i>Spicy
-                                    </span>
-                                    {% endif %}
-                                    {% if item.is_vegetarian %}
-                                    <span class="featured-item-tag featured-tag-veg">Veg</span>
-                                    {% endif %}
-                                </div>
-                            </div>
+        <div class="sd-carousel-track" id="hero-carousel-track">
+            {% for item in featured_items %}
+                <div class="sd-carousel-slide {% if forloop.first %}active{% endif %}" data-slide-index="{{ forloop.counter0 }}" data-item-id="{{ item.id }}">
+                    <img src="{{ item.display_image_url }}" alt="Featured dish: {{ item.name }}" class="sd-hero-img" onclick="document.getElementById('item-card-{{ item.id }}')?.scrollIntoView({behavior: 'smooth', block: 'center'});" style="cursor: pointer;" title="Click to view in menu">
+                    <!-- Chef's Pick floating card -->
+                    <div class="sd-chefs-pick-card" onclick="document.getElementById('item-card-{{ item.id }}')?.scrollIntoView({behavior: 'smooth', block: 'center'});" style="cursor: pointer;" title="Click to view in menu">
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="sd-chefs-pick-star me-2">★ Chef's Pick</span>
+                            <span class="sd-diet-badge {% if item.is_vegetarian %}sd-diet-badge--veg{% else %}sd-diet-badge--nonveg{% endif %}" style="padding: 2px 6px; font-size: 0.6rem; position: static;">
+                                {% if item.is_vegetarian %}VEG{% else %}NON-VEG{% endif %}
+                            </span>
                         </div>
-                        {% endif %}
-                    {% endif %}
-                {% endfor %}
-                {% for item in menu_items %}
-                    {% if item.is_available and item.is_spicy %}
-                        {% if not item.id in popular_ids %}
-                        <div class="featured-item-card" role="listitem"
-                             onclick="document.getElementById('item-card-{{ item.id }}')?.scrollIntoView({behavior:'smooth',block:'center'})"
-                             title="{{ item.name }}">
-                            <div class="featured-img-wrap">
-                                <img src="{{ item.display_image_url }}" alt="{{ item.name }}" class="featured-img" loading="lazy">
-                                <span class="badge-diet-pill {% if item.is_vegetarian %}badge-diet-veg{% else %}badge-diet-nonveg{% endif %}"
-                                      style="top:8px;left:8px;">
-                                    <span style="width:6px;height:6px;border-radius:50%;background:#fff;display:inline-block;flex-shrink:0;"></span>
-                                    {% if item.is_vegetarian %}Veg{% else %}Non-Veg{% endif %}
-                                </span>
-                            </div>
-                            <div class="featured-item-info">
-                                <div class="d-flex justify-content-between align-items-start mb-1 gap-1">
-                                    <span class="featured-item-name">{{ item.name }}</span>
-                                    <span class="featured-item-price flex-shrink-0">₹{{ item.price }}</span>
-                                </div>
-                                <div class="d-flex gap-1 flex-wrap mt-1">
-                                    <span class="featured-item-tag featured-tag-spicy">
-                                        <i class="bi bi-fire" style="font-size:0.6rem;"></i>Spicy
-                                    </span>
-                                    {% if item.is_vegetarian %}
-                                    <span class="featured-item-tag featured-tag-veg">Veg</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-                    {% endif %}
-                {% endfor %}
-            </div>
-        </section>
-        {% endif %}
-    {% endwith %}
-
-    <!-- =============================================
-         COMPACT FILTER TOOLBAR
-         ============================================= -->
-    <div class="card border-0 shadow-sm p-3 mb-4" style="border-radius:16px;background:var(--surface-primary);">
-        <div class="row g-2 align-items-center">
-
-            <!-- Search -->
-            <div class="col-12 col-md-4">
-                <label for="menu-search-input" class="visually-hidden">Search dishes</label>
-                <div class="input-group" style="height:40px;">
-                    <span class="input-group-text" style="height:40px;border-radius:10px 0 0 10px;">
-                        <i class="bi bi-search" style="font-size:0.85rem;"></i>
-                    </span>
-                    <input type="text" id="menu-search-input" class="form-control"
-                           placeholder="Search dishes…" aria-label="Search dishes"
-                           style="height:40px;border-radius:0 10px 10px 0;min-height:unset;padding:0.4rem 0.8rem !important;">
+                        <p class="sd-chefs-pick-name">{{ item.name }}</p>
+                        <p class="sd-chefs-pick-price mb-1">₹{{ item.price }}</p>
+                        <p class="mb-0 small text-muted-sm" style="color: rgba(255,255,255,0.7);">{{ item.category.name }}</p>
+                    </div>
                 </div>
-            </div>
-
-            <!-- Dietary toggle -->
-            <div class="col-auto">
-                <div class="btn-group btn-group-sm" role="group" aria-label="Dietary filter">
-                    <input type="radio" class="btn-check" name="dietary-filter" id="diet-all" value="all" checked>
-                    <label class="btn btn-outline-secondary" for="diet-all" style="font-size:0.8rem;padding:0.4rem 0.8rem;">All</label>
-                    <input type="radio" class="btn-check" name="dietary-filter" id="diet-veg" value="veg">
-                    <label class="btn btn-outline-secondary" for="diet-veg" style="font-size:0.8rem;padding:0.4rem 0.8rem;">
-                        <span style="color:var(--success);margin-right:3px;">●</span>Veg
-                    </label>
-                    <input type="radio" class="btn-check" name="dietary-filter" id="diet-nonveg" value="nonveg">
-                    <label class="btn btn-outline-secondary" for="diet-nonveg" style="font-size:0.8rem;padding:0.4rem 0.8rem;">
-                        <span style="color:var(--danger);margin-right:3px;">●</span>Non-Veg
-                    </label>
-                </div>
-            </div>
-
-            <!-- Spicy toggle -->
-            <div class="col-auto">
-                <input type="checkbox" class="btn-check" id="spicy-toggle" autocomplete="off">
-                <label class="btn btn-outline-warning btn-sm" for="spicy-toggle" style="font-size:0.8rem;padding:0.4rem 0.85rem;">
-                    <i class="bi bi-fire me-1"></i>Spicy
-                </label>
-            </div>
-
-            <!-- Popular toggle -->
-            <div class="col-auto">
-                <input type="checkbox" class="btn-check" id="popular-toggle" autocomplete="off">
-                <label class="btn btn-outline-secondary btn-sm" for="popular-toggle" style="font-size:0.8rem;padding:0.4rem 0.85rem;color:var(--accent-gold);border-color:var(--accent-gold);">
-                    <i class="bi bi-star-fill me-1" style="font-size:0.7rem;"></i>Popular
-                </label>
-            </div>
-
-            <!-- Sort -->
-            <div class="col-auto ms-md-auto">
-                <select id="menu-sort-select" class="form-select form-select-sm"
-                        aria-label="Sort menu items" style="min-height:unset;height:36px;font-size:0.82rem;">
-                    <option value="default" selected>Sort: Default</option>
-                    <option value="price-asc">Price: Low → High</option>
-                    <option value="price-desc">Price: High → Low</option>
-                    <option value="name-asc">Name: A → Z</option>
-                    <option value="name-desc">Name: Z → A</option>
-                    <option value="popular">Most Popular</option>
-                </select>
-            </div>
+            {% endfor %}
         </div>
 
-        <!-- Category pills row -->
-        <div class="d-flex flex-wrap gap-2 mt-3 pt-3 border-top align-items-center">
+        <!-- Carousel Indicators -->
+        <div class="sd-carousel-indicators" id="hero-carousel-indicators">
+            {% for item in featured_items %}
+                <button type="button" class="sd-carousel-dot {% if forloop.first %}active{% endif %}" data-slide-to="{{ forloop.counter0 }}" aria-label="Slide {{ forloop.counter }}"></button>
+            {% endfor %}
+        </div>
+
+        <script>
+        (function(){
+            const container = document.getElementById('hero-carousel-container');
+            const track = document.getElementById('hero-carousel-track');
+            const indicatorsContainer = document.getElementById('hero-carousel-indicators');
+            if (!container || !track || !indicatorsContainer) return;
+            
+            const slides = track.querySelectorAll('.sd-carousel-slide');
+            const dots = indicatorsContainer.querySelectorAll('.sd-carousel-dot');
+            if (slides.length <= 1) return; // No rotation needed
+            
+            let currentIndex = 0;
+            const totalSlides = slides.length;
+            let autoRotateInterval;
+            let isHovered = false;
+
+            function goToSlide(index) {
+                slides.forEach(s => s.classList.remove('active'));
+                dots.forEach(d => d.classList.remove('active'));
+                
+                slides[index].classList.add('active');
+                dots[index].classList.add('active');
+                currentIndex = index;
+            }
+
+            function nextSlide() {
+                if (isHovered) return;
+                let nextIndex = (currentIndex + 1) % totalSlides;
+                goToSlide(nextIndex);
+            }
+
+            function startAutoRotate() {
+                stopAutoRotate();
+                autoRotateInterval = setInterval(nextSlide, 6000);
+            }
+
+            function stopAutoRotate() {
+                if (autoRotateInterval) clearInterval(autoRotateInterval);
+            }
+
+            // Bind manual dots
+            dots.forEach((dot, i) => {
+                dot.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    goToSlide(i);
+                    startAutoRotate(); // reset timer
+                });
+            });
+
+            // Pause on hover
+            container.addEventListener('mouseenter', () => isHovered = true);
+            container.addEventListener('mouseleave', () => isHovered = false);
+
+            startAutoRotate();
+        })();
+        </script>
+    </div>
+</section>
+
+<!-- ============================================================
+     MAIN MENU SECTION
+     ============================================================ -->
+<div class="sd-page-wrap" id="menu-section">
+
+    <!-- ---- SEARCH / FILTER / SORT TOOLBAR ---- -->
+    <div class="sd-toolbar">
+        <!-- Search -->
+        <div class="sd-search-wrap">
+            <i class="bi bi-search sd-search-icon" aria-hidden="true"></i>
+            <input type="text"
+                   id="menu-search-input"
+                   class="sd-search-input"
+                   placeholder="Search dishes, categories or flavours..."
+                   aria-label="Search dishes, categories or flavours">
+        </div>
+
+        <!-- Filters button -->
+        <button type="button" class="sd-filters-btn" id="filters-toggle-btn" aria-expanded="false" aria-controls="sd-filters-panel">
+            <i class="bi bi-sliders" aria-hidden="true"></i>
+            Filters
+        </button>
+
+        <!-- Sort -->
+        <div class="sd-sort-wrap ms-auto">
+            <label for="menu-sort-select" class="visually-hidden">Sort</label>
+            <select id="menu-sort-select" class="sd-sort-select" aria-label="Sort menu items">
+                <option value="default" selected>Sort: Popular</option>
+                <option value="price-asc">Price: Low → High</option>
+                <option value="price-desc">Price: High → Low</option>
+                <option value="name-asc">Name: A → Z</option>
+                <option value="name-desc">Name: Z → A</option>
+                <option value="popular">Most Popular</option>
+            </select>
+            <i class="bi bi-chevron-down sd-sort-caret" aria-hidden="true"></i>
+        </div>
+    </div>
+
+    <!-- ---- CATEGORY + DIETARY FILTER ROW ---- -->
+    <div class="sd-filter-row" id="sd-filters-panel">
+        <!-- Category filters -->
+        <div class="sd-category-filters" role="group" aria-label="Category filter">
             <button type="button" data-category-id="all"
-                    class="btn-category btn-filter {% if not active_category %}active-filter{% endif %}">
-                <i class="bi bi-grid-fill me-1" style="font-size:0.8rem;"></i>All
+                    class="sd-cat-btn {% if not active_category %}sd-cat-btn--active{% endif %}">
+                All
             </button>
             {% for cat in categories %}
-                <button type="button" data-category-id="{{ cat.id }}"
-                        class="btn-category btn-filter {% if active_category.id == cat.id %}active-filter{% endif %}">
-                    {% if cat.icon %}<i class="bi {{ cat.icon }} me-1" style="font-size:0.8rem;"></i>{% endif %}
-                    {{ cat.name }}
-                </button>
+            <button type="button" data-category-id="{{ cat.id }}"
+                    class="sd-cat-btn {% if active_category.id == cat.id %}sd-cat-btn--active{% endif %}">
+                {{ cat.name }}
+            </button>
             {% endfor %}
-            <div class="ms-auto d-flex align-items-center gap-2">
-                <span id="results-count" class="text-xs fw-bold" style="color:var(--text-muted);">0 dishes</span>
-                <button type="button" id="reset-filters-btn" class="btn btn-sage btn-sm rounded-pill" style="font-size:0.78rem;padding:0.3rem 0.85rem;">
-                    <i class="bi bi-x-circle me-1" style="font-size:0.75rem;"></i>Reset
-                </button>
-            </div>
+        </div>
+
+        <!-- Spacer -->
+        <div class="sd-filter-spacer" aria-hidden="true"></div>
+
+        <!-- Dietary filters -->
+        <div class="sd-dietary-filters" role="group" aria-label="Dietary filter">
+            <input type="radio" name="dietary-filter" id="diet-all" value="all" class="sd-diet-radio" checked>
+            <label for="diet-all" class="sd-diet-label">All</label>
+
+            <input type="radio" name="dietary-filter" id="diet-veg" value="veg" class="sd-diet-radio">
+            <label for="diet-veg" class="sd-diet-label sd-diet-label--veg">
+                <span class="sd-diet-dot sd-diet-dot--veg" aria-hidden="true"></span>Veg
+            </label>
+
+            <input type="radio" name="dietary-filter" id="diet-nonveg" value="nonveg" class="sd-diet-radio">
+            <label for="diet-nonveg" class="sd-diet-label sd-diet-label--nonveg">
+                <span class="sd-diet-dot sd-diet-dot--nonveg" aria-hidden="true"></span>Non-Veg
+            </label>
+
+            <input type="checkbox" id="spicy-toggle" class="sd-diet-radio" autocomplete="off">
+            <label for="spicy-toggle" class="sd-diet-label sd-diet-label--spicy">
+                🔥 Spicy
+            </label>
+
+            <input type="checkbox" id="popular-toggle" class="sd-diet-radio" autocomplete="off">
+            <label for="popular-toggle" class="sd-diet-label sd-diet-label--popular">
+                ⭐ Popular
+            </label>
         </div>
     </div>
 
-    <!-- =============================================
-         FOOD CARDS GRID
-         ============================================= -->
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-4" id="menu-items-grid">
-        {% for item in menu_items %}
-            <div class="col menu-item-col"
+    <!-- ============================================================
+         POPULAR RIGHT NOW
+         ============================================================ -->
+    {% if menu_items %}
+    <section class="sd-popular-section" aria-label="Popular right now">
+        <div class="sd-section-header">
+            <h2 class="sd-section-title">POPULAR RIGHT NOW</h2>
+            <div class="sd-carousel-controls">
+                <button class="sd-carousel-btn" id="popular-scroll-left" aria-label="Scroll popular left">
+                    <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                </button>
+                <button class="sd-carousel-btn" id="popular-scroll-right" aria-label="Scroll popular right">
+                    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="sd-popular-track" id="popular-track" role="list">
+            {% for item in menu_items %}
+                {% if item.is_available and item.id in popular_ids %}
+                <div class="sd-popular-card" role="listitem"
+                     onclick="document.getElementById('item-card-{{ item.id }}')?.scrollIntoView({behavior:'smooth',block:'center'})"
+                     title="{{ item.name }}"
+                     tabindex="0">
+                    <div class="sd-popular-img-wrap">
+                        <img src="{{ item.display_image_url }}" alt="{{ item.name }}" class="sd-popular-img" loading="lazy">
+                    </div>
+                    <div class="sd-popular-info">
+                        <div class="sd-popular-row">
+                            <span class="sd-popular-name">{{ item.name }}</span>
+                            <span class="sd-popular-price">₹{{ item.price }}</span>
+                        </div>
+                        <p class="sd-popular-meta">
+                            {{ item.category.name }}{% if item.is_spicy %} • <span style="color:#e65c00;">Spicy</span>{% elif item.is_vegetarian %} • Veg{% endif %}
+                        </p>
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+            <!-- Fallback: show top spicy items if no popular_ids -->
+            {% for item in menu_items %}
+                {% if item.is_available and item.is_spicy %}
+                    {% if not item.id in popular_ids %}
+                    <div class="sd-popular-card" role="listitem"
+                         onclick="document.getElementById('item-card-{{ item.id }}')?.scrollIntoView({behavior:'smooth',block:'center'})"
+                         title="{{ item.name }}"
+                         tabindex="0">
+                        <div class="sd-popular-img-wrap">
+                            <img src="{{ item.display_image_url }}" alt="{{ item.name }}" class="sd-popular-img" loading="lazy">
+                        </div>
+                        <div class="sd-popular-info">
+                            <div class="sd-popular-row">
+                                <span class="sd-popular-name">{{ item.name }}</span>
+                                <span class="sd-popular-price">₹{{ item.price }}</span>
+                            </div>
+                            <p class="sd-popular-meta">
+                                {{ item.category.name }} • <span style="color:#e65c00;">Spicy</span>
+                            </p>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ============================================================
+         EXPLORE OUR MENU
+         ============================================================ -->
+    <section aria-label="Full menu">
+        <div class="sd-section-header sd-explore-header">
+            <h2 class="sd-section-title">EXPLORE OUR MENU</h2>
+            <span class="sd-results-count" id="results-count" aria-live="polite">0 dishes</span>
+        </div>
+
+        <!-- Menu Grid -->
+        <div class="sd-menu-grid" id="menu-items-grid">
+            {% for item in menu_items %}
+            <div class="sd-menu-col menu-item-col {% if not item.is_available %}sd-menu-col--unavailable{% endif %}"
                  id="item-card-{{ item.id }}"
                  data-id="{{ item.id }}"
                  data-item-name="{{ item.name|escapejs }}"
@@ -231,148 +292,148 @@
                  data-completed-quantity="{{ item.completed_quantity }}"
                  data-default-order="{{ forloop.counter }}">
 
-                <div class="food-card h-100 {% if not item.is_available %}unavailable-card{% endif %}">
-
-                    <!-- Food Image -->
-                    <div class="card-img-container">
+                <article class="sd-food-card">
+                    <!-- Image -->
+                    <div class="sd-food-img-wrap">
                         <img src="{{ item.display_image_url }}"
-                             class="food-image"
                              alt="{{ item.name }}"
+                             class="sd-food-img"
                              loading="lazy">
 
-                        <!-- ONLY Veg/Non-Veg on image — small translucent pill -->
-                        <span class="badge-diet-pill {% if item.is_vegetarian %}badge-diet-veg{% else %}badge-diet-nonveg{% endif %}">
-                            <span style="width:6px;height:6px;border-radius:50%;background:#fff;display:inline-block;flex-shrink:0;"></span>
-                            {% if item.is_vegetarian %}Veg{% else %}Non-Veg{% endif %}
+                        <!-- Dietary dot badge -->
+                        <span class="sd-diet-badge {% if item.is_vegetarian %}sd-diet-badge--veg{% else %}sd-diet-badge--nonveg{% endif %}"
+                              aria-label="{% if item.is_vegetarian %}Vegetarian{% else %}Non-Vegetarian{% endif %}">
+                            <span class="sd-diet-badge-dot" aria-hidden="true"></span>
+                            {% if item.is_vegetarian %}VEG{% else %}NON-VEG{% endif %}
                         </span>
 
                         {% if not item.is_available %}
-                        <div class="unavailable-overlay">
-                            <span style="background:rgba(28,25,23,0.75);color:#fff;padding:0.4rem 1.2rem;border-radius:50px;font-size:0.82rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;">
-                                Sold Out
-                            </span>
+                        <div class="sd-sold-out-overlay" aria-label="Sold out">
+                            <span>Sold Out</span>
                         </div>
                         {% endif %}
                     </div>
 
                     <!-- Card Body -->
-                    <div class="card-body d-flex flex-column p-3">
-
-                        <!-- Name + Price -->
-                        <div class="d-flex justify-content-between align-items-start mb-1 gap-2">
-                            <h5 class="fw-bold mb-0" style="font-size:0.95rem;color:var(--text-primary);line-height:1.3;">{{ item.name }}</h5>
-                            <span class="card-price flex-shrink-0">₹{{ item.price }}</span>
+                    <div class="sd-food-body">
+                        <!-- Name + Price row -->
+                        <div class="sd-food-nameprice">
+                            <h3 class="sd-food-name">{{ item.name }}</h3>
+                            <span class="sd-food-price">₹{{ item.price }}</span>
                         </div>
 
-                        <!-- Description -->
-                        <p class="flex-grow-1 mb-2" style="font-size:0.8rem;color:var(--text-muted);line-height:1.5;">{{ item.description }}</p>
+                        <!-- Short Description -->
+                        <p class="sd-food-desc">
+                            {{ item.description|default:"" }}
+                        </p>
 
-                        <!-- Attribute Chips — SPICY and POPULAR moved here, out of image -->
-                        {% if item.is_spicy or item.id in popular_ids %}
-                        <div class="food-attr-chips">
-                            {% if item.is_spicy %}
-                            <span class="chip chip-spicy">
-                                <i class="bi bi-fire" style="font-size:0.65rem;"></i>Spicy
-                            </span>
-                            {% endif %}
-                            {% if item.id in popular_ids %}
-                            <span class="chip chip-popular">
-                                <i class="bi bi-star-fill" style="font-size:0.6rem;"></i>Popular
-                            </span>
-                            {% endif %}
-                        </div>
-                        {% else %}
-                        <div style="height:24px;margin-bottom:0.75rem;"></div>
-                        {% endif %}
+                        <!-- Meta: category + attribute -->
+                        <p class="sd-food-meta">
+                            {{ item.category.name }}{% if item.is_spicy %} • <span class="sd-meta-spicy">Spicy</span>{% elif item.is_vegetarian and not item.is_spicy %} • <span class="sd-meta-creamy">Veg</span>{% endif %}{% if item.id in popular_ids %} • <span class="sd-meta-popular">Popular</span>{% endif %}
+                        </p>
 
-                        <!-- Add to Cart -->
-                        <div class="mt-auto">
+                        <!-- Add to Order / Quantity Controller -->
+                        <div class="sd-order-ctrl" data-item-id="{{ item.id }}">
                             {% if item.is_available %}
+                            <!-- Add button (initial state) -->
+                            <button type="button"
+                                    class="sd-add-btn btn-add-cart"
+                                    id="add-btn-{{ item.id }}"
+                                    data-item-id="{{ item.id }}"
+                                    data-item-name="{{ item.name }}"
+                                    data-item-price="{{ item.price }}"
+                                    aria-label="Add {{ item.name }} to order">
+                                Add to Order
+                                <i class="bi bi-plus" aria-hidden="true"></i>
+                            </button>
+
+                            <!-- Quantity controller (shown after adding) -->
+                            <div class="sd-qty-ctrl d-none"
+                                 id="qty-ctrl-{{ item.id }}"
+                                 aria-label="Quantity for {{ item.name }}">
                                 <button type="button"
-                                        class="btn-add-cart"
+                                        class="sd-qty-btn btn-qty-dec"
                                         data-item-id="{{ item.id }}"
-                                        data-item-name="{{ item.name }}"
-                                        data-item-price="{{ item.price }}"
-                                        aria-label="Add {{ item.name }} to cart">
-                                    <i class="bi bi-plus-lg" style="font-size:0.85rem;"></i>Add to Cart
+                                        aria-label="Decrease quantity">
+                                    <i class="bi bi-dash" aria-hidden="true"></i>
                                 </button>
+                                <span class="sd-qty-num" id="qty-display-{{ item.id }}">1</span>
+                                <button type="button"
+                                        class="sd-qty-btn btn-qty-inc"
+                                        data-item-id="{{ item.id }}"
+                                        aria-label="Increase quantity">
+                                    <i class="bi bi-plus" aria-hidden="true"></i>
+                                </button>
+                            </div>
                             {% else %}
-                                <button type="button" class="btn btn-secondary w-100 rounded-3" disabled
-                                        style="font-size:0.82rem;opacity:0.55;cursor:not-allowed;">
-                                    Unavailable
-                                </button>
+                            <button type="button" class="sd-unavailable-btn" disabled aria-label="{{ item.name }} is unavailable">
+                                Unavailable
+                            </button>
                             {% endif %}
                         </div>
                     </div>
-                </div>
+                </article>
             </div>
-        {% empty %}
-            <div class="col-12 text-center py-5">
-                <div style="background:var(--surface-primary);border:1px solid var(--border-default);border-radius:16px;padding:3rem 2rem;">
-                    <i class="bi bi-journal-x fs-1 d-block mb-3" style="color:var(--text-disabled);"></i>
-                    <h3 class="fw-bold" style="color:var(--text-primary);">No Menu Items Found</h3>
-                    <p class="text-muted">No items are currently available in this category. Please check back later!</p>
-                    <a href="{% url 'restaurant:menu' %}" class="btn btn-primary mt-2 rounded-pill px-4">
-                        <i class="bi bi-arrow-left me-1"></i>View All Items
-                    </a>
-                </div>
+            {% empty %}
+            <div class="sd-empty-state col-span-4">
+                <i class="bi bi-journal-x" aria-hidden="true"></i>
+                <h3>No Menu Items Found</h3>
+                <p>No items are currently available. Please check back later!</p>
+                <a href="{% url 'restaurant:menu' %}" class="sd-btn-primary">View All Items</a>
             </div>
-        {% endfor %}
-    </div>
+            {% endfor %}
 
-</div>
+            <!-- No results state (JS-injected) -->
+            <div id="no-results-state" class="sd-empty-state col-span-4" style="display:none;">
+                <i class="bi bi-search" aria-hidden="true"></i>
+                <h3>No Matching Dishes</h3>
+                <p>Try adjusting your search or filters.</p>
+                <button type="button" class="sd-btn-primary" id="no-results-reset-btn">
+                    <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Reset Filters
+                </button>
+            </div>
+        </div>
+    </section>
+
+</div><!-- .sd-page-wrap -->
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-    // Featured items scroll buttons
-    const track = document.getElementById("featured-scroll-track");
-    const leftBtn = document.getElementById("scroll-left-btn");
-    const rightBtn = document.getElementById("scroll-right-btn");
-    const SCROLL_AMOUNT = 260;
+"use strict";
+document.addEventListener("DOMContentLoaded", function() {
 
-    if (track && leftBtn && rightBtn) {
-        leftBtn.addEventListener("click", () => {
-            track.scrollBy({ left: -SCROLL_AMOUNT, behavior: "smooth" });
+    // ---- Popular carousel ----
+    const popularTrack = document.getElementById("popular-track");
+    const popularLeft  = document.getElementById("popular-scroll-left");
+    const popularRight = document.getElementById("popular-scroll-right");
+    const SCROLL_AMT = 300;
+
+    if (popularTrack && popularLeft && popularRight) {
+        popularLeft.addEventListener("click", () => {
+            popularTrack.scrollBy({ left: -SCROLL_AMT, behavior: "smooth" });
         });
-        rightBtn.addEventListener("click", () => {
-            track.scrollBy({ left: SCROLL_AMOUNT, behavior: "smooth" });
+        popularRight.addEventListener("click", () => {
+            popularTrack.scrollBy({ left: SCROLL_AMT, behavior: "smooth" });
         });
     }
 
-    // =========================================================
-    // MENU FILTERING & SORTING (preserving all existing logic)
-    // =========================================================
-    const searchInput = document.getElementById("menu-search-input");
-    const dietaryRadios = document.querySelectorAll('input[name="dietary-filter"]');
-    const spicyToggle = document.getElementById("spicy-toggle");
-    const popularToggle = document.getElementById("popular-toggle");
-    const sortSelect = document.getElementById("menu-sort-select");
-    const resultsCount = document.getElementById("results-count");
-    const resetFiltersBtn = document.getElementById("reset-filters-btn");
-    const categoryButtons = document.querySelectorAll(".btn-category");
-    const menuGrid = document.getElementById("menu-items-grid");
-    const itemCols = Array.from(document.querySelectorAll(".menu-item-col"));
+    // ---- Filter / search logic ----
+    const searchInput    = document.getElementById("menu-search-input");
+    const dietaryRadios  = document.querySelectorAll('input[name="dietary-filter"]');
+    const spicyToggle    = document.getElementById("spicy-toggle");
+    const popularToggle  = document.getElementById("popular-toggle");
+    const sortSelect     = document.getElementById("menu-sort-select");
+    const resultsCount   = document.getElementById("results-count");
+    const categoryButtons = document.querySelectorAll(".sd-cat-btn");
+    const menuGrid       = document.getElementById("menu-items-grid");
+    const itemCols       = Array.from(document.querySelectorAll(".menu-item-col"));
 
-    // Fallback/empty state container
-    let emptyStateContainer = document.getElementById("no-results-state");
-    if (!emptyStateContainer) {
-        emptyStateContainer = document.createElement("div");
-        emptyStateContainer.id = "no-results-state";
-        emptyStateContainer.className = "col-12 text-center py-5 d-none";
-        emptyStateContainer.innerHTML = `
-            <div style="background:var(--surface-primary);border:1px solid var(--border-default);border-radius:16px;padding:3rem 2rem;">
-                <i class="bi bi-journal-x fs-1 d-block mb-3" style="color:var(--text-disabled);"></i>
-                <h3 class="fw-bold" style="color:var(--text-primary);">No Matching Items</h3>
-                <p style="color:var(--text-muted);">No dishes match your current filters.</p>
-                <button type="button" class="btn btn-primary mt-2 rounded-pill px-4" id="no-results-reset-btn">
-                    <i class="bi bi-arrow-counterclockwise me-1"></i>Reset Filters
-                </button>
-            </div>
-        `;
-        menuGrid.appendChild(emptyStateContainer);
-        document.getElementById("no-results-reset-btn").addEventListener("click", resetAllFilters);
+    const noResultsState = document.getElementById("no-results-state");
+    if (noResultsState) {
+        const resetBtn = document.getElementById("no-results-reset-btn");
+        if (resetBtn) resetBtn.addEventListener("click", resetAllFilters);
     }
 
     const state = {
@@ -384,133 +445,136 @@ document.addEventListener("DOMContentLoaded", () => {
         sort: "default"
     };
 
+    // Restore category from URL param
     const urlParams = new URLSearchParams(window.location.search);
-    const initialCategory = urlParams.get("category");
-    if (initialCategory) {
-        state.category = initialCategory;
-    }
+    const initCat = urlParams.get("category");
+    if (initCat) state.category = initCat;
+    updateCategoryActiveState();
 
-    updateCategoryButtonsActiveState();
-
-    searchInput.addEventListener("input", (e) => {
-        state.search = e.target.value.toLowerCase().trim();
-        applyFiltersAndSort();
-    });
-    dietaryRadios.forEach(radio => {
-        radio.addEventListener("change", (e) => {
-            state.dietary = e.target.value;
+    // Event listeners
+    if (searchInput) {
+        searchInput.addEventListener("input", (e) => {
+            state.search = e.target.value.toLowerCase().trim();
             applyFiltersAndSort();
         });
+    }
+    dietaryRadios.forEach(r => {
+        r.addEventListener("change", (e) => {
+            if (e.target.name === "dietary-filter") {
+                state.dietary = e.target.value;
+                applyFiltersAndSort();
+            }
+        });
     });
-    spicyToggle.addEventListener("change", (e) => {
-        state.spicy = e.target.checked;
-        applyFiltersAndSort();
-    });
-    popularToggle.addEventListener("change", (e) => {
-        state.popular = e.target.checked;
-        applyFiltersAndSort();
-    });
-    sortSelect.addEventListener("change", (e) => {
-        state.sort = e.target.value;
-        applyFiltersAndSort();
-    });
-    resetFiltersBtn.addEventListener("click", resetAllFilters);
+    if (spicyToggle) {
+        spicyToggle.addEventListener("change", (e) => {
+            state.spicy = e.target.checked;
+            applyFiltersAndSort();
+        });
+    }
+    if (popularToggle) {
+        popularToggle.addEventListener("change", (e) => {
+            state.popular = e.target.checked;
+            applyFiltersAndSort();
+        });
+    }
+    if (sortSelect) {
+        sortSelect.addEventListener("change", (e) => {
+            state.sort = e.target.value;
+            applyFiltersAndSort();
+        });
+    }
 
     categoryButtons.forEach(btn => {
         btn.addEventListener("click", () => {
-            const categoryId = btn.dataset.categoryId;
-            state.category = categoryId;
+            state.category = btn.dataset.categoryId;
             const newUrl = new URL(window.location.href);
-            if (categoryId === "all") {
+            if (state.category === "all") {
                 newUrl.searchParams.delete("category");
             } else {
-                newUrl.searchParams.set("category", categoryId);
+                newUrl.searchParams.set("category", state.category);
             }
             window.history.pushState({}, "", newUrl);
-            updateCategoryButtonsActiveState();
+            updateCategoryActiveState();
             applyFiltersAndSort();
         });
     });
 
-    function updateCategoryButtonsActiveState() {
+    function updateCategoryActiveState() {
         categoryButtons.forEach(btn => {
-            if (btn.dataset.categoryId === state.category) {
-                btn.classList.add("active-filter");
-            } else {
-                btn.classList.remove("active-filter");
-            }
+            btn.classList.toggle("sd-cat-btn--active", btn.dataset.categoryId === state.category);
         });
     }
 
     function resetAllFilters() {
-        searchInput.value = "";
+        if (searchInput) searchInput.value = "";
         state.search = "";
-        document.getElementById("diet-all").checked = true;
+        const dietAll = document.getElementById("diet-all");
+        if (dietAll) dietAll.checked = true;
         state.dietary = "all";
-        spicyToggle.checked = false;
+        if (spicyToggle) { spicyToggle.checked = false; }
         state.spicy = false;
-        popularToggle.checked = false;
+        if (popularToggle) { popularToggle.checked = false; }
         state.popular = false;
-        sortSelect.value = "default";
+        if (sortSelect) sortSelect.value = "default";
         state.sort = "default";
         state.category = "all";
         const newUrl = new URL(window.location.href);
         newUrl.searchParams.delete("category");
         window.history.pushState({}, "", newUrl);
-        updateCategoryButtonsActiveState();
+        updateCategoryActiveState();
         applyFiltersAndSort();
     }
 
     function applyFiltersAndSort() {
         let visibleCount = 0;
+
         itemCols.forEach(col => {
-            const name = col.dataset.itemName.toLowerCase();
-            const desc = col.dataset.itemDescription.toLowerCase();
-            const catId = col.dataset.categoryId;
-            const isVeg = col.dataset.vegetarian === "true";
+            const name    = (col.dataset.itemName || "").toLowerCase();
+            const desc    = (col.dataset.itemDescription || "").toLowerCase();
+            const catId   = col.dataset.categoryId;
+            const isVeg   = col.dataset.vegetarian === "true";
             const isSpicy = col.dataset.spicy === "true";
-            const isPopular = col.dataset.popular === "true";
+            const isPop   = col.dataset.popular === "true";
 
-            const matchSearch = !state.search || name.includes(state.search) || desc.includes(state.search);
+            const matchSearch   = !state.search || name.includes(state.search) || desc.includes(state.search);
             const matchCategory = state.category === "all" || catId === state.category;
-            let matchDietary = true;
-            if (state.dietary === "veg") matchDietary = isVeg;
-            else if (state.dietary === "nonveg") matchDietary = !isVeg;
-            const matchSpicy = !state.spicy || isSpicy;
-            const matchPopular = !state.popular || isPopular;
+            let matchDietary    = true;
+            if (state.dietary === "veg")    matchDietary = isVeg;
+            if (state.dietary === "nonveg") matchDietary = !isVeg;
+            const matchSpicy   = !state.spicy   || isSpicy;
+            const matchPopular = !state.popular || isPop;
 
-            if (matchSearch && matchCategory && matchDietary && matchSpicy && matchPopular) {
-                col.classList.remove("d-none");
-                visibleCount++;
-            } else {
-                col.classList.add("d-none");
-            }
+            const visible = matchSearch && matchCategory && matchDietary && matchSpicy && matchPopular;
+            col.style.display = visible ? "" : "none";
+            if (visible) visibleCount++;
         });
 
-        const sortedCols = itemCols.filter(col => !col.classList.contains("d-none"));
-        sortedCols.sort((a, b) => {
-            if (state.sort === "price-asc") return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
+        // Sort visible items
+        const visible = itemCols.filter(c => c.style.display !== "none");
+        visible.sort((a, b) => {
+            if (state.sort === "price-asc")  return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
             if (state.sort === "price-desc") return parseFloat(b.dataset.price) - parseFloat(a.dataset.price);
-            if (state.sort === "name-asc") return a.dataset.itemName.localeCompare(b.dataset.itemName);
-            if (state.sort === "name-desc") return b.dataset.itemName.localeCompare(a.dataset.itemName);
+            if (state.sort === "name-asc")   return a.dataset.itemName.localeCompare(b.dataset.itemName);
+            if (state.sort === "name-desc")  return b.dataset.itemName.localeCompare(a.dataset.itemName);
             if (state.sort === "popular") {
-                const qtyA = parseInt(a.dataset.completedQuantity, 10);
-                const qtyB = parseInt(b.dataset.completedQuantity, 10);
-                if (qtyB !== qtyA) return qtyB - qtyA;
+                const qa = parseInt(a.dataset.completedQuantity, 10);
+                const qb = parseInt(b.dataset.completedQuantity, 10);
+                if (qb !== qa) return qb - qa;
                 return parseInt(a.dataset.id, 10) - parseInt(b.dataset.id, 10);
             }
             return parseInt(a.dataset.defaultOrder, 10) - parseInt(b.dataset.defaultOrder, 10);
         });
+        visible.forEach(col => menuGrid.appendChild(col));
 
-        sortedCols.forEach(col => menuGrid.appendChild(col));
+        // Update count
+        if (resultsCount) {
+            resultsCount.textContent = `Showing ${visibleCount} dish${visibleCount !== 1 ? "es" : ""}`;
+        }
 
-        resultsCount.textContent = visibleCount === 1 ? "1 dish" : `${visibleCount} dishes`;
-
-        if (visibleCount === 0) {
-            emptyStateContainer.classList.remove("d-none");
-            menuGrid.appendChild(emptyStateContainer);
-        } else {
-            emptyStateContainer.classList.add("d-none");
+        // Show/hide no-results
+        if (noResultsState) {
+            noResultsState.style.display = visibleCount === 0 ? "" : "none";
         }
     }
 

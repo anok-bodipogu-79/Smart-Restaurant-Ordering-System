@@ -4,104 +4,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kitchen Staff Portal | SmartDine</title>
+    <title>Kitchen Staff Login | SmartDine</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+    <!-- Bootstrap and Bootstrap Icons for compatibility -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'restaurant/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'restaurant/css/smartdine.css' %}">
 </head>
-<body style="margin:0;padding:0;font-family:'Manrope',sans-serif;">
+<body class="sd-kitchen-login-body">
 
-    <div class="auth-grid">
+    <div class="sd-kitchen-login-grid">
 
-        <!-- Left: Asymmetric Editorial Branding Panel -->
-        <div class="auth-branding-panel">
-
-            <!-- Brand -->
-            <div class="mb-5">
-                <div class="d-flex align-items-center gap-2 mb-4">
-                    <span style="width:40px;height:40px;background:linear-gradient(135deg,#245A4C,#173F35);border-radius:10px;display:flex;align-items:center;justify-content:center;">
-                        <i class="bi bi-fire text-white fs-5"></i>
-                    </span>
-                    <span style="font-weight:800;font-size:1.25rem;color:var(--text-primary);">SmartDine <span style="color:var(--accent-gold);font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;vertical-align:middle;">Kitchen</span></span>
+        <!-- Left: Branding Panel -->
+        <div class="sd-login-branding">
+            <div class="sd-login-branding-inner">
+                
+                <!-- Brand Header -->
+                <div class="sd-kitchen-brand-large mb-4">
+                    <i class="bi bi-fire sd-kitchen-brand-icon-large"></i>
+                    <span class="sd-kitchen-brand-name-large">SmartDine <span class="sd-kitchen-brand-badge-large">KITCHEN</span></span>
                 </div>
 
-                <h1 class="auth-branding-title mb-3">Kitchen Staff<br>Operations</h1>
-                <p style="color:var(--text-secondary);font-size:1rem;line-height:1.65;max-width:360px;">
-                    Live orders. Fast transitions. Coordinated culinary workflow — all in your kitchen console.
+                <h1 class="sd-login-title">Kitchen Staff<br>Operations</h1>
+                <p class="sd-login-subtitle">
+                    Live orders. Clear priorities. Faster preparation.
                 </p>
-            </div>
 
-            <!-- Feature Bento Cards -->
-            <div class="row g-3" style="max-width:480px;">
-                <div class="col-6">
-                    <div style="background:rgba(255,255,255,0.75);border:1px solid var(--border-default);border-radius:14px;padding:1.1rem;backdrop-filter:blur(8px);">
-                        <div style="width:36px;height:36px;background:var(--accent-gold-soft);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:0.6rem;">
-                            <i class="bi bi-card-list" style="color:var(--accent-gold);font-size:1.1rem;"></i>
+                <!-- Compact Capabilities -->
+                <div class="sd-login-capabilities">
+                    <div class="sd-capability-item">
+                        <div class="sd-capability-icon">
+                            <i class="bi bi-list-check"></i>
                         </div>
-                        <div style="font-weight:700;font-size:0.875rem;color:var(--text-primary);margin-bottom:0.25rem;">Live Queue</div>
-                        <div style="font-size:0.78rem;color:var(--text-muted);line-height:1.4;">Receive new orders instantly with special preparation notes.</div>
+                        <div class="sd-capability-text">
+                            <h6>Live Queue</h6>
+                            <p>Real-time incoming orders</p>
+                        </div>
                     </div>
-                </div>
-                <div class="col-6">
-                    <div style="background:rgba(255,255,255,0.75);border:1px solid var(--border-default);border-radius:14px;padding:1.1rem;backdrop-filter:blur(8px);">
-                        <div style="width:36px;height:36px;background:var(--brand-primary-soft);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:0.6rem;">
-                            <i class="bi bi-clock-history" style="color:var(--brand-primary);font-size:1.1rem;"></i>
+                    <div class="sd-capability-item">
+                        <div class="sd-capability-icon">
+                            <i class="bi bi-exclamation-triangle"></i>
                         </div>
-                        <div style="font-weight:700;font-size:0.875rem;color:var(--text-primary);margin-bottom:0.25rem;">Speed &amp; Status</div>
-                        <div style="font-size:0.78rem;color:var(--text-muted);line-height:1.4;">Progress order stages, mark delays, and manage priority.</div>
+                        <div class="sd-capability-text">
+                            <h6>Order Priorities</h6>
+                            <p>Instant urgent detection</p>
+                        </div>
+                    </div>
+                    <div class="sd-capability-item">
+                        <div class="sd-capability-icon">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                        <div class="sd-capability-text">
+                            <h6>Preparation Tracking</h6>
+                            <p>Streamlined kitchen workflow</p>
+                        </div>
                     </div>
                 </div>
             </div>
+            
+            <!-- Subtle background operational element -->
+            <div class="sd-login-bg-decor"></div>
         </div>
 
         <!-- Right: Login Form Panel -->
-        <div class="auth-form-panel">
-            <div class="auth-card">
+        <div class="sd-login-form-panel">
+            <div class="sd-login-card">
 
-                <!-- Card Header -->
                 <div class="text-center mb-4">
-                    <div style="width:52px;height:52px;background:var(--accent-gold-soft);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 0.85rem;">
-                        <i class="bi bi-fire" style="color:var(--accent-gold);font-size:1.4rem;"></i>
-                    </div>
-                    <h2 style="font-weight:800;font-size:1.35rem;color:var(--text-primary);margin-bottom:0.25rem;">Kitchen Sign In</h2>
-                    <p style="font-size:0.82rem;color:var(--text-muted);margin:0;">Authentication required for kitchen dashboard access</p>
+                    <h2 class="sd-login-card-title">Secure Sign In</h2>
+                    <p class="sd-login-card-subtitle">Authentication required for kitchen operations.</p>
                 </div>
 
                 {% if form.errors %}
-                    <div class="alert alert-danger py-2 small mb-3">
-                        <i class="bi bi-exclamation-triangle me-2"></i>Invalid credentials. Please try again.
+                    <div class="sd-login-error">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Invalid credentials. Please try again.
                     </div>
                 {% endif %}
 
                 <form method="POST" action="{% url 'restaurant:kitchen_login' %}">
                     {% csrf_token %}
-
-                    <div class="mb-3">
-                        <label for="id_username" class="form-label">Username</label>
-                        <input type="text" name="username" class="form-control" id="id_username"
-                               required placeholder="Enter username" autofocus autocomplete="username">
+                    
+                    <div class="sd-form-group">
+                        <label for="id_username" class="sd-form-label">Username</label>
+                        <input type="text" name="username" class="sd-form-input" id="id_username" required placeholder="Enter your username" autofocus autocomplete="username">
                     </div>
 
-                    <div class="mb-4">
-                        <label for="id_password" class="form-label">Password</label>
-                        <input type="password" name="password" class="form-control" id="id_password"
-                               required placeholder="Enter password" autocomplete="current-password">
+                    <div class="sd-form-group">
+                        <label for="id_password" class="sd-form-label">Password</label>
+                        <input type="password" name="password" class="sd-form-input" id="id_password" required placeholder="Enter your password" autocomplete="current-password">
                     </div>
 
-                    <!-- Gold gradient for kitchen CTA -->
-                    <button type="submit" class="btn w-100 py-2 fw-bold mb-3"
-                            style="background:linear-gradient(135deg,#C58A32 0%,#A86D18 100%);color:#fff;border:none;border-radius:10px;font-size:0.95rem;letter-spacing:0.02em;box-shadow:0 4px 12px rgba(183,121,31,0.22);transition:all 0.18s;">
-                        <i class="bi bi-box-arrow-in-right me-2"></i>Staff Sign In
+                    <button type="submit" class="sd-btn-login-primary">
+                        Sign In to Kitchen <i class="bi bi-arrow-right ms-2"></i>
                     </button>
                 </form>
 
-                <div class="text-center">
-                    <a href="{% url 'restaurant:menu' %}" class="text-decoration-none small"
-                       style="color:var(--text-muted);">
-                        <i class="bi bi-arrow-left me-1"></i>Return to customer menu
+                <div class="sd-login-footer">
+                    <a href="{% url 'restaurant:staff_access' %}" class="sd-login-return">
+                        <i class="bi bi-arrow-left"></i> Return to Staff Access
                     </a>
                 </div>
 
@@ -110,6 +112,5 @@
 
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
