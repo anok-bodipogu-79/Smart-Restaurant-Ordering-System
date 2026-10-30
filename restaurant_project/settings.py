@@ -168,24 +168,27 @@ STORAGES = {
         ),
     },
     "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        "BACKEND": (
+            "whitenoise.storage.CompressedStaticFilesStorage"
+            if not DEBUG
+            else "django.contrib.staticfiles.storage.StaticFilesStorage"
+        ),
     },
 }
 
 # Backward compatibility for django-cloudinary-storage
 STATICFILES_STORAGE = (
-    "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    "whitenoise.storage.CompressedStaticFilesStorage"
     if not DEBUG
     else "django.contrib.staticfiles.storage.StaticFilesStorage"
 )
 
+WHITENOISE_MANIFEST_STRICT = False
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Production Security Settings and Static Storage
+# Production Security Settings
 if not DEBUG:
-    STORAGES["staticfiles"] = {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    }
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
