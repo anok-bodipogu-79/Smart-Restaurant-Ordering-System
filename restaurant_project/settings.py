@@ -172,6 +172,13 @@ STORAGES = {
     },
 }
 
+# Backward compatibility for django-cloudinary-storage
+STATICFILES_STORAGE = (
+    "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    if not DEBUG
+    else "django.contrib.staticfiles.storage.StaticFilesStorage"
+)
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Production Security Settings and Static Storage
