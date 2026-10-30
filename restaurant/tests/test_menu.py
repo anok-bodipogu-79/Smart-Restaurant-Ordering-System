@@ -118,7 +118,7 @@ class MenuViewTest(TestCase):
         response = self.client.get(reverse("restaurant:menu"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "No Menu Items Found")
-        self.assertContains(response, "No items are currently available in this category. Please check back later!")
+        self.assertContains(response, "No items are currently available. Please check back later!")
 
     def test_base_template_structure(self):
         response = self.client.get(reverse("restaurant:menu"))
@@ -127,7 +127,7 @@ class MenuViewTest(TestCase):
         # Cart indicator check
         self.assertContains(response, 'id="cart-count"')
         # Custom CSS inclusion check
-        self.assertContains(response, "/static/restaurant/css/style.css")
+        self.assertContains(response, "/static/restaurant/css/smartdine.css")
         # Custom JS inclusion check
         self.assertContains(response, "/static/restaurant/js/cart.js")
         # Navbar cart link check

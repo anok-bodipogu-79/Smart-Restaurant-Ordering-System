@@ -333,7 +333,7 @@
                         </p>
 
                         <!-- Add to Order / Quantity Controller -->
-                        <div class="sd-order-ctrl" data-item-id="{{ item.id }}">
+                        <div class="sd-order-ctrl"{% if item.is_available %} data-item-id="{{ item.id }}"{% endif %}>
                             {% if item.is_available %}
                             <!-- Add button (initial state) -->
                             <button type="button"

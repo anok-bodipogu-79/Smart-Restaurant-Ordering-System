@@ -22,7 +22,7 @@
                 {% endif %}
             </div>
             <div class="sd-detail-meta">
-                {% if order.table_number %}Table {{ order.table_number }} (Dine-in){% else %}Takeaway{% endif %}
+                {% if order.table_number %}Table #{{ order.table_number }} (Dine-in){% else %}Takeaway{% endif %}
                 &bull; Received {{ order.created_at|timesince }} ago
                 &bull; {{ order.get_priority_display }} Priority
             </div>
