@@ -1,6 +1,7 @@
 import re
 from django import forms
 from django.core.exceptions import ValidationError
+from restaurant.models import Category, MenuItem
 
 class CheckoutForm(forms.Form):
     customer_name = forms.CharField(
@@ -41,8 +42,6 @@ class CheckoutForm(forms.Form):
             name = name.strip()
             if len(name) < 2:
                 raise ValidationError("Name must be at least 2 characters long.")
-            if not name:
-                raise ValidationError("Name cannot be empty or only whitespace.")
         return name
 
     def clean_customer_phone(self):
@@ -80,8 +79,6 @@ class OrderTrackingForm(forms.Form):
         }
     )
 
-
-from restaurant.models import Category, MenuItem
 
 class DateRangeFilterForm(forms.Form):
     period = forms.ChoiceField(

@@ -1,18 +1,26 @@
+import csv
 import json
 import logging
+import datetime
 from decimal import Decimal
-from django.db import transaction
 from django.contrib import messages
-from django.template.loader import render_to_string
-from django.http import JsonResponse, HttpResponse
+from django.contrib.auth import logout
+from django.contrib.auth.mixins import UserPassesTestMixin
+from django.contrib.auth.views import LoginView as DjangoLoginView, LogoutView as DjangoLogoutView
+from django.core.exceptions import PermissionDenied
+from django.db import transaction
+from django.db.models import Sum, Count, Avg, F, Q
+from django.db.models.functions import Coalesce
+from django.http import JsonResponse, HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import redirect, get_object_or_404, render
-from django.urls import reverse
+from django.template.loader import render_to_string
+from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.views import View
 from django.views.generic import ListView, TemplateView, DetailView, FormView
-from django.contrib.auth.views import LoginView as DjangoLoginView, LogoutView as DjangoLogoutView
-from django.contrib.auth.mixins import UserPassesTestMixin
-from restaurant.models import Category, MenuItem, Order, OrderItem, OrderFeedback
-from restaurant.forms import CheckoutForm, OrderTrackingForm
+from django.views.generic.edit import CreateView, UpdateView
+from restaurant.forms import CheckoutForm, OrderTrackingForm, DateRangeFilterForm, MenuItemForm, CategoryForm
+from restaurant.models import Category, MenuItem, Order, OrderItem, OrderFeedback, AuditLog
 
 logger = logging.getLogger(__name__)
 
@@ -58,17 +66,17 @@ class MenuListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        
-        # Calculate popular items from completed orders
-        menu_items_list = list(self.get_queryset())
+
+        # Reuse the already-fetched queryset from get_object_list() — avoid a second DB query
+        menu_items_list = list(context["menu_items"])
         popular_items = [item for item in menu_items_list if item.is_available and item.completed_quantity > 0]
         popular_items.sort(key=lambda x: (-x.completed_quantity, x.id))
         popular_ids = [item.id for item in popular_items[:3]]
-        
+
         context["popular_ids"] = popular_ids
         context["featured_items"] = popular_items[:5]
         context["categories"] = Category.objects.all()
-        
+
         # Keep active_category for fallback or template highlighting if page is loaded with URL param
         active_category = None
         category_id = self.request.GET.get("category")
@@ -494,21 +502,16 @@ class KitchenOrderDetailView(KitchenRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         order = self.object
-        
+
         # Calculation from historical pricing records
         subtotal = sum(item.price_at_order * item.quantity for item in order.items.all())
         tax = subtotal * Decimal("0.05")
-        
+
         context["subtotal"] = subtotal.quantize(Decimal("0.01"))
         context["tax"] = tax.quantize(Decimal("0.01"))
         context["grand_total"] = order.total_amount.quantize(Decimal("0.01"))
-        
-        # Setup valid next step actions
-        ALLOWED_STATUS_TRANSITIONS = {
-            "RECEIVED": "PREPARING",
-            "PREPARING": "READY",
-            "READY": "COMPLETED"
-        }
+
+        # Use module-level constant — no need to redefine here
         context["next_status"] = ALLOWED_STATUS_TRANSITIONS.get(order.status)
         return context
 
@@ -542,8 +545,6 @@ class KitchenOrderStatusUpdateView(KitchenRequiredMixin, View):
                     old_priority = order.priority
                     order.priority = new_priority
                     order.save(update_fields=["priority"])
-                    
-                    from restaurant.models import AuditLog
                     AuditLog.objects.create(
                         actor=request.user,
                         action="PRIORITY_CHANGE",
@@ -551,7 +552,6 @@ class KitchenOrderStatusUpdateView(KitchenRequiredMixin, View):
                         target_id=str(order.id),
                         description=f"Changed Order #{order.id} priority from {old_priority} to {new_priority}."
                     )
-                    
                     logger.info(f"Order #{order.id} priority updated from {old_priority} to {new_priority} by user {request.user.username}.")
                     messages.success(request, f"Order #{order.id} priority updated to {new_priority}.")
                 else:
@@ -564,8 +564,6 @@ class KitchenOrderStatusUpdateView(KitchenRequiredMixin, View):
                 if not prep_val or prep_val.strip() == "":
                     order.estimated_preparation_minutes = None
                     order.save(update_fields=["estimated_preparation_minutes"])
-                    
-                    from restaurant.models import AuditLog
                     AuditLog.objects.create(
                         actor=request.user,
                         action="PREP_TIME_CHANGE",
@@ -573,7 +571,6 @@ class KitchenOrderStatusUpdateView(KitchenRequiredMixin, View):
                         target_id=str(order.id),
                         description=f"Cleared estimated preparation time for Order #{order.id}."
                     )
-                    
                     messages.success(request, f"Cleared preparation time for Order #{order.id}.")
                 else:
                     try:
@@ -581,8 +578,6 @@ class KitchenOrderStatusUpdateView(KitchenRequiredMixin, View):
                         if 5 <= prep_minutes <= 180:
                             order.estimated_preparation_minutes = prep_minutes
                             order.save(update_fields=["estimated_preparation_minutes"])
-                            
-                            from restaurant.models import AuditLog
                             AuditLog.objects.create(
                                 actor=request.user,
                                 action="PREP_TIME_CHANGE",
@@ -590,7 +585,6 @@ class KitchenOrderStatusUpdateView(KitchenRequiredMixin, View):
                                 target_id=str(order.id),
                                 description=f"Updated estimated preparation time for Order #{order.id} to {prep_minutes} minutes."
                             )
-                            
                             logger.info(f"Order #{order.id} prep minutes updated from {old_prep} to {prep_minutes} by user {request.user.username}.")
                             messages.success(request, f"Order #{order.id} preparation time set to {prep_minutes} minutes.")
                         else:
@@ -618,12 +612,11 @@ class KitchenOrderStatusUpdateView(KitchenRequiredMixin, View):
                 # Transition is valid -> save state
                 order.status = requested_status
                 if requested_status == "COMPLETED":
-                    from django.utils import timezone
                     order.completed_at = timezone.now()
                     order.save(update_fields=["status", "completed_at"])
                 else:
                     order.save(update_fields=["status"])
-                
+
                 logger.info(f"Order #{order.id} status updated successfully from {current_status} to {requested_status} by kitchen user {request.user.username}.")
                 messages.success(
                     request,
@@ -633,7 +626,6 @@ class KitchenOrderStatusUpdateView(KitchenRequiredMixin, View):
         return redirect("restaurant:kitchen_dashboard")
 
     def get(self, request, *args, **kwargs):
-        from django.http import HttpResponseNotAllowed
         return HttpResponseNotAllowed(["POST"])
 
 
@@ -706,8 +698,6 @@ class OrderTrackingStatusView(View):
         
         estimated_ready_time = None
         if order.estimated_preparation_minutes:
-            from django.utils import timezone
-            import datetime
             ready_dt = order.created_at + datetime.timedelta(minutes=order.estimated_preparation_minutes)
             local_ready_dt = timezone.localtime(ready_dt)
             estimated_ready_time = local_ready_dt.strftime("%I:%M %p")
@@ -728,21 +718,10 @@ class OrderTrackingStatusView(View):
         return response
 
     def post(self, request, *args, **kwargs):
-        from django.http import HttpResponseNotAllowed
         return HttpResponseNotAllowed(["GET"])
 
 
 # --- MANAGER DASHBOARD & OPERATIONS ---
-
-import datetime
-from django.utils import timezone
-from django.db.models import Sum, Count, Avg, F, Q
-from django.db.models.functions import Coalesce
-from django.contrib.auth import logout
-from django.urls import reverse_lazy
-from django.core.exceptions import PermissionDenied
-from django.views.generic.edit import CreateView, UpdateView
-from restaurant.forms import DateRangeFilterForm, MenuItemForm, CategoryForm
 
 class ManagerRequiredMixin(UserPassesTestMixin):
     """
@@ -784,7 +763,6 @@ class ManagerLogoutView(View):
         return redirect("restaurant:manager_login")
 
     def get(self, request, *args, **kwargs):
-        from django.http import HttpResponseNotAllowed
         return HttpResponseNotAllowed(["POST"])
 
 
@@ -948,9 +926,7 @@ class ManagerDashboardView(ManagerRequiredMixin, TemplateView):
             "end_dt_str": end_dt.strftime("%Y-%m-%d"),
         })
         return context
-import csv
-from django.http import HttpResponse
-from restaurant.models import AuditLog
+
 
 class ManagerCSVExportView(ManagerRequiredMixin, View):
     """
@@ -1132,11 +1108,9 @@ class ManagerOrderCancelView(ManagerRequiredMixin, View):
                     logger.warning(f"Order cancellation failed: Order #{order.id} is in status {order.status}, not RECEIVED.")
                     messages.error(request, "Only orders with RECEIVED status can be cancelled.")
                     return redirect("restaurant:manager_order_detail", pk=pk)
-                
+
                 order.status = "CANCELLED"
                 order.save()
-                
-                from restaurant.models import AuditLog
                 AuditLog.objects.create(
                     actor=request.user,
                     action="ORDER_CANCEL",
@@ -1144,7 +1118,6 @@ class ManagerOrderCancelView(ManagerRequiredMixin, View):
                     target_id=str(order.id),
                     description=f"Cancelled Order #{order.id}."
                 )
-                
                 logger.info(f"Order #{order.id} was successfully cancelled by manager {request.user.username}.")
                 messages.success(request, f"Order #{order.id} was successfully cancelled.")
         except Order.DoesNotExist:
@@ -1154,7 +1127,6 @@ class ManagerOrderCancelView(ManagerRequiredMixin, View):
         return redirect("restaurant:manager_order_detail", pk=pk)
 
     def get(self, request, *args, **kwargs):
-        from django.http import HttpResponseNotAllowed
         return HttpResponseNotAllowed(["POST"])
 
 
@@ -1194,7 +1166,6 @@ class ManagerMenuItemCreateView(ManagerRequiredMixin, CreateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-        from restaurant.models import AuditLog
         AuditLog.objects.create(
             actor=self.request.user,
             action="MENU_ITEM_CREATE",
@@ -1214,7 +1185,6 @@ class ManagerMenuItemUpdateView(ManagerRequiredMixin, UpdateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-        from restaurant.models import AuditLog
         AuditLog.objects.create(
             actor=self.request.user,
             action="MENU_ITEM_UPDATE",
@@ -1233,8 +1203,6 @@ class ManagerMenuItemAvailabilityView(ManagerRequiredMixin, View):
             item.is_available = not item.is_available
             item.save()
             status_str = "available" if item.is_available else "unavailable"
-            
-            from restaurant.models import AuditLog
             AuditLog.objects.create(
                 actor=request.user,
                 action="MENU_ITEM_AVAILABILITY",
@@ -1242,14 +1210,12 @@ class ManagerMenuItemAvailabilityView(ManagerRequiredMixin, View):
                 target_id=str(item.id),
                 description=f"Toggled availability of '{item.name}' to {status_str}."
             )
-            
             messages.success(request, f"Menu item '{item.name}' is now marked {status_str}.")
         except MenuItem.DoesNotExist:
             messages.error(request, "Menu item not found.")
         return redirect("restaurant:manager_menu_list")
 
     def get(self, request, *args, **kwargs):
-        from django.http import HttpResponseNotAllowed
         return HttpResponseNotAllowed(["POST"])
 
 
@@ -1270,7 +1236,6 @@ class ManagerCategoryCreateView(ManagerRequiredMixin, CreateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-        from restaurant.models import AuditLog
         AuditLog.objects.create(
             actor=self.request.user,
             action="CATEGORY_CREATE",
@@ -1290,7 +1255,6 @@ class ManagerCategoryUpdateView(ManagerRequiredMixin, UpdateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-        from restaurant.models import AuditLog
         AuditLog.objects.create(
             actor=self.request.user,
             action="CATEGORY_UPDATE",

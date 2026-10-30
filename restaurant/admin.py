@@ -1,5 +1,5 @@
 from django.contrib import admin
-from restaurant.models import Category, MenuItem, Order, OrderItem
+from restaurant.models import Category, MenuItem, Order, OrderItem, AuditLog
 
 
 @admin.register(Category)
@@ -33,8 +33,6 @@ class OrderItemAdmin(admin.ModelAdmin):
     search_fields = ("menu_item__name", "item_name_at_order", "category_name_at_order", "order__customer_name")
     readonly_fields = ("item_name_at_order", "category_name_at_order", "price_at_order")
 
-
-from restaurant.models import AuditLog
 
 @admin.register(AuditLog)
 class AuditLogAdmin(admin.ModelAdmin):
