@@ -28,6 +28,7 @@ class Command(BaseCommand):
                 "is_spicy": True,
                 "is_available": True,
                 "image_url": "https://via.placeholder.com/300x200",
+                "image": "menu_items/ChatGPT_Image_Jul_7_2026_10_36_36_AM.png",
             },
             {
                 "category_name": "Appetizers",
@@ -38,6 +39,7 @@ class Command(BaseCommand):
                 "is_spicy": True,
                 "is_available": True,
                 "image_url": "https://via.placeholder.com/300x200",
+                "image": "menu_items/ChatGPT_Image_Jul_7_2026_10_31_55_AM.png",
             },
             {
                 "category_name": "Appetizers",
@@ -48,6 +50,7 @@ class Command(BaseCommand):
                 "is_spicy": False,
                 "is_available": True,
                 "image_url": "https://via.placeholder.com/300x200",
+                "image": "menu_items/ChatGPT_Image_Jul_7_2026_10_38_19_AM.png",
             },
             {
                 "category_name": "Appetizers",
@@ -58,6 +61,7 @@ class Command(BaseCommand):
                 "is_spicy": True,
                 "is_available": True,
                 "image_url": "https://via.placeholder.com/300x200",
+                "image": "menu_items/ChatGPT_Image_Jul_7_2026_10_35_13_AM.png",
             },
             # Main Course
             {
@@ -69,6 +73,7 @@ class Command(BaseCommand):
                 "is_spicy": True,
                 "is_available": True,
                 "image_url": "https://via.placeholder.com/300x200",
+                "image": "menu_items/ChatGPT_Image_Jul_7_2026_12_24_51_PM.png",
             },
             {
                 "category_name": "Main Course",
@@ -79,6 +84,7 @@ class Command(BaseCommand):
                 "is_spicy": False,
                 "is_available": True,
                 "image_url": "https://via.placeholder.com/300x200",
+                "image": "menu_items/ChatGPT_Image_Jul_7_2026_12_25_00_PM.png",
             },
             {
                 "category_name": "Main Course",
@@ -89,6 +95,7 @@ class Command(BaseCommand):
                 "is_spicy": False,
                 "is_available": True,
                 "image_url": "https://via.placeholder.com/300x200",
+                "image": "menu_items/ChatGPT_Image_Jul_7_2026_12_25_07_PM.png",
             },
             {
                 "category_name": "Main Course",
@@ -99,6 +106,7 @@ class Command(BaseCommand):
                 "is_spicy": False,
                 "is_available": True,
                 "image_url": "https://via.placeholder.com/300x200",
+                "image": "menu_items/ChatGPT_Image_Jul_7_2026_12_24_41_PM.png",
             },
             # Desserts
             {
@@ -110,6 +118,7 @@ class Command(BaseCommand):
                 "is_spicy": False,
                 "is_available": True,
                 "image_url": "https://via.placeholder.com/300x200",
+                "image": "menu_items/ChatGPT_Image_Jul_7_2026_11_06_34_AM.png",
             },
             {
                 "category_name": "Desserts",
@@ -120,6 +129,7 @@ class Command(BaseCommand):
                 "is_spicy": False,
                 "is_available": True,
                 "image_url": "https://via.placeholder.com/300x200",
+                "image": "menu_items/ChatGPT_Image_Jul_7_2026_11_02_41_AM.png",
             },
             {
                 "category_name": "Desserts",
@@ -130,6 +140,7 @@ class Command(BaseCommand):
                 "is_spicy": False,
                 "is_available": True,
                 "image_url": "https://via.placeholder.com/300x200",
+                "image": "menu_items/ChatGPT_Image_Jul_7_2026_12_24_31_PM.png",
             },
             {
                 "category_name": "Desserts",
@@ -140,6 +151,7 @@ class Command(BaseCommand):
                 "is_spicy": False,
                 "is_available": True,
                 "image_url": "https://via.placeholder.com/300x200",
+                "image": "menu_items/ChatGPT_Image_Jul_7_2026_11_32_03_AM.png",
             },
             # Beverages
             {
@@ -151,6 +163,7 @@ class Command(BaseCommand):
                 "is_spicy": True,
                 "is_available": True,
                 "image_url": "https://via.placeholder.com/300x200",
+                "image": "menu_items/ChatGPT_Image_Jul_7_2026_10_51_35_AM.png",
             },
             {
                 "category_name": "Beverages",
@@ -161,6 +174,7 @@ class Command(BaseCommand):
                 "is_spicy": False,
                 "is_available": True,
                 "image_url": "https://via.placeholder.com/300x200",
+                "image": "menu_items/ChatGPT_Image_Jul_7_2026_10_45_54_AM.png",
             },
             {
                 "category_name": "Beverages",
@@ -171,6 +185,7 @@ class Command(BaseCommand):
                 "is_spicy": False,
                 "is_available": True,
                 "image_url": "https://via.placeholder.com/300x200",
+                "image": "menu_items/ChatGPT_Image_Jul_7_2026_10_41_44_AM.png",
             },
             {
                 "category_name": "Beverages",
@@ -181,6 +196,7 @@ class Command(BaseCommand):
                 "is_spicy": False,
                 "is_available": True,
                 "image_url": "https://via.placeholder.com/300x200",
+                "image": "menu_items/ChatGPT_Image_Jul_7_2026_10_47_54_AM.png",
             },
         ]
 
@@ -208,17 +224,21 @@ class Command(BaseCommand):
                 # 2. Seed Menu Items
                 for item_data in menu_items_data:
                     category = category_objs[item_data["category_name"]]
+                    defaults_dict = {
+                        "description": item_data["description"],
+                        "price": item_data["price"],
+                        "is_vegetarian": item_data["is_vegetarian"],
+                        "is_spicy": item_data["is_spicy"],
+                        "is_available": item_data["is_available"],
+                        "image_url": item_data["image_url"],
+                    }
+                    if "image" in item_data:
+                        defaults_dict["image"] = item_data["image"]
+
                     item, created = MenuItem.objects.update_or_create(
                         category=category,
                         name=item_data["name"],
-                        defaults={
-                            "description": item_data["description"],
-                            "price": item_data["price"],
-                            "is_vegetarian": item_data["is_vegetarian"],
-                            "is_spicy": item_data["is_spicy"],
-                            "is_available": item_data["is_available"],
-                            "image_url": item_data["image_url"],
-                        }
+                        defaults=defaults_dict,
                     )
                     if created:
                         items_created += 1

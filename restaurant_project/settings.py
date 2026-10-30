@@ -21,6 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load local environment variables from .env file during development
 load_dotenv(BASE_DIR / ".env")
 
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get("CLOUDINARY_CLOUD_NAME"),
+    'API_KEY': os.environ.get("CLOUDINARY_API_KEY"),
+    'API_SECRET': os.environ.get("CLOUDINARY_API_SECRET"),
+}
+
 cloudinary.config(
     cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
     api_key=os.environ.get("CLOUDINARY_API_KEY"),
@@ -49,14 +55,14 @@ CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in CSRF_TRUSTED_ORIGINS_STR.sp
 # Application definition
 
 INSTALLED_APPS = [
-    'cloudinary',
-
+    'cloudinary_storage',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'cloudinary',
     'restaurant.apps.RestaurantConfig',
 ]
 
