@@ -55,7 +55,10 @@ class MenuItem(models.Model):
     @property
     def display_image_url(self):
         if self.image:
-            return self.image.url
+            try:
+                return self.image.url
+            except Exception:
+                pass
         if self.image_url:
             return self.image_url
         return "https://via.placeholder.com/300x200"

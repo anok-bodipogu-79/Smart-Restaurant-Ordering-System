@@ -1,4 +1,5 @@
 {% extends "restaurant/manager_base.html" %}
+{% load static %}
 
 {% block title %}{% if object %}Edit MenuItem '{{ object.name }}'{% else %}Add MenuItem{% endif %}{% endblock %}
 
@@ -110,12 +111,12 @@
                     {% if object and object.image %}
                     <div class="col-12 mt-3">
                         <span class="d-block small fw-bold text-muted mb-1">Current Uploaded Image:</span>
-                        <img src="{{ object.image.url }}" alt="{{ object.name }}" class="rounded-3 border" style="height: 80px; width: 80px; object-fit: cover;">
+                        <img src="{{ object.image.url }}" alt="{{ object.name }}" class="rounded-3 border" style="height: 80px; width: 80px; object-fit: cover;" onerror="this.onerror=null;this.src='/static/restaurant/images/food_placeholder.svg';">
                     </div>
                     {% elif object and object.image_url %}
                     <div class="col-12 mt-3">
                         <span class="d-block small fw-bold text-muted mb-1">Current External Image URL:</span>
-                        <img src="{{ object.image_url }}" alt="{{ object.name }}" class="rounded-3 border" style="height: 80px; width: 80px; object-fit: cover;">
+                        <img src="{{ object.image_url }}" alt="{{ object.name }}" class="rounded-3 border" style="height: 80px; width: 80px; object-fit: cover;" onerror="this.onerror=null;this.src='/static/restaurant/images/food_placeholder.svg';">
                     </div>
                     {% endif %}
                 </div>

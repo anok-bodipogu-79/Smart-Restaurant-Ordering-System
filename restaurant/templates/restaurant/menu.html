@@ -32,7 +32,7 @@
         <div class="sd-carousel-track" id="hero-carousel-track">
             {% for item in featured_items %}
                 <div class="sd-carousel-slide {% if forloop.first %}active{% endif %}" data-slide-index="{{ forloop.counter0 }}" data-item-id="{{ item.id }}">
-                    <img src="{{ item.display_image_url }}" alt="Featured dish: {{ item.name }}" class="sd-hero-img" onclick="document.getElementById('item-card-{{ item.id }}')?.scrollIntoView({behavior: 'smooth', block: 'center'});" style="cursor: pointer;" title="Click to view in menu">
+                    <img src="{{ item.display_image_url }}" alt="Featured dish: {{ item.name }}" class="sd-hero-img" onclick="document.getElementById('item-card-{{ item.id }}')?.scrollIntoView({behavior: 'smooth', block: 'center'});" style="cursor: pointer;" title="Click to view in menu" onerror="this.onerror=null;this.src='/static/restaurant/images/food_placeholder.svg';">
                     <!-- Chef's Pick floating card -->
                     <div class="sd-chefs-pick-card" onclick="document.getElementById('item-card-{{ item.id }}')?.scrollIntoView({behavior: 'smooth', block: 'center'});" style="cursor: pointer;" title="Click to view in menu">
                         <div class="d-flex align-items-center mb-1">
@@ -224,7 +224,7 @@
                      title="{{ item.name }}"
                      tabindex="0">
                     <div class="sd-popular-img-wrap">
-                        <img src="{{ item.display_image_url }}" alt="{{ item.name }}" class="sd-popular-img" loading="lazy">
+                        <img src="{{ item.display_image_url }}" alt="{{ item.name }}" class="sd-popular-img" loading="lazy" onerror="this.onerror=null;this.src='/static/restaurant/images/food_placeholder.svg';">
                     </div>
                     <div class="sd-popular-info">
                         <div class="sd-popular-row">
@@ -247,7 +247,7 @@
                          title="{{ item.name }}"
                          tabindex="0">
                         <div class="sd-popular-img-wrap">
-                            <img src="{{ item.display_image_url }}" alt="{{ item.name }}" class="sd-popular-img" loading="lazy">
+                            <img src="{{ item.display_image_url }}" alt="{{ item.name }}" class="sd-popular-img" loading="lazy" onerror="this.onerror=null;this.src='/static/restaurant/images/food_placeholder.svg';">
                         </div>
                         <div class="sd-popular-info">
                             <div class="sd-popular-row">
@@ -298,7 +298,8 @@
                         <img src="{{ item.display_image_url }}"
                              alt="{{ item.name }}"
                              class="sd-food-img"
-                             loading="lazy">
+                             loading="lazy"
+                             onerror="this.onerror=null;this.src='/static/restaurant/images/food_placeholder.svg';">
 
                         <!-- Dietary dot badge -->
                         <span class="sd-diet-badge {% if item.is_vegetarian %}sd-diet-badge--veg{% else %}sd-diet-badge--nonveg{% endif %}"
